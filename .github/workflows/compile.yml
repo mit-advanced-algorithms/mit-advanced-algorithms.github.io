@@ -27,32 +27,6 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-20.04
-    strategy:
-      matrix:
-        file: [
-          notes/n00-intro,
-          notes/n01-fibonacci,
-          notes/n02-persistent,
-          notes/n03-splay,
-          notes/n04-bucket,
-          notes/n05-hashing,
-          notes/n06-flow,
-          notes/n07-flow_computation,
-          notes/n08-advanced_flow_algorithms,
-          notes/n09-blocking_flows,
-          notes/n10-mincostflow,
-          notes/n11-lp,
-          notes/n12-duality,
-          notes/n14-LP_algorithms,
-          notes/n16-gradient_descent,
-          notes/n17-interior_point_method,
-          notes/n20-approx,
-          notes/n22-fixedparam,
-          notes/n25-online,
-          notes/n27-geometry,
-          notes/n28-external,
-          notes/n32-parallel
-        ]
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -61,14 +35,16 @@ jobs:
       - name: Compile Tex to HTML
         uses: docker://pandoc/latex:2.17
         with:
-          args: >-
-            --mathjax
-            --listings
-            -N
-            -t html5
-            --variable linestretch=1.25
-            --output=${{ matrix.file }}.html
-            ${{ matrix.file }}.tex
+          run: |
+            echo "hello world"
+            pandoc 
+              --mathjax
+              --listings
+              -N
+              -t html5
+              --variable linestretch=1.25
+              --output=notes/n00-intro.html
+              notes/n00-intro.tex
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
         with:
