@@ -9,11 +9,15 @@ jobs:
       matrix:
         file: [notes/n00-intro, notes/n01-fibonacci]
     steps:
-      - name: make output directory
+      - name: Checkout repository
+        uses: actions/checkout@master
+
+      - name: Make output directory
         run: |
           mkdir compiled
 
-      - uses: docker://pandoc/latex:2.17
+      - name: Compile Tex to HTML
+        uses: docker://pandoc/latex:2.17
         with:
           args: >-
             --mathjax
@@ -24,7 +28,8 @@ jobs:
             --output=compiled/${{ matrix.file }}.html
             ${{ matrix.file }}.tex
 
-      - uses: actions/upload-artifact@master
+      - name: Upload compiled HTML
+        uses: actions/upload-artifact@master
         with:
           name: compiled
           path: compiled
