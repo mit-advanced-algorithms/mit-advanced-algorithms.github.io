@@ -1,0 +1,11 @@
+name: Compile Markdown and Latex
+
+on: push
+
+jobs:
+  convert_via_pandoc:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: docker://pandoc/latex:2.17
+        with:
+          args: "--help"
