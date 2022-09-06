@@ -1,16 +1,17 @@
 #!/bin/sh
 
 echo "Converting TeX to HTML..."
-for file in $(find . -name "*.tex")
+for file in $(find . -name "*.tex" -o -name "*.md")
 do
   mkdir -p www/$(dirname $file)
+  output=www/$(echo "$file" | rev | cut -f 2- -d '.' | rev).html
   pandoc \
     --mathjax \
     --listings \
     -N \
     -t html5 \
     --variable linestretch=1.25 \
-    --output=www/${file%.tex}.html \
+    --output=$output \
     $file
 done
 
