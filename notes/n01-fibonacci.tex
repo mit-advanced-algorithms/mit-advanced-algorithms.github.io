@@ -1,0 +1,396 @@
+\documentclass{article}
+\usepackage{me}
+\setlength{\parindent}{0pt}
+
+\title{Fibonacci Heaps\\ 6.854 Notes \#1}
+\author{David Karger}
+
+\begin{document}
+\marnote{This material takes 1:15}
+
+\section{Heaps}
+
+Shortest path/MST motivation.  Discuss Prim/Dijkstra algorithm.
+
+Note: lots more decrease-key than delete.
+
+Response: \emph{balancing} 
+\begin{itemize}
+\item trade off costs of operations
+\item making different parts equal time.
+\end{itemize}
+
+$d$-heaps:
+\begin{itemize}
+\item  $m\log_d n + nd\log_d n$. 
+\item set $d=m/n$
+\item $O(m\log_{m/n} n)$
+\item already nice, gives $O(n^2)$ (matching trivial alg) on complete graph.
+\end{itemize}
+
+\subsection{Fibonacci Heaps}
+
+Fredman-Tarjan, JACM 34(3) 1987. 
+
+{\tt  http://dl.acm.org/citation.cfm?id=28874} 
+
+Key principles:
+\begin{itemize}
+\item Lazy: don't work till you must
+\item If you must work, use your work to ``simplify''
+  data structure too
+\item force user (adversary) to spend lots of time to make you work
+\item analysis via potential function measuring ``complexity'' of
+  structure.  
+\begin{itemize}
+\item user has to do lots of insertions to raise potential, 
+\item so you can spread cost of complex ops over many insertions.  
+\item potential says how much work \emph{adversary} has done that you
+  haven't had to deal with yet.  
+\item You can charge your work against that work.
+\end{itemize}
+\item another perspective: procrastinate.  if you don't do the work,
+  might never need to.
+\item Why the name?  Wait and see.
+\end{itemize}
+
+Lazy approach:
+\begin{itemize}
+\item During insertion, do minimum, i.e. nothing.
+\item Indeed, for only insert, don't even need to remember item!
+\item but we also want delete min, so save items
+\item For first delete-min, cost is $n$
+\item So, amortized cost 1.
+\end{itemize}
+
+Problem?
+\begin{itemize}
+\item issue with second and further delete mins
+\item $n$ delete mins cost $n^2$---means amortized $n$
+\end{itemize}
+
+Solution: Use your work to simplify
+\begin{itemize}
+\item As do comparisons, remember outcomes
+\item point from loser to winner
+\item creates ``heap ordered tree'' (HOT)
+\item not full or balanced, but heap ordered
+\item in fact, this tree will be a \textbf{caterpillar}: one spine
+  with legs
+\item but we can consider general trees with this property
+\item remembers everything we figured out while finding min
+\end{itemize}
+
+Benefit: on delete-min, new min is child of current root
+\begin{itemize}
+\item find by scanning children
+\item but if we build a star, no benefit over brute force
+\item can we force few children?
+\end{itemize}
+
+Can we be lazy and simultaneously prepare for future laziness?
+\begin{itemize}
+\item Problem is if we start with min and it beats everything
+\item it plays too often
+\item how can we ensure nobody plays too often?
+\item Tournament
+\begin{itemize}
+\item pairs compete
+\item winners pair to play each other
+\item winners of winners pair
+\item etc.
+\item Still $n-1$ comparisons
+\item But now each node plays only $\log n$ times
+\end{itemize}
+\item What is resulting HOT tree structure?
+\begin{itemize}
+\item \emph{binomial trees}
+\begin{verbatim}
+x  x    x  x    x  x    x  x
+
+x       x       x       x
+ \       \       \       \
+  \       \       \       \
+   x       x       x       x
+
+
+x---             x---     
+ \  \             \  \   
+  \  -             \  -  
+   x  x             x  x 
+       \                \
+        \                \
+        x                 x
+
+x---------             
+ \  \     \         
+  \  -     ------      
+   x  x          x---     
+       \          \  \ 
+        \          \  - 
+        x           x  x 
+                        \
+                         \
+                          x
+\end{verbatim}
+\item degree $d$ has $2^d$ descendants
+\item so max degree $\log n$
+\end{itemize}
+\end{itemize}
+
+Generalize
+\begin{itemize}
+\item As we interleave inserts and deletes, can't run a tournament
+  from clean start
+\item but can achieve same result
+\item So max degree $O(\log n)$ for $n$ items
+\item how? 
+\begin{itemize}
+\item record each node's degree
+\item i.e., its round in the tournament so far
+\item only link HOTs of same degree
+\item same ``union by rank'' idea as union find
+\end{itemize}
+\end{itemize}
+
+induction: if only link heaps of same degree, than any degree-$d$
+  heap has $2^{d}$ nodes.
+\begin{itemize}
+\item creates ``binomial trees'' saw above
+\item ``Binomial heaps'' do this aggressively---when delete items,
+  split up trees to preserve exact tree shapes.
+\item but we'll be sloppier/faster
+\end{itemize}
+
+Consolidation algorithm for list of arbitrary HOTS
+\begin{itemize}
+\item inserts/deletes may create arbitrary set of them
+\item create buckets
+\item bucket HOTs by degree (maintain degree in node)
+\item start at smallest bucket
+\item link pairs till $<2$ left.  
+\item next bucket.
+\item at end, collect items from buckets and discard buckets
+\end{itemize}
+
+For delete min
+\begin{itemize}
+\item remove min
+\item add children HOTs
+\item consolidate to identify new min
+\end{itemize}
+
+Combine with lazy insert
+\begin{itemize}
+\item keep pointer to min root (or just scan on delete min)
+\item on insert, just add new (degree 0) HOT to set of HOTs
+\item Formalize notion that scan through inserted items is ``paid
+  for'' by consolidation
+\end{itemize}
+
+Heap ordered trees implementation
+\begin{itemize}
+\item definition
+\item represent using left-child, parent, and sibling pointers (both directions)
+\item keep double linked list of HOTs
+\item and a pointer to min HOT root.
+\item so in constant time, can find min
+\item in constant time, can add item
+\item in contant time, can link two HOT lists (Fibonacci heaps are
+  \emph{mergeable} in constant time)
+\item time to delete-min equal to number of roots, and simplifies struct.
+\end{itemize}
+
+
+Insert solution idea: adversary has to do many insertions to make consolidation expensive.
+\begin{itemize}
+\item analysis: \textbf{potential function} $\phi$ equal to number of roots.
+\begin{itemize}
+\item amortized$_i=$ real$_i+\phi_i-\phi_{i-1}$
+\item then $\sum a_i=\sum r_i+\phi_n-\phi_0$
+\item upper bounds real cost if $\phi_n \ge \phi_0$.
+\item sufficient that $\phi_n \ge 0$ and $\phi_0$ fixed
+\end{itemize}
+\item insertion real cost 1, potential cost 1.  total 2.
+\item deletion: take $r$ roots and add $c$ children, then do $r+c$ scan work.
+\item $r$ roots at start, $\log n$ roots at end.  So, $r-\log n$ potential decrease
+\item so, total work $O(c+\log n)=O(\log n)$
+\end{itemize}
+Result: $O(1)$ amortized insert, $O(\log n)$ amortized delete
+
+What about decrease-key?
+\begin{itemize}
+\item basically easy: cut off node from parent, make root.
+\item constant time decrease-key
+\item what goes wrong?
+\item may violate exponential-in-degree property
+\end{itemize}
+
+``saving private ryan''
+\begin{itemize}
+\item fix: if a node loses more than one child, cut it from parent,
+  make it a root (adds 1 to root potential---ok). 
+\item implement using ``mark bit'' in node if has lost 1 child (clear
+  when becomes root)
+\item may cause ``cascading cut'' until reach unmarked node
+\item why 2 children?  We'll see.
+\end{itemize}
+
+Analysis: must show
+\begin{itemize}
+\item  cascading cuts ``free'' 
+\item tree size is exponential in degree
+\end{itemize}
+
+Second potential function: number of mark bits.
+\begin{itemize}
+\item if cascading cut hits $r$ nodes, clears $r$ mark bits
+\item adds 1 mark bit where stops
+\item amortized cost: $O(1)$ per decrease key
+\item note: if cut without marking, couldn't pay for cascade!
+\begin{itemize}
+\item this is binomial heaps approach.  may do same $O(\log n)$
+  consolidation and cutting over and over.
+\end{itemize}
+\item Wait, problem
+  \begin{itemize}
+    \item can't have 2 incompatible potential functions
+\item new root per cut 
+\item adds to first potential function
+\item and thus to amortized cost
+\item fix: double new potential function.
+\item use one unit to pay for cut, one to pay for increase in 1st potential
+\item so, doesn't harm first potential function analysis
+\end{itemize}
+%\item idea: cascading cuts for tree of min-degree 2.  number nodes
+%  less than twice number of leaves, which is number of decrease keys.
+\end{itemize}
+
+Analysis of tree size:
+\begin{itemize}
+\item node $x$.  consider \emph{current} children in order were added
+  (indexed from 1, not 0).
+\item claim: $i^{th}$ remaining child (in addition order) has degree at
+least $i-2$
+\item proof: 
+\begin{itemize}
+\item Let $y$ be $i^{th}$ added child
+\item When added, the $i-1$ items preceding it in the add-order were
+  already there
+\item i.e., $x$ had degree  $\ge i-1$
+\item So $i^{th}$ child $y$ had (same) degree $\ge  i-1$
+\item $y$ could lose only 1 child before getting cut
+\end{itemize}
+\item let $S_k$ be minimum number of descendants (inc self) of degree
+  $k$ node.  Deduce $S_0 =1$, $S_1=2$, and
+\begin{align*}
+S_k &\ge 2+ \sum_{i=0}^{k-2} S_i
+\end{align*}
+\item to upper bound, solve equality
+\begin{align*}
+S_k &= 2+\sum_{i=0}^{k-2} S_i\\
+S_k - S_{k-1} &= S_{k-2}
+\end{align*}
+\item deduce $S_k \ge F_{k+2}$ fibonacci numbers
+\item reason for name
+\item we know $F_k \ge \phi^k$
+\item so biggest possible $k=\log_\phi n$
+\end{itemize}
+
+Practical?
+\begin{itemize}
+\item non-amortized versions with same bounds exist (good for realtime
+  apps).
+\item Constants not that bad
+\item ie fib heaps reduces comparisons on moderate sized problems
+\item we've done experiments with graph problems where fib wins
+\item but, regular heaps are in an array
+\item fib heaps use lots of pointer manipulations
+\item lose locality of reference, mess up cache.
+\item work on ``implicit heaps'' that don't use pointers
+\item Pettie developed an optimal one
+\end{itemize}
+
+Cannot beat these bounds, since can use to sort.
+
+\subsection{Minimum Spanning Tree}
+
+
+minimum spanning tree (and shortest path) easy in $O(m+n\log n)$.
+
+More sophisticated MST:
+\begin{itemize}
+\item why $n\log n$?  Because deleting from size-$n$ heap
+\item idea: keep heap small to reduce cost.
+\begin{itemize}
+\item choose a parameter $k$
+\item run prim till region has $k$ neighbors (i.e. heap members)
+\item set aside and start over elsewhere.
+\item heap size bounded by $k$, delete by $\log k$
+\item ``contract'' regions (a la Kruskal) and start over.
+\end{itemize}
+\end{itemize}
+
+Formal:
+\begin{itemize}
+\item phase starts with $t$ vertices.  
+\item pick max region size $k$ (TBD)
+\item unmark all vertices and repeat following
+\begin{itemize}
+\item choose unmarked vertex
+\item Prim until attach to marked vertex or heap reaches size $k$
+\item ie $k$ edges incident on current region
+\item (maybe both ends inside; that's fine too)
+\item mark all vertices in region
+\end{itemize}
+\item contract graph in $O(m)$ time and repeat
+\end{itemize}
+
+Analysis:
+\begin{itemize}
+\item time for phase: $m$ decrease keys, $t$ delete-mins from size-$k$
+  heaps, so $O(m+t\log k)$.
+\item balance: 
+\begin{itemize}
+\item have to spend $m$
+\item so can make $t\log k = m$ ``for free'' (no asymptotic change)
+\item set $k=2^{m/t}$.
+\item runtime of phase $O(m)$
+\end{itemize}
+\item number of phases:
+\begin{itemize}
+\item At end of phase, each compressed vertex ``owns'' $k$ edges (one
+  or both endpoints)
+\item so next number of vertices $t' \le m/k$
+\item so $k' = 2^{m/t'} \ge 2^k$
+\item what is starting $k$?  
+\begin{itemize}
+\item Initially $t=n$ 
+\item so need $n\log k = O(m)$ for $O(m)$-time phase
+\item so can take $k=2^{m/n}\ge 2$
+\item (note if $m>n\log n$ then $k>n$ and one phase suffices to finish)
+\end{itemize}
+\item when reach $k=n$, Prim step solves whole graph, done.
+\item number of phases: $\beta(m,n) = \min\set{i \mid \log^{(i)} n \le
+    m/n} \le \log^* n$.
+\end{itemize}
+\end{itemize}
+
+Remarks: 
+\begin{itemize}
+\item subsequently improved to $O(m\log\beta(m,n))$ using edge packets
+\item chazelle improved to $O(m\alpha(n)\log\alpha(n))$ using
+  ``error-prone heaps''
+\item ramachandran gave optimal algorithm (runtime not clear)
+\item randomization gives linear.
+\item fails for Dijkstra.  
+\item Why?  Because cannot contract.
+\end{itemize}
+
+
+
+\end{document}
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: t
+%%% End: 

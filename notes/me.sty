@@ -1,0 +1,248 @@
+\RequirePackage{amsmath}
+
+\newif\ifsiam
+\siamfalse
+
+\ifsiam\else
+\RequirePackage{amsthm}
+\fi
+
+\long\def\comment#1{}
+
+%DOCUMENT MACROS
+
+\newcommand{\evenwidth}[1]{
+\setlength{\textwidth}{8.5in}
+\addtolength{\textwidth}{-#1}
+\addtolength{\textwidth}{-#1}
+
+\setlength{\evensidemargin}{#1}
+\addtolength{\evensidemargin}{-1in}
+\setlength{\oddsidemargin}{#1}
+\addtolength{\oddsidemargin}{-1in}
+}
+
+\newcommand{\evenheight}[1]{
+
+\setlength{\headsep}{0in}
+\setlength{\topmargin}{#1}
+\addtolength{\topmargin}{-1in}
+
+\setlength{\textheight}{11in}
+\addtolength{\textheight}{-\headheight}
+\addtolength{\textheight}{-\footskip}
+\addtolength{\textheight}{-\headsep}
+\addtolength{\textheight}{-#1}
+\addtolength{\textheight}{-#1}
+}
+
+\newcommand{\evenmargins}[1]{
+\evenwidth{#1}
+\evenheight{#1}
+}
+
+
+
+\def\varcopyrightspace#1{\footnotetext[0]{\mbox{}\vrule
+      height #1 width 0pt}}
+
+
+\def\mymathstrut{{\rule{0cm}{2.5ex}}}
+
+
+%%%ENVIRONMENTS, THEOREMS, and LABELS
+
+\newenvironment{algorithm}[1]{
+    \begin{tabbing}
+      else \= else \= else \= else \= else \= \kill
+     {\bf procedure} {\proc #1}\\
+      }{
+    \end{tabbing}
+    }
+
+
+\ifsiam
+\newtheorem{fact}[theorem]{Fact}
+
+
+\def\squarebox#1{\hbox to #1{\hfill\vbox to #1{\vfill}}}
+\newcommand{\qed}{\vbox{\hrule\hbox{\vrule\squarebox{.667em}\vrule}\hrule}}
+
+\newenvironment{remark}{\noindent 
+{\sc Remark:}}{\nolinebreak\hspace{2ex}\nolinebreak\qed \par}\else
+
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{cor}[theorem]{Corollary}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{claim}[theorem]{Claim}
+\newtheorem{fact}[theorem]{Fact}
+
+\theoremstyle{definition}
+\newtheorem{defn}[theorem]{Definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{conjecture}[theorem]{Conjecture}
+\newtheorem{defnition}[theorem]{Definition}
+\newtheorem{balgorithm}[theorem]{Algorithm}
+\newtheorem{example}[theorem]{Example}
+
+\theoremstyle{remark}
+\newtheorem*{remark}{Remark}
+
+\fi
+
+\makeatletter
+
+\def\labelprop#1#2{%
+    \@bsphack
+    \if@filesw
+        {\let\thepage\relax
+         \def\protect{\noexpand\noexpand\noexpand}%
+         \edef\@tempa{%
+            \write\@auxout{\string\newlabel{#2}{{#1~\@currentlabel}{\thepage}}}%
+         }%
+         \expandafter}\@tempa
+        \if@nobreak \ifvmode\nobreak\fi\fi
+    \fi
+    \@esphack
+}
+
+\makeatother
+
+\newcommand{\refprop}[1]{\ref{#1}}
+
+%%MATH MACROS
+
+\def\set#1{ \{ #1 \} }
+\newcommand{\floor}[1]{\left\lfloor #1 \right\rfloor}
+\newcommand{\ceil}[1]{\left \lceil #1 \right\rceil}
+
+\newcommand{\eps}{\epsilon}
+
+\def\rnc{\ensuremath{\cal{R}\cal{N}\cal{C}}}
+\def\RNC{\ensuremath{\cal{R}\cal{N}\cal{C}}}
+\def\NC{\ensuremath{\cal{N} \cal{C}}}
+\def\NP{\ensuremath{{\cal{N} \cal{P}}}}
+\def\SNP{\ensuremath{{\cal S \cal N \cal P}}}
+\def\P{\ensuremath{{\cal P}}}
+\def\SP{\ensuremath{\sharp {\cal P}}}
+\def\RP{\ensuremath{\cal R}{\cal P}}
+\def\RQP{\ensuremath{\cal R}{\cal Q}{\cal P}}
+\def\NQP{\ensuremath{\cal N}{\cal Q}{\cal P}}
+\def\coRQP{\mbox{co-}{\cal R}{\cal Q}{\cal P}}
+\def\coRP{\mbox{co-}{\cal R}{\cal P}}
+
+\def\Omegalog{\tilde{\Omega}}
+\def\Olog{\tilde{O}}
+\def\parderiv#1{\frac{\partial}{\partial #1}}
+
+\newcommand{\poly}{operatorname{poly}}
+\newcommand{\polylog}{\operatorname{polylog}}
+\newcommand{\E}[1]{{\mathop{\null\bf E}\left[ #1 \right]}}  %expectation
+
+\newcommand{\dotprod}[2]{ \langle\! {#1} , {#2} \! \rangle}  %dot product
+\newcommand{\dee}[1]{{\mathop{\null\mbox{\boldmath $ \,d$}}} #1}
+                                %to produce dx 
+
+\newcommand{\edge}[2]{(#1,#2)}
+
+
+%%TEXT MACROS
+
+\newcommand{\ou}{\accent 23u}
+\def\Boruvka{Bor\ou vka}
+\def\Lovasz{Lov\'asz}
+
+\def\ie{{\it i.e.}}
+\def\eg{{\it e.g.}}
+\def\etal{{et al.}}
+\def\st{{\mbox{$s$-$t$}}}
+\def\whp{w.h.p.}
+
+\def\atsign{\char'100}
+
+
+\def\proc{\sc}
+\newcommand{\procti}[1]{{\underline {\bf Algorithm} {\proc #1}} \smallskip }
+
+
+%macros for text boxes
+\newlength{\figtxtwid}
+\setlength{\figtxtwid}{\textwidth}
+\addtolength{\figtxtwid}{-0.10in}
+\newcommand{\txtbox}[1]{
+        \begin{figure*}[htb]\fbox{\parbox{\figtxtwid}{#1}}\end{figure*}}
+
+\long\gdef\boxitnew#1{\dimen200 = \hsize \advance\dimen200 by -7pt
+\begingroup\vbox{\hrule \hbox to \hsize{\vrule\kern3pt
+      \vbox{\hsize \dimen200 \kern3pt#1\kern3pt}\hfil \kern3pt\vrule}\hrule}\endgroup}
+ 
+\newlength{\myfigwidth}
+\setlength{\myfigwidth}{\columnwidth}
+\addtolength{\myfigwidth}{-2ex}  %made this wider -- CS
+
+\newcommand{\boxtext}[1]{\setlength{\myfigwidth}{\columnwidth}\addtolength{\myfigwidth}{-1ex}\boxitnew{\vspace*{.1ex}\begin{minipage}{\myfigwidth}#1\end{minipage}\\[.1ex]}}
+
+
+
+%%EDITING MACROS
+
+\newif\ifdraft
+\drafttrue
+\newif\ifoldversion
+\oldversionfalse
+
+\AtBeginDocument{
+\ifdraft
+\typeout{WARNING: margin notes visible}
+\fi
+\ifoldversion
+\typeout{WARNING: generating old version}
+\fi
+}
+
+\newcommand{\marnote}[1]{%
+\ifdraft
+\setlength{\marginparwidth}{\oddsidemargin}%
+\addtolength{\marginparwidth}{1in}%
+\addtolength{\marginparwidth}{-\marginparsep}%
+\marginpar{\raggedright \tiny \em #1}
+\fi}
+
+\newcommand{\editbig}[2]{\marnote{\Large $\Downarrow$}\ifoldversion{\Large
+#1}\footnote{{\bf New Text:} #2} 
+\else{\Large #2}\footnote{{\bf Old Text:} #1}\fi\marnote{\Large $\Uparrow$}}
+
+\newcommand{\editsmall}[2]{\ifoldversion\underbar{#1}\marnote{#2}
+                                \else\underbar{#2}\marnote{#1}\fi}
+
+\newcommand{\editin}[1]{\marnote{\Large$\Leftarrow$}\ifoldversion\footnote{{\bf
+Add:} #1} \else{\Large #1}\fi}
+\newcommand{\editout}[1]{{\marnote{\Large$\Leftarrow$}\ifoldversion \else \tiny \fi #1}}
+
+
+ 
+
+
+
+
+%replaced by amsthm
+
+%\newenvironment{proof}{\par\noindent{\bf Proof:}}{\addqed}
+\newenvironment{proofof}[1]{\par\noindent{\bf Proof of #1:}}{\qed} 
+
+%\newcommand{\addqed}{\ifvmode\else\nolinebreak\fi\hspace{2ex}\nolinebreak\qed \par \medskip}
+\comment{===DEFINED IN PROC.STY
+\newcommand{\copyrightspace}{\insert\footins{
+    \footnotesize
+        \interlinepenalty\interfootnotelinepenalty
+        \splittopskip\footnotesep
+        \splitmaxdepth \dp\strutbox \floatingpenalty 20000
+        \hsize\columnwidth
+    \ignorespaces
+    \noindent
+    \protect\vspace*{.4in}
+    \centerline{(Paste copyright notice here.)}
+    \protect\vspace*{.2in}
+          \strut}}}

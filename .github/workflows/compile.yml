@@ -5,7 +5,26 @@ on: push
 jobs:
   convert_via_pandoc:
     runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        file: [notes/n00-intro, notes/n01-fibonacci]
     steps:
+      - name: make output directory
+        run: |
+          mkdir compiled
+
       - uses: docker://pandoc/latex:2.17
         with:
-          args: "--help"
+          args: >-
+            --mathjax
+            --listings
+            -N
+            -t html5
+            --variable linestretch=1.25
+            --output=compiled/${{ matrix.file }}.html
+            ${{ matrix.file }}.tex
+
+      - uses: actions/upload-artifact@master
+        with:
+          name: compiled
+          path: compiled
