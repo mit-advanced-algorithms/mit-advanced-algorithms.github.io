@@ -2,9 +2,9 @@
 
 **Lectures**: Monday, Wednesday, and Friday 2:30-4 in 32-123.
 
-**Units**:5-0-7 Graduate H-level
+**Units**: 5-0-7 Graduate H-level
 
-**Staff**:
+## Staff
 
 | Role       | Name             | Email                  | Office Hours      |
 |------------|------------------|------------------------|-------------------|

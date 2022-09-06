@@ -15,12 +15,13 @@ do
   mkdir -p www/$(dirname $file)
   output=www/$(echo "$file" | rev | cut -f 2- -d '.' | rev).html
   pandoc \
-    --mathjax \
-    --listings \
-    --include-before-body=header.html \
-    --css=/style.css \
     --standalone \
     --write=html5 \
+    --css=/style.css \
+    --include-before-body=header.html \
+    --include-after-body=footer.html \
+    --mathjax \
+    --listings \
     --variable linestretch=1.25 \
     --output=$output \
     $file
