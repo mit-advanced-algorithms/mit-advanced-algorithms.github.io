@@ -2,13 +2,13 @@
 
 We've done our best to synchronize a breadth of materials developed over this course's history for your reference.
 But be aware that some of the materials here --- particularly the scribe notes and 2013 lectures --- do not necessarily reflect exactly what has or will happen in this year's class.
-Be sure to check this year's [course calendar](index.html#lectures) for the most up-to-date syllabus.
+Be sure to check this year's [course calendar](calendar.html) for the most up-to-date syllabus.
 
 | Unit | Topic | Notes | Scribe | 2013 | 2020 | 2021 |
 |------|-------|-------|--------|------|------|------|
 | | Introduction | [1](notes/n00-intro.html) | | | [1](https://youtu.be/rnwf0dDGNCM)
 |&nbsp;
-| Data Structures | Fibonacci Heaps | [1](notes/n01-fibonacci.html) | [1](scribe/s1-fibHeaps/s1-fibheaps.html) | | [1](https://youtu.be/rnwf0dDGNCM?t=879), [2](https://youtu.be/TB3Y308PCrA)
+| Data Structures | Fibonacci Heaps | [1](notes/n01-fibonacci.html) | [1](scribe/s1-fibheaps/s1-fibheaps.html) | | [1](https://youtu.be/rnwf0dDGNCM?t=879), [2](https://youtu.be/TB3Y308PCrA)
 | | Persistent | [1](notes/n02-persistent.html) | [1](scribe/s2-persistent/s2-persistent.html) | | [1](https://youtu.be/TB3Y308PCrA?t=4159), [2](https://youtu.be/nofifCFuPiQ)
 | | Splay Trees | [1](notes/n03-splay.html) | [1](scribe/s3-splay/s3-splay.html) | [1](https://youtu.be/QnPl_Y6EqMo), [2](https://youtu.be/rn3xjYpJWi0) | [1](https://youtu.be/nofifCFuPiQ?t=4385), [2](https://youtu.be/-Z_mIvOzNgY), [3](https://youtu.be/sgROIyXWjYc)
 | | Buckets | [1](notes/n04-bucket.html) | | [1](https://youtu.be/rn3xjYpJWi0?t=1572), [2](https://youtu.be/z8DD-ikAjzM) | [1](https://youtu.be/sgROIyXWjYc?t=1491), [2](https://youtu.be/ggJyeJvsdM0) | [1](https://youtu.be/8tnSp1ePu1Y)

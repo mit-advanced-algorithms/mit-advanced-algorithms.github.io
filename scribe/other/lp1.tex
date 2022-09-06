@@ -1,0 +1,411 @@
+\documentclass{article}
+\usepackage{scribe}
+\usepackage{epsfig}
+
+\usepackage{latexsym}
+
+\usepackage{amssymb}
+
+
+\renewcommand{\Pr}[1]{\textrm{\textup{Pr}}\left( #1 \right)}
+\newcommand{\reals}{\ensuremath{\mathbb{R}}}
+\begin{document}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Lecture command takes 4 arguments:
+%               ordinal number of the lecture
+%               date of the lecture
+%               lecturer
+%               scribe---that is you.
+%
+% Fill out the next line with this information !!!!
+\lecture{8}{10/1/2003}{Erik Demaine, David Karger}{Grant Wang,  Dan Arlow,  Adam Marcus}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Your notes start here!
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% For theorems, lemmas, definitions, remarks, etc. use commands
+% {\theorem{...}}, {\lemma{...}}, {\definition{...}}, etc.
+% For proofs, use \begin{proof} ... \end{proof}
+%
+% For postscript figures (.ps) use the following block:
+%
+% \begin{figure}[h]
+% \begin{center}
+% \mbox{\psfig{figure=notes-nn-fig-mm.ps}}
+% \caption{A very nice picture.}
+% \label{fig:picture}
+% \end{center}
+% \end{figure}
+%
+
+% For encapsulated postscript figures (.eps) use the following block:
+%  (also change documentstyle line )
+% \begin{figure}[h]
+% \begin{center}
+% \mbox{\epsfbox{notes-nn-fig-mm.eps}}
+% \caption{A very nice picture.}
+% \label{fig:picture}
+% \end{center}
+% \end{figure}
+%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\begin{center}
+{\Large \bf Linear programming}
+\end{center}
+
+\section{Motivation}
+
+Linear programming is both an important tool in the construction of
+algorithms, and an important tool in proofs.  Many results we have
+seen in this class can be cast in the framework of linear programming.
+For instance, the fact that the value of the maximum-flow of a graph
+is equal to the value of the minimum cut is a result of strong
+duality.  In the next two weeks, we will go over some basics of linear
+programming, some algorithms for solving linear programs, and how to
+use linear programming to design approximation algorithms for NP-hard
+problems.
+
+\section{Introduction}
+
+A linear program is a set of linear inequalities and an objective
+function together.  Each linear inequality takes the form:
+$$a_1 x_1 + a_2 x_2 + \dots + a_n x_n \{\leq,=,\geq \} b.$$
+We may have
+multiple linear inequalities (say $m$).  The objective function takes
+the form:
+$$c_1 x_1 + c_2 x_2 + \dots + c_n x_n.$$
+The goal is to find an
+assignment of values to $x_1, x_2 \dots x_n \in \reals$ such that the
+objective function is maximized or minimized over all assignments to $x_1, x_2
+\dots x_n \in \reals$ that obey each of the inequalities.
+
+Now, imagine we had an algorithm for solving linear programs, i.e. an
+algorithm that given the inequalities and an objective function as
+input, outputs $x_1, x_2 \dots x_n \in \reals$ that maximizes (or minimizes) the
+objective function over all assignments obeying the inequalities.  To
+get an idea of the power of such an algorithm, consider
+the following formulation of the minimum-cost maximum flow problem on a
+graph $G=(V,E)$.
+
+\begin{eqnarray*}
+  \textrm{minimize } & \sum_{v,w \in E} c_{vw} f_{vw} &\\
+  \textrm{subject to } &0 \leq f_{vw} \leq u_{vw} & \forall v,w \in E\\
+  & \sum_u{f_{u v}} = \sum_u{f_{v u}} & \forall u,v \in V-\{s,t\}\\
+  %& f_{vw} = -f_{wv} & \forall (v,w) \in E\\
+\end{eqnarray*}
+
+Here, the variables are $f_{vu}$, which represents the flow on an edge
+$(v,u)$.  The objective function says that we are minimizing the cost
+of the flow.  The first set of constraints (the inequalities) state that the flow is positive and is no
+more than the capacity.  The second set of constraints (the equalities) state that flow is conserved at every node (except $s$ and $t$). Given an algorithm for solving linear programming, we can instantly solve the minimum-cost circulation problem.
+
+\section{Definitions}
+
+We will represent the variables by $x = (x_1, x_2, \dots, x_n) \in
+\reals^n$.  We have the following definitions for $x$, which  is the
+vector we are considering as a solution to some LP:
+
+\begin{definition}
+  $x \in \reals^n$ is \emph{feasible} for an LP if it satisfies all
+  the constraints.
+\end{definition}
+
+\begin{definition}
+  $x \in \reals^n$ is \emph{optimal} if it is feasible and optimizes
+  the objective function compared to all other feasible $x$.
+\end{definition}
+
+\begin{definition}
+  An LP is \emph{feasible} if there exists a feasible vector $x$ for
+  it.
+\end{definition}
+
+\begin{definition}
+  An LP is \emph{unbounded} if there exists a feasible vector $x$ with
+  an arbitrarily good objective value.
+\end{definition}
+
+The following lemma characterizes any LP:
+
+\begin{lemma}
+  Every LP is either infeasible, has an optimal solution, or is unbounded.
+\end{lemma}
+
+The proof follows by the compactness of $\reals^n$, and because
+polytopes are closed sets.
+
+We generally write linear programs in two forms: \textbf{canonical
+  form} or \textbf{standard form}.
+
+\begin{definition}
+  An LP is in \emph{canonical form} if it has the form:
+  \begin{eqnarray*}
+    \textrm{minimize } & & c^T x\\
+    \textrm{subject to} & & Ax \geq b
+  \end{eqnarray*}
+  where $c \in \reals^n$ helps define the objective function, and each row of
+  $A$ and the accompanying component in b defines a constraint, e.g. $a_i^T x \geq b_i$.
+\end{definition}
+
+Can we always convert to canonical form?  Consider an arbitrary LP.  
+The following rules convert it to canonical form:
+
+\begin{itemize}
+\item If it's a maximization problem, negate $c$ and minimize.
+\item If a constraint is $\leq$, negate it and convert it to $\geq$.
+\item If a constraint is $=$, add two contraints with $\leq$ and
+  $\geq$ (``sandwich" the equality).
+\end{itemize}
+
+We also have \textbf{standard form}.  The choice of these names leaves
+a bit to be desired.
+
+\begin{definition}
+  An LP is in \emph{standard form} if it has the form:
+  \begin{eqnarray*}
+    \textrm{minimize } & & c^T x\\
+    \textrm{subject to} & & Ax = b\\
+    && x \geq 0
+  \end{eqnarray*}
+\end{definition}
+
+We can also convert any LP to standard form.  Since we already know how to
+convert any LP to canonical form, we will now show how to convert from canonical
+to standard form:
+
+\begin{itemize}
+ \item   If there is any inequality, we can add a slack variable.
+	That is, if the inequality is: $a^T x \leq b$ we can 
+	convert this to $a^T x + s = b$, with $s\geq 0$.
+\item To ensure that $x \geq 0$, we can do the following: for every variable $x_i$,
+	replace it with $x_i^+ - x_i^-$.  We can say without loss of generality that
+	$x_i^+, x_i^- \geq 0$, as negative values in the original problem occur when $x_i^- > x_i^+$.  We have simply doubled the amount of variables in the LP.
+\end{itemize}
+
+The reason for two forms is that canonical form is
+often useful for theory, while standard form is useful in practice.
+
+By the time we are done with our study of LPs, we will be able to answer the following questions: 
+
+\begin{enumerate}
+
+\item What does an optimal solution look like?
+
+\item Is it easy to verify that a proposed solution is optimal?
+
+\item Can we prove that there is no optimal solution?
+
+\item Finally, how can we find the answer efficiently?
+
+\end{enumerate}
+
+First, we will cover some basic Linear Algebra and Geometry concepts.
+
+\section{Linear Algebra}
+
+Consider a system of linear equations:
+
+$Ax = b$ 
+
+Here we know $A$ and $b$, and wish to know when there is a solution x (e.g. by inverting $A$.)?
+
+\subsection{Theoretical Feasibility Discussion}
+When $A$ is square (size $n$ by $n$), we know that the following are equivalent:
+
+\begin{enumerate}
+
+\item $A$ is invertible
+
+\item $A^T$ is invertible
+
+\item $det(A) \neq 0$
+
+\item $A$ has only linearly independent rows or columns
+
+\item $Ax = b$ has a unique solution (x) for some $b$
+
+\item $Ax = b$ has a unique solution (x) for any $b$.
+\end{enumerate}
+
+If $A$ is not square (now having $m$ nows and $n$ columns), we 
+don't have as succinct an ability to describe the exact solution:
+
+\begin{itemize}
+ \item We know that $\{Ax\}$, the set of possible values for $A$
+	operating on any $x$, is in the column space of $A$.  This means
+	that any $b' = Ax$ is a linear combination of the columns of $A$.
+
+	We can think of matrix multiplication as $b' = Ax = A_1x_1 + ... + A_nx_n$,
+	where $A_i$ is the $i$th column of $A$.
+
+\item To show that $Ax = b$ has a solution, it suffices to find an $x$ for which the equation is true.
+
+\item What about showing that $Ax = b$ has no solution $x$?
+
+\textbf{Claim}: $Ax = b$ is infeasible \textbf{iff} there exists some $y$ such that $y^TA = 0$, $y^Tb \neq 0$
+
+For the first direction, we assume by contradiction that there exists some $y$ such that $y^TA = 0$, $y^Tb \neq 0$, but $Ax=b$ is also feasible.  Then consider the value $x'$ which makes this feasible.  We have that $$y^Tb = y^TAx' = (y^TA)x' = 0x = 0.$$  This leads to a contradiction, as we assumed that $y^Tb \neq 0$.  We only made one assumtion, and so it must be the case that $Ax = b$ is infeasible.
+
+Now we have that $Ax=b$ is infeasible (there is no $x$ such that $Ax=b$).  This means that the columns of $A$ don't span $b$.  Decompose $b = w + y$, where the columns of $A$ span $w$(some linear combination of them equals $w$), and $y$ is not spanned by $A$'s columns.  It happens to be that $y \bot \{Ax\}$ for any $x$, meaning that $y$ is perpendicular to any vector spanned by $A$.  But then $y^Tb \neq 0$ as it is a nonzero portion of the decomposition of $b$, and $y^TA = 0$, as it is perpendicular to $A$'s column space.  We have thus found a $y$ as desired.  This completes the proof.
+\end{itemize}
+
+We now have the machinery to discuss feasible solutions that do and do not exist for our set of constraints.  Note that we have shown feasibility for $Ax=b$, which applies to LPs that are in standard form.  The only other restriction on feasibility in a standard form LP is that we do not allow $x < 0$.  So from our discussion, we have that if we can't find solutions for $Ax = b$, then we won't find positive solutions to the LP.  If we can find some feasible solutions, we have to ensure that we only consider positive ones (and, more importantly, that not all of the solutions we found are negative!).
+
+\subsection{Algorithmic Feasibility Discussion}
+We have shown how to determine if an LP is feasible in theory.  What sort of algorithmic machinery do we have to determine feasibility?
+
+First, we need to reduce an arbitrary $Ax = b$ feasibility question to one of solving feasibility in a square $Ax=b$, as we have good algorithms for determining feasibility in this case.  
+
+For a general $Ax=b$, we know that in $A$, the number of linearly independent columns is bounded by the number of rows (and vice versa).  In order to find columns that are linearly independent in $A$ (and thus to dicuss which solutions are feasible), we can run the Gram-Schmidt algorithm\footnote{http://en.wikipedia.org/wiki/Gram-Schmidt\_orthogonalization and  
+
+\hspace{.09in}http://planetmath.org/encyclopedia/GramSchmidtOrthogonalization.html} on the set of columns in $A$.  This will tell us which columns of $A$ are linearly independent, and reduce those columns to a set of orthogonal ones.  Since these columns will fully determine the span of $A$, we only care about them when discussing feasibility (all other columns are depenent, and can be determined from the linearly independent set).  If there are more rows than linearly independent columns, then some of these rows are also linearly dependent, and we can ignore them for our feasibility discussion.  We have now reduced the problem of feasibility for an arbitrary $A$ and $b$ to a more well-formed feasibility check on a modified subset $A'$ and $b'$.
+
+Now we only have to worry about feasibility algorithms for square $Ax=b$ problems.  Luckily, this is as easy as figuring out if the desired matrix is invertible, and if so, letting $x = A^{-1}b$.  There are polynomial-time algorithms for doing this, and so we only care that the solution is polynomial in space.  Note that we would never actually take the inverse of $A$ to solve such a problem, as this would lead to an ill-conditioned solution.  Other algorithms would actually be used to solve the problem.
+
+First, we have that the size of a number $p$ is $\log p$.  Also, we have that Gram-Schmidt leaves us with division of values (assume without loss of generality that $A$'s elements are integer) that result in rational $\frac{p}{q}$, whose size is size($p$) + size($q$).  The size of the input matrix is $\sum size(a_{ij}) + mn$, where $a_{ij}$ is the $i,j$th component (row $i$, column $j$) of $A$.
+
+We can get $A^{-1}$ through $A^{-1} = \frac{C}{det(A)}$, where $C$ is the
+cofactor matrix of $A$ (this is a matrix where each of the $n^2$ entries
+is a determiniant).  $det(A) = \sum_\pi{(-1)^{sign(\pi)} \prod_i{a_{i
+\pi_i}}}$, where $\pi$ represents a permutation of the indices
+($1,...,n$). There are $n!$ permutations, and $n$ $a_{ij}$ values per
+permutation, each of which takes $2^d$ space, where $d$ is the number of
+bits in an integer.  The size of $det(A)$ is thus
+$\log (n!2^{nd}) = n\log n + nd$.  Since $A^{-1}$ consists of $n^2$
+elements, each containing the ratio of two determinants, the total size is
+$2n^2(n\log n + nd)$, which is polynomial.
+
+The size of the inverse is thus polynomial in the input size of $A$.  We have that the solution for $x$'s feasibility can be determined in polynomial space as well as time.  
+
+\section{Geometry}
+
+Since we are looking for a vector $x \in \reals^n$ that obeys certain
+linear constraints that maximizes some linear objective function, we
+might expect that the \emph{geometry} of an LP would give us some
+intuition.  Indeed, this is the case:
+
+\begin{itemize}
+\item Any equality of the form $a^T x = b$ is a \emph{hyperplane}.
+\item Any inequality of the form $a^T x \leq b$ is a \emph{halfspace}.
+\item For the standard form of $Ax = b, x\geq 0$, the intersection of 
+  hyperplanes is an \emph{affine subspace}.
+\item For the canonical form of $Ax \geq b$, the intersection
+  of halfspaces is a \emph{polyhedron}.
+\end{itemize}
+
+Thus, the cast of optimizing a linear objective function over all
+vectors satisfying linear inequalities is the problem of finding a
+point in a polyhedron that is furthest in the direction specified by
+the objective function.
+
+The issue of convexity also comes up in LP's.  Recall that a set $K
+\subseteq \reals^n$ is convex if for all $x,y \in K$ and for all
+$\lambda \in [0,1]$, $\lambda x + (1-\lambda) y \in K$.  That is, any
+point on the line segment between $x$ and $y$ is in $K$.  If you can find two points in $K$ such that the line segment connecting them leaves $K$, then $K$ is not convex.  
+
+Note that a halfspace is convex: if $a^T x \geq b$ and $a^T x' \geq
+b$, then we have: $\lambda a^T x \geq \lambda b$ and $(1-\lambda)a^T
+x' \geq (1-\lambda)b$.  Adding up these two inequalities gives us the
+desired result.  Since an intersection of convex sets is convex,
+polyhedra are convex.
+
+\section{Separating hyperplanes}
+
+Given a point $x$, we can show that $x$ is in the polyhedra $P$
+defined by the inequalities by showing that $x$ satisfies each
+inequality.  But if $x \notin P$, can we show something similar?  It
+turns out we can, and this is the notion of \emph{separating
+  hyperplanes}: for any convex set $P$ and a point $z \notin P$, there
+exists $a \in \reals^n, b \in \reals$ such that:
+
+\begin{eqnarray*}
+  a^T x \geq b & \forall x \in P\\
+  a^T z < b
+\end{eqnarray*}
+
+We prove that such a pair $a,b$ exist.
+
+\begin{proof}
+  Let $y$ be the closest point in $P$ to $z$, and let $a$ be the line
+  from $y$ to $z$.  Then $a^T y < a^T z$.  We argue that for all $x
+  \in P$, $a^T x \leq b$, where $b = a^T y$.  Suppose by way of
+  contradiction that this is not the case, i.e. there is some $x \in
+  P$ such that $a^T x > b$.  Since any point on the line segment from
+  $x$ to $y$ is in $P$, we can show by taking the derivative of the
+  function
+  $$f(\lambda) = ||\lambda x + (1-\lambda) y - z||^2$$
+  with respect to
+  $\lambda$ that the first derivative is negative at $0$.  This
+  contradicts the fact that we took $y$ to be the minimum distance
+  point in $P$ to $z$, and we have our desired contradiction.
+\end{proof}
+
+\section{Structure of optima}
+
+A polyhedra has uncountably infinite points -- so where do the optima
+lie?  Let us start with a few definitions:
+
+\begin{definition}
+  A point $p \in P$ is a \emph{vertex} if it is uniquely optimal for
+  some objective function $c$.
+\end{definition}
+
+\begin{definition}
+  A point $p \in P$ is an \emph{extreme point} if it is not a convex
+  combination of two other points in $P$.
+\end{definition}
+
+We show here that every vertex is an extreme point; we will show the
+other direction in a future lecture.
+
+\begin{proof}
+  Suppose $p$ is uniquely optimal for the objective function $c$, but
+  that $p$ is not an extreme point, i.e. it is equal to $p = \lambda x
+  + (1-\lambda)y$ for some $x,y \in P$.
+  
+  But since $p$ is between $x,y$, it follows that $c^T p$ is between
+  $c^T x$ and $c^T y$, i.e:
+  
+  $$
+  c^T p = c^T (\lambda x + (1-\lambda) y) = \lambda c^T x +
+  (1-\lambda) c^T y$$
+  
+  But since $p$ is optimal, it must be that $c^T x, c^T y \geq c^T p$,
+  and furthermore, since $p$ lies on the line between $x,y$, it is
+  either the case that $c^T x = c^T p$ or $c^T y = c^T p$, which
+  contradicts uniqueness.
+\end{proof}
+
+We end with a few other definitions, which we will pursue in future
+lectures.
+
+\begin{definition}
+  A constraint $a^T x \leq b$ or $a^T x = b$ is \emph{tight} if $a^T x
+  = b$.
+\end{definition}
+
+\begin{definition}
+  A vector $x \in \reals^n$ is \emph{basic} for an LP if
+  \begin{itemize}
+  \item all equality constraints are tight
+  \item $n$ linearly independent constraints are tight
+  \end{itemize}
+\end{definition}
+
+Another way of thinking about this is that if $x$ is at an
+intersection of the boundaries of $n$ linearly independent
+constraints, then $x$ is the unique intersection.  This is the
+intuition behind a basic solution.
+
+
+
+\end{document}
