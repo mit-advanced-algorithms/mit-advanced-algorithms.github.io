@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>6.854 Lecture Notes</title>
+    <script
+    src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML,http://people.csail.mit.edu/karger/ClassNotes/class-notes.js"></script>
+    <script src="http://nb.mit.edu/embed_NB.js"></script>
+    <link rel="stylesheet" type="text/css"
+    href="http://people.csail.mit.edu/karger/ClassNotes/class-notes.css"/>
+  </head>
+  <body>
+<span class="hide-latex">\documentclass{article}</span>
+<span class="hide-latex">\usepackage{me}</span>
+<span class="hide-latex">\usepackage{amssymb}</span>
+<span class="hide-latex">\usepackage{amsfonts}</span>
+<!-- \input{abbrevs} -->
+<span class="hide-latex">\setlength{\parindent}{0pt}</span>
+
+$\newcommand\vol{{\mbox{vol}}}$
+
+$\newcommand{\RR}{\mathbb{R}}$
+
+<div id="main-content">
+
+
+<p>
+<strong> Lecture 19: Newton's method</strong>
+
+<h2>Newton's Method</h2>
+
+<ul>
+<li> The basic idea underlying gradient descent method was to consider the linear approximation of $f$ around current point $x$ and take a step that minimizes this simple function.
+<li> But, how about generalizing this idea and work with a local approximation that is more complex but also provides tighter grasp of $f$?  That is, how about approximating $f$ by a <em> quadratic</em> function? 
+<li> Specifically, by Taylor theorem we know that
+\[
+f(x+\delta)= f(x) + \nabla f(x)^T \delta + \frac{1}{2} \delta^T\nabla^2 f(x) \delta + O(\|\delta\|^3).
+\]  
+<li> What is the step $\delta^*$ that minimizes this quadratic approximation?
+
+
+<p>
+$\Rightarrow$ This approximation is strongly convex, a point is its minimizer iff its gradient (wrt to $\delta$) is zero. 
+
+
+<p>
+$\Rightarrow$ We need that
+\[
+\nabla f(x) + \nabla^2 f(x) \delta^* = 0.
+\]
+(We use here the fact that $\nabla f(x)$ and $\nabla^2f(x)$ do not depend on $\delta$.)
+
+
+<p>
+$\Rightarrow$ The resulting <em> Newton's step</em> is 
+\[
+\delta^*=-\left(\nabla^2f(x)\right)^{-1} \nabla f(x).
+\]
+<li> <em> Note:</em> To apply this step we need to either invert the Hessian, or at least solve the linear system $\nabla f(x) z = \nabla f(x)$. (As long as $f$ is strongly convex, $\nabla^2 f(x)\succ 0$, so it is invertible.)
+
+
+<p>
+$\Rightarrow$ This can be quite expensive computationally: Gaussian elimination takes $O(n^3)$ time and best matrix multiplication algorithm takes $O(n^\omega)=O(n^{2.37})$ time.  So, gradient descent is usually more useful.  In some special cases, however, i.e., when the Hessian has some special structure, Netwon's step might have a much faster implementation.
+
+<li> What is the convergence of this algorithm? 
+<ul>
+<li> If our starting point $x^0$ is relatively close to optimum, in a sense of $\nabla^2 f(x^0)\approx \nabla^2 f(x^*)$, i.e., the Hessian at the two points being similar, the convergence is <em> extremely</em> fast. In fact, it depends <em> doubly </em> logarithmically on $\epsilon^{-1}$. (In practice, we never need more than $6$ iterations to get a solution that is essentially optimal.)
+<li> <em> But:</em> As our step is not "dampened" by any step size $\eta>0$, if we don't start sufficiently close to $x^*$ we might <em> not</em> converge at all. Instead, we end up jumping around uncontrollably, as we end up using our local quadratic approximation of $f$ way outside of its region of applicability. 
+<li> One can remedy the latter aspect of convergence by introducing a step size $\eta$ that keeps our steps be within the region where our quadratic approximation is still valid. 
+<li> Still, the convergence then depends on the "smoothness" of the Hessian of our function. (Instead of smoothness of the gradients, as was the case for gradient descent.)
+</ul>
+</ul>
+<h3>Newton's Method as a Variant of Gradient Descent</h3>
+
+<ul>
+<li> It turns out that there is an alternative view/derivation of Newton's method/step. One can view it as an instance of gradient descent but with respect to <em> other</em> than Euclidean/$\ell_2$-norm. 
+
+<li>  Define, for a positive-definite matrix $A\succ 0$, an <em> $A$-norm</em> $\|\cdot\|_A$ as 
+\[
+\|x\|_A^2 := x^TAx,
+\]
+for each vector $x$. <em> Note:</em> If $A=I$ this is just the$\ell_2$-norm. 
+
+<li> Now, recall that the basic idea behind gradient descent method is to consider the first order local approximation of $f$ given by the Taylor approximation 
+\[
+f(x+\delta)=f(x)+\nabla f(x)^T \delta + O(\|\delta\|^2).
+\]
+<li> <em> But:</em> What if we measure the approximation error in an $A$-norm, for some $A$ other than $I$, instead of $\ell_2$-norm? (Note that this will affect the terms hidden in the $O(\cdot)$ notation.) That is, we have that
+\[
+f(x+\delta)=f(x)+\nabla f(x)^T \delta + O(\|\delta\|_A^2).
+\]
+<li> Consider now the best direction of the (gradient) improvement step $\delta$. That is, we want a direction that minimizes (the linear approximation of) $f$ as much as possible while having a fixed $A$-norm. Or, to put it yet differently, we want the direction that gives us the "best bang for the buck" when "buck" is measured via the $A$-norm of our step.
+<li> In the case of "classic" gradient descent, this direction was simply $-\nabla f(x)$. However, here, it turns out to be $-A^{-1}\nabla f(x)$. (As a sanity check, if $A=I$, these two directions coincide.)
+
+
+<p>
+$\Rightarrow$ Our gradient step thus becomes $-\nabla A^{-1}\eta f(x)$, for appropriate step size $\eta>0$.
+
+<li> <em> Note:</em> Now our gradient step requires inverting/solving a linear system wrt $A$. 
+
+<li> What did we gain then?
+<li> Our "effective" Hessian changed. That is, in a sense, our Hessian now is equal to $A^{-\frac{1}{2}}\nabla^2 f(x) A^{-\frac{1}{2}}$. 
+
+
+<p>
+$\Rightarrow$ But this affects our "effective" $\beta$-smoothness and $\alpha$-strong convexity of $f$, and thus the condition number of $f$, too! After all, these correspond to the smallest and largest eigenvalues of the Hessian. 
+
+<li> So, what is the <em> best</em> choice of $A$ to make the corresponding  condition number the smallest? 
+
+
+<p>
+$\Rightarrow$ Take $A=\nabla^2 f(x)$!
+
+
+<p>
+$\Rightarrow$ The "effective" Hessian at $x$ will become just an identity and thus the condition number at this point will be only $1$.
+
+<li> But the gradient step corresponding to such "best" choice of $A$ is exactly the Newton's step we derived above.
+
+<li> The $A$-norm $\|\cdot\|_{\nabla^2 f(x)}$ corresponding to setting $A=\nabla^2 f(x)$ is called  a <em> local norm</em> at $x$ and sometimes denoted just by $\|\cdot\|_x$.
+
+
+<li> <em> Subtle but important point:</em> It is true that whenever we use the local norm to take the gradient step, the function $f$ behaves as if it had condition number of $1$. However, this behavior is only <em> local</em> in nature.
+
+
+<p>
+ In particular, it does <em> not</em> mean that we can use our earlier analysis of gradient descent to conclude that we are guaranteed to converge, say, in $O(\log \frac{\|x^*-x^0\|_{x^0}}{\epsilon})$ iterations. The problem is that our new algorithm uses <em> different</em> norm at each step, while parts of our earlier analysis  - specifically, the lower bounding part relating to $\alpha$-strong convexity - relied on using a single <em> fixed</em> norm throughout the whole algorithm. 
+ 
+
+<p>
+General analysis of this new algorithm is therefore much more nuanced and it goes beyond the scope of the class. Still, special cases of this analysis, i.e., when we consider special classes of the function $f$, become much easier and will, in fact, play important role in the analysis of interior-point methods that we will discuss next time. 
+
+</ul>
+
+</body>
+</html>

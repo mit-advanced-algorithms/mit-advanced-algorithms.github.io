@@ -1,0 +1,392 @@
+\documentclass{article}
+\usepackage{me}
+\usepackage{amssymb}
+\usepackage{amsfonts}
+%\input{abbrevs}
+\setlength{\parindent}{0pt}
+
+\newcommand\vol{{\mbox{vol}}}
+
+\title{Linear Programming\\ 6.854 Notes \#11}
+\author{David Karger}
+
+\begin{document}
+% Guest lecture, Justin Oct 16 2017 start
+
+\section{Linear Programming}
+
+\subsection{Introduction}
+
+Problem description:
+\begin{itemize}
+\item motivate by min-cost flow
+\item bit of history
+\item everything is LP
+\item NP and coNP.   P breakthrough.
+\item general form: 
+  \begin{itemize}
+  \item {\bf variables}
+  \item {\bf constraints:} linear equalities and inequalities
+  \item $x$ {\bf feasible} if satisfies all constraints
+  \item LP feasible if some feasible $x$
+  \item $x$ {\bf optimal} if optimizes objective over feasible $x$
+  \item LP is {\bf unbounded} if have feasible $x$ of arbitrary good
+    objective value
+  \end{itemize}
+\end{itemize}
+
+{\bf lemma:} every LP is infeasible, has opt, or is unbounded
+\begin{itemize}
+  \item  (by compactness of $R^n$ and fact that polytopes are closed sets).
+\end{itemize}
+
+Problem formulation:
+\begin{itemize}
+\item canonical form: $\max c^Tx, Ax \le b$
+\item note $c$ is a row vector but I won't always write $c^T$
+\item matrix representation, component-wise $\le$
+\item rows $a_i$ of $A$ are {\bf constraints}
+\item $c$ is {\bf objective}
+\item any LP has transformation to canonical:
+  \begin{itemize}
+  \item max/min objectives same
+  \item move vars to left, consts to right
+  \item negate to flip $\le$ for $\ge$
+  \item replace $=$ by two $\le$ and $\ge$ constraints
+  \end{itemize}
+\item standard form: $\min c^Tx, Ax=b, x\ge 0$
+  \begin{itemize}
+  \item slack variables
+  \item splitting positive and negative parts $x \rightarrow x^+-x^-$
+  \end{itemize}
+\item $Ax \ge b$ often nicer for theory; $Ax=b$ good for
+  implementations.
+\end{itemize}
+
+
+Some steps towards efficient solution:
+\begin{itemize}
+\item What does answer look like?
+\item Can it be represented effectively?
+\item Easy to verify it is correct?
+\item Is there a small proof of no answer?
+\item Can answer, nonanswer be found efficiently?
+\end{itemize}
+
+\subsection{Linear Equalities}
+
+How solve?  First review systems of linear equalities.
+\begin{itemize}
+\item $Ax=b$.  when have solution?
+\item baby case: $A$ is squre matrix with unique solution.  
+\item demonstrate solution by giving $x$
+\item easy to verify correct!
+\item construct using, eg, Gaussian elimination.
+\item Suppose there's a answer.  Can we write it down?
+\item discuss polynomiality, integer arithmetic later
+\item equivalent statements:
+  \begin{itemize}
+  \item $A$ invertible
+  \item $A^T$ invertible
+  \item det$(A)\ne 0$
+  \item $A$ has linearly independent rows
+  \item $A$ has linearly independent columns
+  \item $Ax=b$ has unique solution for every $b$
+  \item $Ax=b$ has unique solution for some $b$.
+  \end{itemize}
+\end{itemize}
+
+To talk formally about polynomial size/time, need to talk about size of
+problems.
+\begin{itemize}
+\item integer $n$ has size $\log n$
+\item rational $p/q$ has size size$(p)$+size$(q)$
+\item size(product) is sum(sizes).
+\item dimension $n$ vector has size $n$ times size of number
+\item $m \times n$ matrix similar: $mn$ times size of numbers
+\item size (matrix product) at most sum of matrix sizes
+\item our goal: polynomial time in size of input, measured this way
+\end{itemize}
+
+Claim: if $A$ is $n \times n$ matrix, then $\det(A)$ is poly in size of $A$
+\begin{itemize}
+\item more precisely, twice the size
+\item proof by writing determinant as sum of permutation products.
+\[
+det(A)=\sum_{\pi:n\rightarrow n} \textrm{sign}(\pi)\prod_{i=1}^{n} A_{i\pi(i)}
+\]
+\item each product has size $n$ times size of numbers
+\item $n!$ products
+\item so size at most size of ($n!$ times product) $\le n\log
+  n+n\cdot$size(largest entry).
+\end{itemize}
+
+Corollary:
+\begin{itemize}
+\item inverse of matrix is poly size (write in terms of cofactors---Cramer's rule). For any $i$,
+\[
+x_i^*=\frac{det(A_i)}{det(A)},
+\]
+where $A_i$ is the matrix $A$ with the $i$-th column substituted with $b$.
+\item solution to $Ax=b$ is poly size (by inversion)
+\item can use this to argue Gaussian eliminiation produces poly size
+  answer 
+\item not obvious, since multiplying two integers can yield a
+  double-size integer and we do polynomially many multiplies in GE
+\item but can argue if work in units of $1/det(A)$ that all stays integer
+\end{itemize}
+
+What if $A$ isn't square?  Can we find an answer?
+\begin{itemize}
+\item Note we are asking if columns of A span $b$
+\item Find a maximal set of linearly independent columns
+\item These span $b$ if $A$ does.
+\item Extend to a basis by adding (independent) columns
+\item Now previous analysis applies
+\item Unique $x$
+\item It had better zero out all the added columns
+\end{itemize}
+
+So can check answer in polynomial time.
+
+\marnote{2013 Lecture 13 end}
+
+Can we show there \emph{isn't} an answer?
+\begin{itemize}
+\item $Ax=b$ has a {\em witness} for true: give $x$.
+\item How about a proof that there is no solution?
+\item ``Failure of algorithm to work'' is a hard witness to check
+\item note that ``$Ax=b$'' means columns of $A$ span $b$.
+\item in general, set of points $\set{Ax \mid x \in \Re^n} $ is a
+  {\bf subspace}
+\item 2d case
+\begin{itemize}
+\item $\set{Ax}$ is a line through origin
+\item $A$ is vector in direction of line
+\item point $b$ not on line
+\item i.e., part of it (projection) is perpendicular to line
+\end{itemize}
+\item claim: no solution iff for some $y$, $yA=0$ but $yb \ne 0$.
+\item proof: if $Ax=b$, then $yA=0$ means $yb=yAx=0$.
+\item if no $Ax = b$, means columns of $A$ don't span $b$
+\item set of points $\set{Ax}$ is subspace not containing $b$
+\item find part of $b$ perpendicular to subspace, call it $y$
+\item then $yb \ne 0$, but $yA=0$,
+\item standard form LP asks for linear combo too, but requires that all
+  coefficients of combo be nonnegative!
+\item wait, we showed existence, but is $y$ polynomial size?
+\item note $yb \ne 0 $ has solution means $yb=1$ has solution
+\item so solve $y \cdot \binom{A}{b} = \binom{0}{1}$
+\item we proved this matrix problem has polynomial number of bits
+  solution
+\item and can find by e.g. Gaussian elimination
+\end{itemize}
+
+Summary:
+\begin{itemize}
+\item in polytime, can find solution
+\item and provide easy polytime checkable solution
+\item and in polytime can determine insoluble
+\item and give easy polytime checkable ``nonsolution''
+\end{itemize}
+
+
+\subsection{Geometry}
+
+Polytopes
+\begin{itemize}
+\item canonical form: $Ax \ge b$ is an intersection of (finitely many)
+  halfspaces, a (convex) {\bf polytope}
+\item standard form: $Ax=b$ is an intersection of hyperplanes (thus a
+  subspace), then $x \ge 0$ intersects in some halfspace.  Also a
+  polytope, but not full dimensional.
+\item polytope is {\bf bounded} if fits inside some box.
+\item (some call this \emph{polyhedron}.  Others invert definitions.
+\item either formulation defines a {\bf convex} set:
+  \begin{itemize}
+  \item if $x, y \in P$, so is $\lambda x+(1-\lambda)y$ for $\lambda \in
+    0,1$.
+  \item that is, line from $x$ to $y$ stays in $P$.
+  \end{itemize}
+\item halfspaces define convex sets.  Converse also true!
+  \item let $C$ be any convex set, $z \notin C$.  
+  \item then there is some $a,b$ such that $ax \ge b$ for $x \in C$, but
+    $az < b$.
+\item proof by picture.  also true in higher dimensions (don't bother proving)
+\item deduce: every convex set is the intersection of the halfspaces
+  containing it.
+\end{itemize}
+
+\subsection{Basic Feasible Solutions}
+
+Again, let's start by thinking about structure of optimal solution.
+\begin{itemize}
+\item Can optimum be in ``middle'' of polytope?
+\item Not really: if can move in all directions, can move to improve
+  opt.
+\end{itemize}
+
+Where can optimum be? At ``corners.''
+\begin{itemize}
+\item ``vertex'' is point that is not a convex combination of two
+others
+\item ``extreme point'' is point that is \emph{unique} optimum in some
+direction 
+\end{itemize}
+
+Basic solutions:
+\begin{itemize}
+\item A constraint $ax \le b$ or $ax=b$ is {\em tight} or {\em active}
+  if $ax=b$ 
+\item for $n$-dim LP, point is {\em basic} if (i) all equality
+  constraints are tight and (ii) $n$ linearly independent constraints
+  are tight.
+\item in other words, $x$ is at intersection of boundaries of $n$
+  linearly independent constraints
+\item note $x$ is therefore the unique intersection of these
+  boundaries.
+\item a {\em basic feasible solution} is a solution that is basic and
+  satisfies all constraints.
+\end{itemize}
+
+In fact, vertex, extreme point, bfs are \emph{equivalent}.
+\begin{itemize}
+\item Proof left somewhat to reader.
+\end{itemize}
+
+Any standard form lp $\min cx,\ Ax=b,\ x\ge 0$ with opt has one at a BFS.
+\begin{itemize}
+\item Suppose opt $x$ is not at BFS
+\item Then less than $n$ tight constraints
+\item So at least one degree of freedom
+\item i.e, there is a (linear) subspace on which all those constraints
+are tight.
+\item In particular, some line through $x$ for which all these
+constraints are tight.
+\item Write as $x+\epsilon d$ for some vector direction $d$
+\item Since $x$ is feasible and other constraints \emph{not} tight,
+$x+\epsilon d$ is feasible for small enough $\epsilon$.
+\item Consider moving along line.  Objective value is $cx+\epsilon cd$.
+\item So for either positive or negative $\epsilon$, objective is
+\emph{nonincreasing}, i.e. doesn't get worse.
+\item Since started at opt, must be no change at all---i.e., $cd=0$.
+\item So can move in \emph{either} direction.
+\item In at least one direction, some $x_i$ is decreasing.
+\item Keep going till new constraint becomes tight (some $x_i=0$).
+\item Argument can be repeated until $n$ tight constraints, i.e. bfs
+\item Conclude: every standard form LP with an optimum has one at a
+  bfs.
+\item canonical form has oddities: e.g. $\min 0x+1y \mid y \le 1$.
+\item but any \emph{bounded, feasible} LP has BFS optimum
+\begin{itemize}
+\item generalize idea of moving without worsening objective until new
+  constraint becomes tight.
+\end{itemize}
+\end{itemize}
+
+
+Corollaries:
+\begin{itemize}
+\item Actually showed, if $x$ feasible, exists BFS with no worse objective.
+\item Note that in canconical form, might not have opt at BFS
+  ($\min y$ over $(x,y)$ such that $0 \le x \le 1$).
+\item But this only happens if LP is unbounded
+\item In particular, if opt is \emph{unique}, it is a bfs.
+\item More generally, for our proof above to ``break'', the line
+we made through opt can't hit any constraint
+\item so feasible set contains an entire line
+\item so if polytope is feasible and ``half bounded'', there is an opt
+\item standard form is half-bounded since positive orthant is.
+\end{itemize}
+
+Question: 
+\begin{itemize}
+\item arbitary unbounded LP with optimum transforms to standard LP
+  with optimum
+\item but standard LP with OPT has one at BFS
+\item where did the BFS come from that wasn't in original LP?
+\item consider  $\min 0x+1y \mid y \ge 1$.
+\item $x$ is unbounded so no BFS
+\item conversion create $x^+$ and $x^-$, writes $x=x^+-x^-$ with
+  $x^+,x^- \ge 0$
+\item this turns the point $x^+=x^-=0$, i.e. $x=0$, into a vertex!
+\end{itemize}
+
+\subsection{Vertices and Extreme Points}
+Two other characterizations of corner.
+
+Vertex:
+\begin{itemize}
+\item ``vertex'' is point that is not a convex combination of two
+others
+\item BFS if-and-only-if vertex: 
+\begin{itemize}
+\item if point is convex combo (not vertex), consider line through it
+\item all points on it feasible
+\item so don't have $n$ tight constraints
+\item conversely, if less than $n$ tight constraints, they define
+  feasible subspace containing line through point 
+\item so point is convex combo of points on line.
+\end{itemize}
+\end{itemize}
+
+Extreme Point
+\begin{itemize}
+\item ``extreme point'' is point that is \emph{unique} optimum in some
+direction 
+\item Extreme point implies BFS
+\begin{itemize}
+\item if cannot move to any other opt, must have $n$ tight constraints.
+\end{itemize}
+\item Conversely, BFS is extreme point
+\begin{itemize}
+\item BFS means feasible and total of $n$ tight constraints
+\item let $T$ be set of $x_i \ge 0$ constraints that are tight
+\item take objective $\sum_{i \in T} x_i$
+\item consider any other feasible point
+\item It's loose on some $i \in T$
+\item so objective value $>0$
+\item so not optimal
+\item Thus, BFS is unique opt for this objective, i.e. extreme point
+\item This proof assumes standard form, but easily generalizes.
+\end{itemize}
+\end{itemize}
+
+Shows output is polynomial size:
+\begin{itemize}
+\item Let $A'$ and correspoinding $b'$ be $n$ tight constraints (rows)
+at opt
+\item Then opt is (unique) solution to $A'x=b'$
+\item We saw that such an inverse is represented in
+polynomial size in input
+\item (So, at least \emph{weakly} polynomial algorithms seem possible)
+\end{itemize}
+
+
+Yields first algorithm for LP: try all bfs.
+\begin{itemize}
+\item How many are there?
+\item just choose $n$ tight constraints out of $m$, check feasibility
+  and objective
+\item Upper bound $\binom{m}{n}$
+\end{itemize}
+
+
+OK, this is an exponential method for finding the optimum.  Maybe we
+can do better if we just try to verify the optimum.  Let's look for a
+way to prove that a given solution $x$ is optimal.
+
+\marnote{2011 Lecture 10 end}
+\marnote{2012 Lecture 12 end}
+Quest for nonexponential algorithm: start at an easier place: how
+decide if a solution is optimal?
+\begin{itemize}
+\item decision version of LP: is there a solution with opt$>k$?
+\item this is in NP, since can exhibit a solution (we showed poly size
+  output)
+\item is it in coNP?  Ie, can we prove there is no solution with
+  opt$>k$? (this would give an optimality test)
+\end{itemize}
+
+
+\end{document}

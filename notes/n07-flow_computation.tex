@@ -1,0 +1,248 @@
+\documentclass{article}
+\usepackage{me}
+%\input{abbrevs}
+\setlength{\parindent}{0pt}
+
+\title{Basic Flow Algorithms and Capacity Scaling\\ 6.854 Notes \#7}
+\author{David Karger}
+
+\begin{document}
+
+{\bf Today:} From flow optimality conditions to flow algorithms. 
+
+\section{Recap of Last Lecture}
+
+\textbf{Last time:} Maximum flow problem:
+\begin{itemize}
+\item Assign a \emph{flow} value $f_e$ to each (directed ) edge/arc $e$ such that
+\begin{itemize}
+\item (\emph{Flow conservation}) For every vertex $v$ other than {\em source} $s$ and {\em sink} $t$, $\sum_w f_{(v,w)}-f_{(w,v)}=0$.
+\item (\emph{Capacity constraints}) For each edge $e$, $0\leq f_e \leq u_e$, where $u_e$ is the (non-negative) {\em capacity} of the edge $e$. 
+\end{itemize}
+\item (Any flow satisfying the above constraints is called {\em feasible}.)
+\item \text{Note:} Direction/orientation of edges important here - $f_{(v, w)}$ might be different than $f_{(w, v)}$.  (Wlog can assume that either $f_{(w, v)}=0$ or $f_{(v, w)}=0$, or both.) Similarly, $u_{(w, v)}$ might be different to $u_{(v, w)}$. (But often both $u_{(w,v)}$ and $u_{(v,w)}$ will be non-zero.)
+\item Goal: Maximize the \emph{value} $|f| = \sum_w f_{(s,w)}-f_{(w,s)}$, i.e., the net flow out of $s$ (by flow conservation constraints, this is equal to the net flow into $t$).
+\end{itemize}
+
+\textbf{Important concepts:} 
+
+\begin{itemize}
+\item {\em Residual graph} $G_f$ with respect to some (feasible) flow $f$. $G_f$ is the same as $G$ except its {\em residual} capacities become $u_f(w,v):= u(w,v) - f(w, v) + f(v, w)$, for each edge $e=(w,v)$.
+
+$\Rightarrow$ Increasing $f(w,v)$ decreases the residual capacity $u_f(w,v)$. But increasing $f(v,w)$ {\em increases} $u_f(w,v)$. 
+\item {\em Augmenting path:} An $s$-$t$ path in the residual graph $G_f$ consisting of edges with positive residual capacity.
+
+$\Rightarrow$ If an augmenting path $P$ found, we can increase the value of flow by pushing flow along that path. 
+
+$\Rightarrow$ Maximum amount of flow to push along that path: $u_f(P):=\min_{e\in P} u_f(e)$ -- the {\em bottleneck capacity} of $P$.
+
+$\Rightarrow$ The value $|f|$ of the flow increases by $u_f(P)$ after this operation. 
+\item {\em $s$-$t$ Cut:} A cut $S\subset V$ such that $s\in S$ and $t\notin S$.
+
+$\Rightarrow$ (Residual) capacity $u_f(S)':= \sum_{v\in S w\notin S} u_f(v,w)$ is an upper bound on the value of the flow that we can still push.  
+\end{itemize}
+
+\textbf{Key theorem:} Max-Flow Min-Cut {\em duality}: The following statements are equivalent:
+\begin{itemize}
+\item $f$ is a maximum flow.
+\item There is no augmenting paths in the residual graph $G_f$.
+\item There exists an $s$-$t$ cut $S^*$ with $u_f(S^*)=0$.
+\item There exists an $s$-$t$ cut $S^*$ with $u(S)=|f|$. 
+\item The cut $S^*$ as above is a {\em minimum $s$-$t$} cut in $G$.
+\end{itemize}
+
+\section{Maximum Flow Algorithms}
+
+We understand now the optimality conditions for maximum flow well. But how about computing one?
+
+\textbf{Observe:} The Max-Flow Min-Cut theorem can be easily turned into an actual algorithm. 
+
+\subsection{Computing Max Flow with Augmenting Paths}
+
+\textbf{Natural algorithm:} Repeatedly find augmenting paths in the residual graph. 
+\begin{itemize}
+\item By Max-Flow Min-Cut theorem we know that either our flow is already optimal or there is an augmenting path to find.
+\item Each augmenting path computation can be easily done in $O(m)$ time.
+\item \textbf{Key question:} How many times we might need to find an augmenting path before we reach the max flow?
+\item Consider first the case of {\em integer} capacities. (This will be most often the case anyway.)
+\begin{itemize}
+\item If capacities are integral then the bottleneck capacity of each augmenting path we find is integer and positive, so at least $1$.
+
+$\Rightarrow$ We have at most $|f|$ augmenting path computations, giving an $O(m|f|)$ overall bound. 
+
+\item Note that, by Max-Flow Min-Cut Theorem, 
+\[
+|f|=u(S^*)\leq u(\{s\})\leq nU,
+\]
+where $U:=\max_e u_e$ is the largest edge capacity. 
+
+$\Rightarrow$ The overall running time is $O(mnU)$. \textbf{Note:} This running time is polynomial in the {\em value} of our input but not in the {\em size} of its binary representation. (Such algorithms are called {\em pseudo-polynomial}.) When $U=1$, this is polynomial time algorithm though. 
+\item \textbf{Important corollary:} If all capacities are integral then there exists an integral maximum flow too. (Although there could still exist maximum flows that are non-integral.)
+\end{itemize}
+\item When capacities are {\em rational}, we can think of multiplying all capacities by the product of their denominators, and thus reduce to the integral capacity case.
+
+$\Rightarrow$ The running time is finite, but most likely not even pseudo-polynomial. 
+\item When capacities are {\em real} numbers, we might not even have termination.
+\end{itemize}
+
+\textbf{Sidenote:} The above algorithm was simple to describe but its dynamics can be quite complex.
+\begin{itemize}
+\item Each augmentation constitutes a ``greedy'' improvement step, but these augmentations might undo/overwrite previous updates, adding flow to an edge and then removing it. 
+\item Instructive example to look at: ``diamond'' graph with edges $(s, v)$, $(s,w)$, $(v,w)$, $(v,t)$, and $(w,t)$, and capacities being $1000$ on all the edges except $(v,w)$ which has a capacity of $1$. What will happen if we always choose an augmenting path going through the capacity $1$ edge? How does it compare to making a ``smart'' choice of the augmenting path?
+\end{itemize}
+
+\subsection{Maximum Bottleneck Capacity Augmenting Paths}
+
+So far, we assumed that we just find {\em an} augmenting path. But maybe there is a ``smart'' way to choose one?
+
+\textbf{Natural idea:} Always choose an augmenting path $P$ that has maximum bottleneck capacity $u_f(P)$.
+
+\begin{itemize}
+\item How to find one? Actually, quite simple.  Easy $O(m\log n)$-time algorithm: just do binary search over the capacity of ``bottlenecking'' edge and, for each guess $u$, check for $s$-$t$ path in $G_f$ after all the edges with capacity less than $u$ were removed. By being (much) more sophisticated, one can get $O(\min\{ m+n \log n, m \log^*n\})$ time. 
+\item How much progress each such augmenting path guarantees to make?
+\item \textbf{Recall:} The flow decomposition bound tells us that any flow can be decomposed into at most $m$ flow paths. 
+
+$\Rightarrow$ If we apply this observation to the maximum (remaining) flow, i.e., the maximum flow in the {\em residual} graph $G_f$ together with an averaging argument,  we get that at least one of these paths carries at least $1/m$-fraction of the remaining value of the flow. (Note that all such paths have to be augmenting in $G_f$ by definition.)
+
+$\Rightarrow$ Each flow augmentation reduces the remaining value of the flow by a factor of $(1-1/m)$. 
+\item After $m\ln |f| +1$ augmentations, the remaining flow would be less than $1$. So, if capacities are integral, the obtained solution has to be optimal. The overall running time is 
+\[
+O((m\log n)\cdot m \ln |f|)=O(m^2 \log n \log nU).
+\]
+\item \textbf{Note:} This is a ``truly'' polynomial running time, i.e., it is polynomial in the size of the representation of the input numbers. Still, sometimes one can ask for even more: running time that is {\em independent} of the input numbers, i.e., depends only on the size of the graph itself. This kind of algorithms are called {\em strongly polynomial} (and the ones that are only polynomial in the size of the numbers are called {\em weakly polynomial}).
+\item If capacities are rational, the above algorithm still has interesting properties. In particular, if $U$ will be now the largest denominator/enumerator in the capacities, then by multiplying all capacities by the product of all denominators and applying the algorithm above will give us a running time of
+\[
+O((m\log n)\cdot m \ln |f|)=O(m^2 \log n \log nU^m)=O(m^3 \log n \log nU),
+\]
+which is still (weakly) polynomial. (Note: we do not actually need to explicitly multiply all capacities here.)
+\end{itemize} 
+
+\textbf{From now on:} Unless stated otherwise, we assume that capacities are integral.  	% 2017 lecture 9 (9/27/2017) end
+
+
+\section{Scaling Technique} % 2017 lecture 10 (10/2/2017) start
+
+Idea of maximum bottleneck capacity augmenting was to be greedy
+\begin{itemize}
+\item Get most of solution as quick as possible.
+\item Lead to decrease of residual flow quickly.
+\end{itemize}
+
+{\bf Another approach:} Scaling. 
+\begin{itemize}
+\item Developed by Gabow in 1985 and also Dinitz in 1973 (but appeared only in Russian so, as
+often the case in this period, the American discovery was much later but independent).
+\item General principle for applying ``unit case'' algorithms to obtain``general numeric
+case'' algorithms.
+\item \textbf{Key idea:} Number consists of bits, but bits correspond to unit case!
+\end{itemize}
+
+One can think of scaling as a reverse process to rounding.
+\begin{itemize}
+\item Start with an optimal solution to the rounded down instance (drop low order bits)
+\item Repeatedly: 
+\begin{itemize}
+\item Put back next dropped bit (starting from the highest to lowest order bits).
+\item Your solution is most likely no longer optimal in this new ``perturbed'' instance.
+\item ``Fix up'' the solution by making it optimal again.
+\end{itemize}
+\end{itemize}
+
+\textbf{Big benefit:} Fixing up the solution often correspond to solving the original problem in ``unit case''.  (We, in a sense, reduce the general case to unit case.)
+
+How to apply this approach to the maximum flow problem?
+\begin{itemize}
+\item Capacities are $\log U$ bit integer numbers. 
+\item Round them down completely: Start with all capacities $0$ (Finding a maximum flow here is easy!)
+\item Then: Roll in one bit of capacity at a time, starting with high order bits
+  and working down.
+\item After each roll in, update the current maximum flow by augmenting it to a maximum flow solution in the new graph. 
+\item Effect of rolling in one bit: all capacities doubled {\em and} then some of them additionally increase by $1$. 
+\item After we double our current flow too: 
+\begin{itemize}
+\item It will remain a feasible flow in our graph. 
+\item In the residual graph, all residual capacities double {\em and} then some of them increase by $1$ too. 
+\end{itemize}
+\item \textbf{Crucial observation:} Since our flow was optimal before, there must have existed an $s$-$t$ cut $S^*$ with its residual capacity $u_f(S^*)$ be zero then.
+
+$\Rightarrow$ After rolling in a new bit (and doubling the flow), this cut has residual capacity be at most $m$. 
+
+$\Rightarrow$ So, even if we use the basic augmenting path--based pushes, after at most $m$ such pushes, we will find the new optimum. (Note that $S^*$ does not need to be a min $s$-$t$ cut in the new graph, but it still provides an upper bound on the amount of flow that can be pushed.)
+
+$\Rightarrow$ Running time to execute this stage: $O(m^2)$. 
+
+\item After $\log U$ roll-ins, all numbers are correct, so we computed a maximum flow in our original graph. 
+
+\item \textbf{Total running time of our scaling algorithm:} $O(m^2 \log U)$ -- slightly better than maximum bottleneck capacity augmenting path algorithm (and without having to implement maximum bottleneck capacity augmenting path finding)!
+
+\item \textbf{Note:} In a sense, we took an algorithm that worked well only for unit-capacity case (i.e., basic augmenting path--based algorithm) and applied it in a fairly generic manner to a general-capacity case. (Observe though that the residual graphs after the roll-in do {\em not} need to be unit-capacity -- we only know that about the $s$-$t$ cut $S^*$.)
+
+\item \textbf{Side remark:} The resulting algorithm is weakly polynomial. By its nature, scaling technique is unable to deliver strongly polynomial time algorithms. (Still, in most applications, weakly polynomial time is more than ok.)
+\end{itemize}
+
+
+\iffalse
+%don't lecture if assigned in homework
+\section{Different Variants of the Max Flow Problem}
+
+So far, we were focused on the ``canonical'' maximum flow problem formulation. In some of the applications though, one needs to solve different variants of this problem. Amazing thing about the maximum flow problem is that many of these, seemingly, more general variants can be reduced to the ``canonical'' problem. 
+
+Some examples:
+
+\begin{itemize}
+\item {\em (Multiple source-sinks maximum flow)} We have multiple sources $s_1, \ldots, s_k$ and multiple sinks $t_1, \ldots, t_{k'}$ and just want to push as much flow as possible between them. 
+
+\begin{itemize}
+\item Reduces to canonical maximum flow by adding a ``super-source'' $s$ and ``super-sink'' $t$ and arcs with unbounded (or just $nU$) capacity from $s$ to each $s_i$ and from each $t_i$ to $t$.
+\item Computing maximum flow in the new graph corresponds directly to solving the multiple source-sink version. 
+\end{itemize}
+
+
+\item {\em (Multiple source-sinks maximum flow with demands)} Again, we have multiple sources and sinks, but now we want each source $s_i$ to supply a prescribe amount $d_i^+$ of flow and each sink $t_j$ to demand a prescribed amount $d_j^-$ of flow. (Assuming that $\sum_i d_i^+ = \sum_j d_j^-$.) 
+
+\begin{itemize}
+\item Do the same reduction as before but make the capacity of the edge connecting $s$ to $s_i$ be $d_i^+$ and the capacity of the edge connecting $t_j$ to $t$ be $d_j^-$.
+
+\item Send flow $f'$ along the lower bounds. 
+
+\item This makes them be satisfied but creates new residual arcs and {\em demands}.
+
+\item Solve the resulting multiple source-sink with demands in the residual graph, obtaining a solution $\hat{f}$.
+
+\item The final solution is the flow $f:=f'+\hat{f}$. \textbf{Note:} that we are using linearity of the flows here. That is, that adding a feasible flow $f'$ in a graph to a flow that is feasible in the residual graph of $f'$ gives us a feasible flow in the original graph. 
+
+\end{itemize}
+
+
+\item {\em (Bipartite matching problem)} Let $G=(V,E)$ be an undirected graph that is {\em bipartite}, i.e., $V=S\cup T$, such that $S\cap T=\emptyset$ and $E\subseteq S\times T$. We want to find a maximum cardinality {\em matching} $M$ in $G$. That is, a subset $M$ of edges such that no two edges in it share an endpoint.  
+
+\begin{itemize}
+\item Setup a graph $G'$ which is a copy of $G$ such that: we make each original edge have capacity $1$ and be oriented towards the vertex in $T$ (important!), and then we add a super-source $s$ (resp. super-sink $t$) that is connected via directed unit-capacity edges to each vertex in $S$ (resp. there is a directed unit-capacity edge from each vertex in $T$ to $t$).
+\item One can show that in the maximum {\em integral} $s$-$t$ flow in this graph (which we know always exists) all the original edges that flow non-zero amount of flow form a maximum matching. 
+
+\item The above shows us that one can reduce bipartite matching problem to the maximum flow problem. Can one go the other way too? Yes! (But we will not cover that.)
+\end{itemize}
+
+\item {\em (Vertex capacities)} Find a maximum $s$-$t$ flow in a graph where we do not have any edge capacities but we cap the total flow flowing through each vertex $v$ at $u_v$. 
+
+\begin{itemize}
+\item Transform the graph by splitting every vertex $v$ into two vertices $v_{in}$ and $v_{out}$, connecting all the original incoming edges to $v_{in}$ and all the original outgoing edges to $v_{out}$, and then adding an edge $(v_{in}, v_{out})$ with capacity $u_v$. 
+
+\item Finding an maximum $s$-$t$ flow in this new graph (with respect to edge capacities) gives us the maximum $s$-$t$ flow in the original graph that is feasible with respect to vertex capacities.
+\end{itemize}
+
+
+\end{itemize}
+
+\fi
+
+%\marnote{2013 Lecture 9 end}
+
+\end{document}
+
+
+
+%% Local Variables:
+%% mode: latex
+%% TeX-master: t
+%% End:

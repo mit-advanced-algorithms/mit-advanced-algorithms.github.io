@@ -1,0 +1,281 @@
+\documentclass{article}
+\usepackage{me}
+%\input{abbrevs}
+\setlength{\parindent}{0pt}
+
+\title{Flow\\ 6.854 Notes \#6}
+\author{David Karger}
+
+\begin{document}
+
+%\marnote{2011 Lecture 6 start}
+%\marnote{2013 Lecture 8 start}
+
+Combinatorial Optimization: Finding Optimum Solution
+\begin{itemize}
+\item Breakdown approach
+\item Solution: Understand feasibility
+\item Optimum: Verifying that a solution is optimum
+\item And understanding how to improve one that is not optimum
+\item Finding: actually producing the optimum comes last.
+\end{itemize}
+
+\section{Maximum Flow}
+
+\subsection{Definitions}
+
+Tarjan: \emph{Data Structures and Network Algorithms}
+
+Ford and Fulkerson, \emph{Flows in Networks}, 1962 (paper 1956)
+
+Ahuja, Magnanti, Orlin \emph{Network Flows}.  Problem: do min-cost.
+
+Problem: in a graph, find a \emph{flow} that is \emph{feasible} and has
+maximum \emph{value}.
+
+Directed graph, edge \emph{capacities} $u(e)$ or $u(v,w)$.  Why not
+$c$? reserved for costs, later.
+
+\emph{source} $s$, \emph{sink} $t$
+
+Goal: assign a \emph{flow} value to each edge:
+\begin{itemize}
+\item \emph{conservation:} for every vertex $v$, $\sum_w g(v,w)-g(w,v)=0$, unless $v=s,t$
+\item \emph{capacity:} $0 \le g(e) \le u(e)$ (flow is {\em
+    feasible/legal}) (sometimes lower bound $l(e)$)
+\item Flow \emph{value} $|f| = \sum_w g(s,w)-g(w,s)$ (in gross model).
+\end{itemize}
+
+Alternative: (net flow form)
+\begin{itemize}
+\item \emph{skew symmetry}: $f(v,w) = -f(w,v)$
+\item \emph{conservation:} for every vertex $v$, $\sum_w f(v,w)=0$, unless $v=s,t$
+\item \emph{capacity:} $f(e) \le u(e)$ (flow is {\em
+    feasible/legal}) (sometimes lower bound $l(e)$)
+\item Flow \emph{value} $|f| = \sum_w f(s,w)$
+\end{itemize}
+
+
+Net flow cleaner for math but involves negative flows and makes
+lower-bound flows messy.  Raw flow may
+fit intuition/reality better.
+
+Water hose intuition.  Also routing commodities, messages under
+bandwidth constraints, etc.  Often ``per unit time'' flows/capacities.
+
+Maximum flow problem: find flow of maximum value.
+
+
+Path decomposition (another perspective):
+\begin{itemize}
+\item claim: any $s$-$t$ flow can be decomposed into paths/cycles with quantities
+\item proof: induction on number of edges with nonzero flow
+\item if $s$ has out flow, traverse flow outward from $s$
+\item till find an $s$-$t$ path or cycle (why can we?
+  conservation) and kill
+\item if $t$ has in-flow (won't any more, but no need to prove) work
+  backwards to $s$ or cycle and kill
+\item if some other vertex has outflow, find a cycle and kill
+\item corollary: flow into $t$ equals flow out of $s$ (global
+  conservation)
+\item Note: every path is a flow (balanced).
+\item Note: decomposition of \emph{positive} value
+  \begin{itemize}
+  \item i.e. never have paths traveling opposite each other
+  \end{itemize}
+\item Note: at most $m$ paths/cycles (zero out one edge's flow each time)
+\end{itemize}
+
+\marnote{Point A. 15 min to here.}
+
+\marnote{2014 Lec 8 start}
+
+Decision question: is there nonzero feasible flow
+\begin{itemize}
+\item Suppose yes.  consider one.
+\item decompose into paths
+\item proves there is a flow path
+\item Suppose no
+\item then no flow path
+\item consider vertices reachable from $s$
+\item they form a \textbf{cut} $(s\in S, t \in T={\overline S})$
+\item no edge crossing cut
+\end{itemize}
+
+%\marnote{2012 lecture 8 start}
+
+What about max-flow? 		% 2017 lecture 9 (9/27/2017) start
+\begin{itemize}
+\item Need some upper bound to decide if we are maximal
+\item Consider any flow, and cut $(S,T)$
+\item decompose into paths
+\item every path leaves the cut (at least) once
+\item So, outgoing cut capacity must exceed flow value
+\item \textbf{min cut} is upper bound for \textbf{max flow}
+\item So if flow equals cut value, we know we have a max flow and a min cut.
+\end{itemize}
+
+Suppose have some flow.  How can we send more?
+\begin{itemize}
+\item Might be no path in original graph
+\begin{verbatim}
+
+      /|\
+     / | \
+    /  |  \
+ s /   |   \
+   \   |   / t
+    \  |  /
+     \ | /
+      \|/
+
+\end{verbatim}
+\item Instead need \textbf{residual graph:}
+\begin{itemize}
+\item Suppose flow $f(v,w)$
+\item set $u_f(v,w) = u(v,w)-f(v,w)$ (decrease in available capacity)
+\item which means set $u_f(w,v) = u(w,v)+f(v,w)$ (increase in capacity indicates
+  can remove $(v,w)$ flow
+\end{itemize}
+\item If \textbf{augmenting path} in residual graph, can increase flow
+  \begin{itemize}
+  \item might use residual arcs that are reverse of original arcs
+  \item this represents \emph{removing} flow from that residual arc
+  \item so not a real path in original graph
+  \item but, augmentation does preserve conservation invariant at each vertex
+  \end{itemize}
+\end{itemize}
+
+What if no augmenting path?
+  \begin{itemize}
+\item Implies zero cut $(S,T)$ in residual graph
+\item Implies every $S$-$T$ edge is saturated
+  \item and every $T$-$S$ edge is empty
+\item i.e. cut is saturated
+\item consider path decomposition
+\item each path crosses the cut exactly once
+  \begin{itemize}
+  \item must cross once to reach $t$
+  \item cannot cross back (and cross again) because $T$-$S$ empty
+  \end{itemize}
+\item Thus, capacity of crossing paths equals capacity of crossing edges
+\item i.e. value of cut equals value of flow
+\item but already saw value of any flow cannot exceed
+  value of any cut (because all paths cross cut at least once)
+\item so equality means flow is maximum
+  \end{itemize}
+
+We have proven Max-flow Min-cut \textbf{duality}:
+\begin{itemize}
+\item Equivalent statements:
+  \begin{itemize}
+  \item $f$ is max-flow
+  \item no augmenting path in $G_f$
+  \item $|f| = u(S)$ for some $S$
+  \end{itemize}
+\end{itemize}
+
+Proof summary:
+\begin{itemize}
+\item if augmenting path, can increase $f$
+\item if no augmenting path, can find empty residual cut
+\item flow has same value as cut (so is optimal)
+\item conversely, if flow equals cut they must both be optimal
+\end{itemize}
+
+Another cute corollary:
+\begin{itemize}
+\item Net flow across any cut (in minus out) equals flow value
+\item True for a path as it must go out once more than in
+\item So true for a sum of paths
+\end{itemize}
+
+Note that max-flow and min-cut are witnesses to each others'
+optimality.
+
+% Added for the 9/16/19 lecture (as we plan to blaze through the intro topics)
+
+\section{Maximum Flow Algorithms}
+
+We understand now the optimality conditions for maximum flow well. But how about computing one?
+
+\textbf{Observe:} The Max-Flow Min-Cut theorem can be easily turned into an actual algorithm. 
+
+\subsection{Computing Max Flow with Augmenting Paths}
+
+\textbf{Natural algorithm:} Repeatedly find augmenting paths in the residual graph. 
+\begin{itemize}
+	\item By Max-Flow Min-Cut theorem we know that either our flow is already optimal or there is an augmenting path to find.
+	\item Each augmenting path computation can be easily done in $O(m)$ time.
+	\item \textbf{Key question:} How many times we might need to find an augmenting path before we reach the max flow?
+	\item Consider first the case of {\em integer} capacities. (This will be most often the case anyway.)
+	\begin{itemize}
+		\item If capacities are integral then the bottleneck capacity of each augmenting path we find is integer and positive, so at least $1$.
+		
+		$\Rightarrow$ We have at most $|f|$ augmenting path computations, giving an $O(m|f|)$ overall bound. 
+		
+		\item Note that, by Max-Flow Min-Cut Theorem, 
+		\[
+		|f|=u(S^*)\leq u(\{s\})\leq nU,
+		\]
+		where $U:=\max_e u_e$ is the largest edge capacity. 
+		
+		$\Rightarrow$ The overall running time is $O(mnU)$.
+                \begin{itemize}
+                  \item \textbf{Note:} This running time is polynomial in the {\em values} in our input
+                \item but not in the {\em size} of its binary representation.
+                \item (Such algorithms are called {\em pseudo-polynomial}.)
+                  \item When $U=1$, this is polynomial time algorithm though.
+                \end{itemize}
+		\item \textbf{Important corollary:} If all capacities are integral then there exists an integral maximum flow too. (Although there could still exist maximum flows that are non-integral.)
+	\end{itemize}
+      \item When capacities are {\em rational}, we will augment by (multiple of) their least common denominator
+        
+        $\Rightarrow$ least common denominator never changes
+        
+	$\Rightarrow$ running time finite, but likely not even pseudo-polynomial. 
+	\item When capacities are {\em real} numbers, we might not even have termination.
+\end{itemize}
+
+\textbf{Sidenote:} The above algorithm was simple to describe but its dynamics can be quite complex.
+\begin{itemize}
+	\item Each augmentation constitutes a ``greedy'' improvement step, but these augmentations might undo/overwrite previous updates, adding flow to an edge and then removing it. 
+	\item Instructive example to look at: ``diamond'' graph with edges $(s, v)$, $(s,w)$, $(v,w)$, $(v,t)$, and $(w,t)$, and capacities being $1000$ on all the edges except $(v,w)$ which has a capacity of $1$. What will happen if we always choose an augmenting path going through the capacity $1$ edge? How does it compare to making a ``smart'' choice of the augmenting path?
+\end{itemize}
+
+\subsection{Maximum Bottleneck Capacity Augmenting Paths}
+
+So far, we assumed that we just find {\em an} augmenting path. But maybe there is a ``smart'' way to choose one?
+
+\textbf{Natural idea:} Always choose an augmenting path $P$ that has maximum bottleneck capacity $u_f(P)$.
+
+\begin{itemize}
+	\item How to find one? Actually, quite simple.  Easy $O(m\log n)$-time algorithm: just do binary search over the capacity of ``bottlenecking'' edge and, for each guess $u$, check for $s$-$t$ path in $G_f$ after all the edges with capacity less than $u$ were removed. By being (much) more sophisticated, one can get $O(\min\{ m+n \log n, m \log^*n\})$ time. 
+	\item How much progress each such augmenting path guarantees to make?
+	\item \textbf{Recall:} The flow decomposition bound tells us that any flow can be decomposed into at most $m$ flow paths. 
+	
+	$\Rightarrow$ If we apply this observation to the maximum (remaining) flow, i.e., the maximum flow in the {\em residual} graph $G_f$ together with an averaging argument,  we get that at least one of these paths carries at least $1/m$-fraction of the remaining value of the flow. (Note that all such paths have to be augmenting in $G_f$ by definition.)
+	
+	$\Rightarrow$ Each flow augmentation reduces the remaining value of the flow by a factor of $(1-1/m)$. 
+	\item After $m\ln |f| +1$ augmentations, the remaining flow would be less than $1$. So, if capacities are integral, the obtained solution has to be optimal. The overall running time is 
+	\[
+	O((m\log n)\cdot m \ln |f|)=O(m^2 \log n \log nU).
+	\]
+	\item \textbf{Note:} This is a ``truly'' polynomial running time, i.e., it is polynomial in the size of the representation of the input numbers. Still, sometimes one can ask for even more: running time that is {\em independent} of the input numbers, i.e., depends only on the size of the graph itself. This kind of algorithms are called {\em strongly polynomial} (and the ones that are only polynomial in the size of the numbers are called {\em weakly polynomial}).
+	\item If capacities are rational, the above algorithm still has interesting properties. In particular, if $U$ will be now the largest denominator/enumerator in the capacities, then by multiplying all capacities by the product of all denominators and applying the algorithm above will give us a running time of
+	\[
+	O((m\log n)\cdot m \ln |f|)=O(m^2 \log n \log nU^m)=O(m^3 \log n \log nU),
+	\]
+	which is still (weakly) polynomial. (Note: we do not actually need to explicitly multiply all capacities here.)
+\end{itemize} 
+
+\textbf{From now on:} Unless stated otherwise, we assume that capacities are integral.  	% 2017 lecture 9 (9/27/2017) end
+
+
+
+\end{document}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:

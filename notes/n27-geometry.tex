@@ -1,0 +1,715 @@
+\documentclass{article}
+\usepackage{me}
+\setlength{\parindent}{0pt}
+
+\newcommand{\vol}{\mbox{vol}}
+
+\title{Geometry\\ 6.854 Notes \#27}
+\author{David Karger}
+
+\begin{document}
+
+\section{Geometry}
+
+Field:
+\begin{itemize}
+\item We have been doing geometry---eg linear programming
+\item But in computational geometry, historical key difference in focus: \textbf{low dimension} $d$
+\item (more recently, innovations in ``high dimensional CG'' 
+\item Lots of algorithms that are great for $d$ small, but exponential
+  in $d$
+\end{itemize}
+
+\newcommand{\conv}{\mathit{conv}}
+
+
+\subsection{Range Trees for Orthogonal Range Queries}
+
+One key idea in CG: reducing dimension
+\begin{itemize}
+\item Do some work that reduces problem to smaller dimension
+\item Since few dimensions, work doesn't add up much.
+\end{itemize}
+
+What points are in this box?
+\begin{itemize}
+\item goal: $O(n)$ space
+\item query time $O(\log n)$ plus number of points
+\item (can't beat $\log n$ even for 1d)
+\item 1d solution: binary tree.  
+\begin{itemize}
+\item Find leftmost in range
+\item Walk tree till rightmost
+\end{itemize}
+\end{itemize}
+
+
+Generalize: Solve in each coordinate ``separately'' %
+\begin{itemize}
+\item Idea 1: solve each coord, intersecting
+\begin{itemize}
+\item Too expensive: maybe large solution in each coord, none in
+  intersection
+\end{itemize}
+\item Idea 2: 
+\begin{itemize}
+\item we know $x$ query will be an interval, 
+\item so build a $y$-range structure on each distinct subrange of
+  points by $x$
+\item Use binary search to locate right $x$ interval
+\item Then solve 1d range search on $y$
+\item Problem: $n^2$ distinct intervals
+\item So $n^3$ space and time to build
+\end{itemize}
+\end{itemize}
+
+Refining idea 2:
+\begin{itemize}
+\item Build binary search tree on $x$ coords
+\item Each internal node represents a tree subinterval containing some points
+\item Our query's $x$ interval can be broken into $O(\log n)$ tree
+  subintervals (think of the subtree between search paths of two endpoints of that $x$ interval) 
+\item We want to reduce dimension: on each subinterval, range search
+  $y$ coords \textbf{ only} among nodes in that $x$ interval
+\item Solution: each internal node has a $y$-coord search tree on
+  points in its subtree
+\item Size: $O(n\log n)$, since each point in $O(\log n)$ internal
+  nodes
+\item Query time: find $O(\log n)$ nodes, range search in each
+  $y$-tree, so $O(\log^2 n)$ (plus output size)
+\item more generally, $O(\log^d n)$
+\item \textbf{ fractional cascading} improves to $O(\log n)$
+\end{itemize}
+
+Dynamic maintenance:
+\begin{itemize}
+\item Want to insert/delete points
+\item Problem to maintain tree balance
+\item When insert $x$ coord, may want to re-balance
+\item Rotations are obvious choice, but have to rebuild auxiliary
+  structures
+\item Linear cost to rotate a tree.
+\item Remember treaps?  
+\begin{itemize}
+\item We showed expect 1 rotation
+\item Can show expected size of rotated tree is small
+\item Then insert $y$ coord in $O(\log n)$ auxiliary structures
+\item So, $O(\log^2 n)$ update cost
+\end{itemize}
+\end{itemize}
+
+\newcommand{\indx}{\mathit{index}}
+
+\marnote{ 2011 Lecture 22 End}
+\marnote{2013 Lecture 25 End}
+
+\section{Sweep Algorithms}
+
+Another key idea: 
+\begin{itemize}
+\item dimension is low 
+\item so worth expending lots of energy to reduce dimension
+%\item we saw this idea in LP
+\item plane sweep is a general-purpose dimension reduction
+\item Run a plane/line across space
+\item Study only what happens on the frontier
+\item Need to keep track of ``events'' that occur as sweep line across
+\item simplest case, events occur when line hits a feature
+\end{itemize}
+
+\subsection{Convex Hull by Sweep Line}
+\begin{itemize}
+\item define
+\item good for: width, diameter, filtering
+\item assume no 3 points on straight line.
+\item output:
+  \begin{itemize}
+  \item points and edges on hull
+  \item in counterclockwise order
+  \item can leave out edges by hacking implementation
+  \end{itemize}
+\item $\Omega(n\log n)$ lower bound via sorting
+\end{itemize}
+
+Build upper hull:
+\begin{itemize}
+\item Sort points by $x$ coord
+\item Sweep line from left to right
+\item maintain upper hull ``so far''
+\item as encounter next point, check if hull turns right or left to it
+\item if right, fine
+\item if left, hull is concave.  Fix by deleting some previous points
+  on hull.
+\item just work backwards till no left turn.
+\item Each point deleted only once, so $O(n)$
+\item but $O(n\log n)$ since must sort by $x$ coord.
+\end{itemize}
+
+Output sensitive algorithm can achieve $O(n\log k)$ (Chan 1996).
+
+\subsection{Halfspace intersection}
+
+LP in 2 dimensions
+\begin{itemize}
+\item feasibility problem is deciding whether halfspace intersection
+  nonempty
+\item and optimization is easy, given intersection
+\item just visit all vertices in linear time
+\end{itemize}
+
+Duality. 
+\begin{itemize}
+\item Assume origin inside intersection
+\item map $(a,b) \rightarrow L_{ab} = \{(x,y) \mid ax+by+1=0\}$.
+\item $(a,b) \in L_{qr}$ implies $qa+rb+1=0$ implies $(q,r) \in
+  L_{ab}$
+\item so $(q,r) = \bigcap_{(a,b) \in L_{qr}} L_{ab}$ 
+\item line through two points becomes point at intersection of 2 lines
+\item point at distance $d$ antipodal line at distance $1/d$.
+\item intersection of halfspace become convex hull.
+\end{itemize}
+
+So, $O(n\log n)$ time.
+
+What if no ``origin in intersection''?
+\begin{itemize}
+\item ignore verticals
+\item divide into plances that ``look up'' and ``look down''
+\item i.e. each contains either $(0,\infty)$ or $(0,-\infty)$
+\item easy to find feasible ``origin'' in each half
+\item then build polygon for each half
+\item the interset the two polygons
+\end{itemize}
+
+\subsection{Segment intersections}
+
+We saw this one using persistent data structures for a query structure.
+\begin{itemize}
+\item Maintain balanced search tree of segments ordered by current height.
+\item Heap of upcoming ``events'' (line intersections/crossings)
+\item pull next event from heap, output, swap lines in balanced tree
+\item check swapped lines against neighbors for new intersection
+  events
+\item lemma: next event always occurs between neighbors, so is in heap
+\item \textbf{ note:} next event is always in future (never have to
+  backtrack).
+\item so sweep approach valid
+\item and in fact, heap is monotone!
+\end{itemize}
+
+
+
+
+\section{Voronoi Diagram}
+
+Goal: find nearest Athena terminal to query point.
+
+Definitions:
+\begin{itemize}
+\item point set $p$
+\item $V(p_i)$ is space closer to $p_i$ than anything else
+\item for two points, $V(P)$ is bisecting line
+\item For 3 points, creates a new ``voronoi'' point
+\item And for many points, $V(p_i)$ is intersection of halfplanes, so
+  a convex polyhedron
+\item And nonempty of course.
+\item but might be infinite
+\item Given VD, can find nearest neighbor via planar point location:
+\item   $O(\log n)$ using persistent trees
+\end{itemize}
+
+Space complexity:
+\begin{itemize}
+\item VD is a \textbf{ planar graph}: no two voronoi edges cross (if count
+  voronoi points)
+\item add one point at infinity to make it a proper graph with ends
+\item Euler's formula: $n_v-n_e+n_f=2$
+\begin{itemize}
+\item By induction.  
+\item Removing one edge kills one face, cancels
+\item Removing shortcutting degree two vertex removes on vertex and
+  one edge, cancels
+\item eventually you have a triangle: 3 vertices, 3 edges, 2 faces
+  (inside and out).
+\end{itemize}
+\item ($n_v$ is voronoi points, not original ones)
+\item But $n_f = n$
+\item Also, every voronoi point has degree at least 3 while every edge
+  has two endpoints.
+\item Thus, $2n_e \ge 3(n_v+1)$
+\item rewrite $2(n+n_v-2) \ge 3(n_v+1)$
+\item So $n-2 \ge (n_v+3)/2$, \emph{i.e.}, $n_v \le 2n-7$
+\item Gives $n_e \le 3n-6$
+\end{itemize}
+
+Summary: $V(P)$ has linear space and $O(\log n)$ query time.
+
+\subsection{Construction}
+
+VD is dual of projection of lower CH of lifting of points to parabola in 3D.
+
+And 3D CH can be done in $O(n\log n)$
+
+Can build each voronoi cell in $O(n\log n)$, so $O(n^2\log n)$.
+
+\subsection{Sweep Line}
+
+Basic idea:
+\begin{itemize}
+\item Build portion of Voronoi behind sweep line.
+\item problem: not fully determined!  may be about to hit a new site.
+\item What is determined?  Stuff closer to a point than to line
+\item boundary is a parabola
+\item boundary of known space is pieces of parabolas: ``beach line''
+\item as sweep line descends, parabolas descend too. 
+\item We need to maintain beach line as ``events'' change it
+\end{itemize}
+
+\textbf{ 2011 lecture 23 end}
+
+Descent of one parabola:
+\begin{itemize}
+\item sweep line (horizontal) $y$ coord is $t$
+\item Equation $(x-x_f)^2+(y-y_f)^2 = (y-t)^2$.
+\item Fix $x$, find $dy/dt$
+\item $2(y-y_f)dy/dt = 2(y-t)(dy/dt-1)$
+\item So $dy/dt=(y-t)/(y_f-t)$
+\item Thus, the higher $y_f$ (farther from sweep line) the slower
+  parabola descends.
+\end{itemize}
+
+Two parabolas
+\begin{itemize}
+\item when sweep line hits second point, creates new parabola
+\item called a ``site event''
+\item new parabola starts degenerate---a vertical line
+\item we can see where it intersects first parabola
+\item as sweep descends, broadens into another parabola
+\item splits first parabola in two---now three pieces
+\item topologically interesting: intersection of parabolas
+\begin{itemize}
+\item point at intersection is equidistant from sweep and \emph{both}
+  foci
+\item which means it is on the bisector
+\item as sweep descends, intersection traces out bisector
+\item note there are two intersections; they trace out bisector in
+  both directions
+\item so one intersection is tracing \emph{upwards} as sweep descends
+\end{itemize}
+\end{itemize}
+
+More parabolas
+\begin{itemize}
+\item more generally, voronoi edge gets traced by two intersecting parabolas
+\item when does edge ``stop''?  When it collides with another edge to
+  make a Voronoi point.
+\item happens at intersection of 3 parabolas that were all beach line
+\item equidistant from 3 sites: ``circle event''
+\item after intersection, one parabola vanishes---falls behind the
+  beach line
+\end{itemize}
+
+Summary:
+\begin{itemize}
+\item site event adds segment to beach line
+\item circle event removes segment from beach line
+\end{itemize}
+
+Topology:
+\begin{itemize}
+\item ``breakpoints'' where two parabola's of beach line meet up
+\begin{itemize}
+\item these points are equidistant from sweep line \emph{and} both foci
+\item which means they are on the bisector of the two points 
+\item which is a voronoi edge because no other points are closer
+\item since other parabola are ``higher'', so farther, so foci are farther too
+\item as sweep line descends, this intersection traces out the voronoi
+  edge
+\end{itemize}
+\item what changes breakpoints?  changes in voronoi edges
+\item case 1: a single edge splits in two
+\begin{itemize}
+\item a new voronoi region is created ``between'' the previous two
+\item 
+\end{itemize}
+\end{itemize}
+
+What changes the beach line?
+
+Site event:
+\begin{itemize}
+\item Sweep line hits site
+\item creates new degenerate parabola (vertical line)
+\item widens to normal parabola
+\item adds arc piece to beach line.
+\end{itemize}
+
+Claim: no other create events.
+\begin{itemize}
+\item case 1: one parabola passing through one other
+\begin{itemize}
+\item At crossover, two parabolas are tangent.
+\item 
+\item then ``inner'' parabola has higher focus then outer
+\item so descends slower
+\item so outer one stays ahead, no crossover.
+\item this case cannot happen
+\end{itemize}
+\item case 2: new parabola descends through intersection point of two
+  previous parabolas.
+\begin{itemize}
+\item At crossover, all 3 parabolas intersect
+\item thus, all 3 foci and sweep line on boundary of circle with
+  intersection at center.
+\item called \textbf{ circle event}
+\item ``appearing'' parabola has highest focus
+\item so it is slower: won't cross over
+\item In fact, this is how parabola's \textbf{ disappear} from beach line
+\item outer parabolas catch up with, cross inner parabola.
+\end{itemize}
+\end{itemize}
+
+Summary:
+\begin{itemize}
+\item maintain beach line as pieces of parabolas
+\item Note one parabola may appear several times
+\item only \textbf{ site events} add to beach line
+\item only \textbf{ circle events} remove from beach line.
+\item $n$ site events
+\item so only $n$ circle events
+\item as insert/remove events, only need to check for events in newly
+  adjacent parabolas
+\item so $O(n\log n)$ time
+\end{itemize}
+
+
+
+\section{Randomized Incremental Constructions}
+
+\subsection*{BSP}
+
+\begin{itemize}
+\item linearity of expectation.  hat check problem
+\item Rendering an image
+\begin{itemize}
+\item render a collection of polygons (lines)
+\item painters algorithm: draw from back to front; let front overwrite
+\item need to figure out order with respect to user
+\end{itemize}
+\item define BSP.  
+\begin{itemize}
+\item BSP is a data structure that makes order determination easy
+\item Build in pre-process step, then render fast.
+\item Choose any hyperplane (root of tree), split lines onto correct
+  side of hyperplane, recurse
+\item If user is on side 1 of hyperplane, then nothing on side 2
+  blocks side 1, so paint it first.  Recurse.
+\item time=BSP size
+\end{itemize}
+\item sometimes must split to build BSP
+\item how limit splits?
+\item auto-partitions
+\item random auto
+\item analysis
+  \begin{itemize}
+  \item $\indx(u,v)=k$ if $k$ lines block $v$ from $u$
+  \item $u \dashv v$ if $v$ cut by $u$ auto
+  \item probability $1/(1+\indx(u,v))$.
+  \item tree size is (by linearity of $E$)
+    \begin{eqnarray*}
+      n+\sum 1/\indx(u,v) &\le & \sum_u 2H_n
+    \end{eqnarray*}
+  \end{itemize}
+\item result: \textbf{ exists} size $O(n\log n)$ auto
+\item gives randomized construction
+\item equally important, gives \textbf{ probabilistic existence proof} of
+  a small BSP
+\item so might hope to find deterministically.
+\end{itemize}
+
+
+\subsection*{Backwards Analysis---Convex Hulls}
+
+Define.
+
+algorithm (RIC):
+\begin{itemize}
+\item random order $p_i$
+\item insert one at a time (to get $S_i$)
+\item update $\conv(S_{i-1})\rightarrow \conv(S_i)$
+  \begin{itemize}
+  \item new point stretches convex hull
+  \item remove new non-hull points
+  \item revise hull structure
+  \end{itemize}
+\item Data structure:
+  \begin{itemize}
+  \item point $p_0$ inside hull (how find?)
+  \item for each $p$, edge of $\conv(S_i)$ hit by $\vec{p_0p}$
+  \item say $p$ \emph{cuts} this edge
+  \end{itemize}
+\item To update $p_i$ in $\conv(S_{i-1})$:
+  \begin{itemize}
+  \item if $p_i$ inside, discard
+  \item delete new non hull vertices and edges
+  \item $2$ vertices $v_1,v_2$ of $\conv(S_{i-1})$ become $p_i$-neighbors
+  \item other vertices unchanged.
+  \end{itemize}
+\item To implement:
+  \begin{itemize}
+  \item detect changes by moving out from edge cut by $\vec{p_0 p}$.
+  \item for each hull edge deleted, must update cut-pointers to
+    $\vec{p_iv_1}$ or $\vec{p_iv_2}$
+  \end{itemize}
+\end{itemize}
+
+Runtime analysis
+\begin{itemize}
+\item deletion cost of edges:
+  \begin{itemize}
+  \item charge to creation cost
+  \item 2 edges created per step
+  \item total work $O(n)$
+  \end{itemize}
+\item pointer update cost
+  \begin{itemize}
+  \item proportional to number of pointers crossing a deleted cut edge
+  \item BACKWARDS analysis
+    \begin{itemize}
+    \item run backwards
+    \item delete random point of $S_i$ (\textbf{ not} $\conv(S_i)$) to get $S_{i-1}$
+    \item same number of pointers updated
+    \item  expected number $O(n/i)$
+      \begin{itemize}
+      \item what $\Pr[\mbox{update }  p]$?
+      \item $\Pr[\mbox{delete cut edge of } p]$
+      \item $\Pr[\mbox{delete endpoint  edge of } p]$
+      \item $2/i$
+      \end{itemize}
+    \item deduce $O(n\log n)$ runtime
+    \end{itemize}
+  \end{itemize}
+\item  3d convex hull using same idea, time $O(n\log n)$,
+\end{itemize}
+
+\subsection{Linear Programming}
+
+\begin{itemize}
+\item define
+\item assumptions:
+  \begin{itemize}
+  \item nonempty, bounded polyhedron
+  \item minimizing $x_1$
+  \item unique minimum, at a vertex
+  \item exactly $d$ constraints per vertex
+  \end{itemize}
+\item definitions:
+  \begin{itemize}
+  \item hyperplanes $H$
+  \item \textbf{ basis} $B(H)$
+  \item optimum $O(H)$
+  \end{itemize}
+\item Simplex
+  \begin{itemize}
+  \item exhaustive polytope search:
+  \item walks on vertices
+  \item runs in $O(n^{d/2})$ time in theory
+  \item often great in practice
+  \end{itemize}
+\item polytime algorithms exist, but bit-dependent!
+\item OPEN: strongly polynomial LP
+\item goal today: polynomial algorithms for small $d$
+\end{itemize}
+
+
+Randomized incremental algorithm
+\[
+T(n) \le T(n-1,d)+\frac{d}{n}(O(dn)+T(n-1,d-1)) = O(d!n)
+\]
+
+Combine with other clever ideas:
+\[
+O(d^2 n) + 2^{O(\sqrt{d \log d})}
+\]
+
+\subsection*{Trapezoidal decomposition:}
+
+
+Motivation: 
+\begin{itemize}
+\item manipulate/analayze a collection of $n$ segments
+\item assume no degeneracy: endpoints distinct
+\item (simulate touch by slight crossover)
+\item e.g. detect segment intersections
+\item e.g., point location data structure
+\item Basic idea:
+\begin{itemize}
+\item Draw verticals at all points and intersects
+\item Divides space into slabs
+\item binary search on $x$ coordinate for slab
+\item binary search on $y$ coordinate inside slab (feasible since
+  lines noncrossing)
+\item problem: $\Theta(n^2)$ space
+\end{itemize}
+\end{itemize}
+
+Definition.
+\begin{itemize}
+\item draw altitudes from each endpoints and intersection till hit a segment.
+\item trapezoid graph is \emph{planar} (no crossing edges)
+\item each trapezoid is a \emph{face}
+\item show a face.  
+\item one face may have many vertices (from altitudes that hit the
+  \emph{outside} of the face)
+\item but max vertex degree is 6 (assuming nondegeneracy)
+\item so total space $O(n+k)$ for $k$ intersections.
+\item number of faces also $O(n+k)$ (at least one edge/face, at most 2
+  face/edge)
+\item (or use Euler's theorem: $n_v-n_e+n_f \ge 2$)
+\item standard clockwise pointer representation lets you walk around a face
+\end{itemize}
+
+Randomized incremental construction:
+\begin{itemize}
+\item to insert segment, start at left endpoint
+\item draw altitudes from left end (splits a trapezoid)
+\item traverse segment to right endpoint, adding altitudes whenever
+  intersect 
+\item traverse again, erasing (half of) altitudes cut by segment
+\end{itemize}
+
+Implementation
+\begin{itemize}
+\item clockwise ordering of neighbors allows traversal of a face in
+  time proportional to number of vertices
+\item for each face, keep a (bidirectional) pointer to all not-yet-inserted
+  left-endpoints in face
+\item to insert line, start at face containing left endpoint
+\item traverse face to see where leave it
+\item create intersection, 
+  \begin{itemize}
+  \item update face (new altitude splits in half)
+  \item update left-end pointers
+  \end{itemize}
+\item segment cuts some altititudes: destroy half
+  \begin{itemize}
+  \item removing altitude merges faces
+  \item update left-end pointers
+  \item (note nonmonotonic growth of data structure)
+  \end{itemize}
+\end{itemize}
+Analysis:
+\begin{itemize}
+\item Overall, update left-end-pointers in faces neighboring new line
+\item time to insert $s$ is 
+  \[
+  \sum_{f \in F(s)} (n(f)+\ell(f))
+  \]
+  where 
+  \begin{itemize}
+  \item $F(s)$ is faces $s$ bounds after insertion
+  \item $n(f)$ is number of vertices on face  $f$ boundary
+  \item  $\ell(f)$ is number of left-ends inside $f$.
+  \end{itemize}
+\item So if $S_i$ is first $i$ segments inserted, expected work of
+  insertion $i$ is
+  \[
+  \frac1i \sum_{s \in S_i}\sum_{f \in F(s)} (n(f)+\ell(f))
+  \]
+\item Note each $f$ appears at most 4 times in sum since at most 4
+  lines define each trapezoid.
+\item so $O(\frac1i \sum_f (n(f)+\ell(f)))$.
+\item Bound endpoint contribution:
+  \begin{itemize}
+  \item note $\sum_f \ell(f) = n-i$
+  \item so contributes $n/i$
+  \item so total $O(n\log n)$ (tight to sorting lower bound)
+  \end{itemize}
+\item Bound intersection contribution
+  \begin{itemize}
+  \item $\sum n(f)$ is just number of vertices in planar graph
+  \item So $O(k_i+i)$ if $k_i$ intersections between segments so far
+  \item so cost is $E[k_i]$
+  \item intersection present if both segments in first $i$ insertions
+  \item so expected cost is $O((i^2/n^2)k)$
+  \item so cost contribution $(i/n^2)k$
+  \item sum over $i$, get $O(k)$
+  \item \textbf{ note:} adding to RIC, assumption that first $i$ items are random.
+  \end{itemize}
+\item Total: $O(n\log n+k)$
+\end{itemize}
+
+
+\subsection*{Search structure}
+
+Starting idea: 
+\begin{itemize}
+\item extend all vertical lines infinitely
+\item divides space into slabs
+\item binary search to find place in slab
+\item binary search in slab feasible since lines in slab have total
+  order
+\item $O(\log n)$ search time
+\end{itemize}
+
+Goal: apply binary search in slabs, without $n^2$ space
+\begin{itemize}
+\item Idea: trapezoidal decom is ``important'' part of vertical lines
+\item problem: slab search no longer well defined
+\item but we show ok
+\end{itemize}
+
+The structure:
+\begin{itemize}
+\item A kind of search tree
+\item ``$x$ nodes'' test against an altitude
+\item ``$y$ nodes'' test against a segment
+\item leaves are trapezoids
+\item each node has two children
+\item \textbf{But} may have many parents
+\end{itemize}
+
+Inserting an edge contained in a trapezoid
+\begin{itemize}
+\item update trapezoids
+\item build a 4-node subtree to replace leaf
+\end{itemize}
+
+Inserting an edge that crosses trapezoids
+\begin{itemize}
+\item sequence of traps $\Delta_i$
+\item Say $\Delta_0$  has left endpoint, replace leaf with $x$-node for
+  left endpoint and $y$-node for new segment
+\item Same for last $\Delta$
+\item middle $\Delta$: 
+\begin{itemize}
+\item each got a piece cut off
+\item cut off piece got merged to adjacent trapezoid
+\item Replace each leaf with a $y$ node for new segment
+\item two children point to appropriate traps
+\item merged trap will have several parents---one from each premerge trap.
+\end{itemize}
+\end{itemize}
+
+Search time analysis
+\begin{itemize}
+\item depth increases by one for new trapezoids
+\item RIC argument shows depth $O(\log n)$
+\begin{itemize}
+\item Fix search point $q$, build data structure
+\item Length of search path increased on insertion only if trapezoid
+  containing $q$ changes
+\item Odds of top or bottom edge vanishing (backwards analysis) are $1/i$
+\item Left side vanishes iff \textbf{unique} segment defines that side and
+  it vanishes
+\item So prob. $1/i$
+\item Total $O(1/i)$ for $i^{th}$ insert, so $O(\log n)$ overall.
+\end{itemize}
+\end{itemize}
+
+\end{document}
+
+% Local Variables: 
+% mode: latex
+% TeX-master: t
+% End: 

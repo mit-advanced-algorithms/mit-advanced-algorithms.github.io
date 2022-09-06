@@ -1,0 +1,311 @@
+\documentclass{article}
+\usepackage{me}
+\usepackage{amssymb}
+\usepackage{amsfonts}
+%\input{abbrevs}
+\setlength{\parindent}{0pt}
+
+\newcommand\vol{{\mbox{vol}}}
+
+\newcommand{\RR}{\mathbb{R}}
+
+\title{Gradient Descent\\ 6.854 Notes \#16}
+\author{David Karger}
+
+\begin{document}
+
+\section{Unconstrained Minimization}
+{\bf Our focus today:} {\em Unconstrained minimization} problem: given a real-valued function $f$ over $\RR^n$, find its minimum $x^*$ (assuming it exists). That is, solve the problem
+\[
+x^*=\arg\min_{x\in \RR^n} f(x).
+\]
+\begin{itemize}
+\item {\em Note:} This problem is {\em very} general:
+\begin{itemize}
+\item To get maximization, just minimize $-f(x)$. 
+\item To introduce constraints, just consider minimizing $f(x)+\psi(x)$, where $\psi(x)=0$, if $x$ satisfies all constraints, and $+\infty$, otherwise. (So, in principle, this is stronger than LP!)
+\end{itemize}
+\item To make our discussion simpler, we will assume though that our function $f$ is ``nice''. That is, $f$ is:
+\begin{itemize}
+\item continuous;
+\item (infinitely many times) differentiable. (This requirement can, and often needs to, be relaxed.)
+\end{itemize}
+\end{itemize}
+
+\section{Gradient Descent}
+
+How to solve an unconstrained minimization problem?
+\begin{itemize}
+\item {\bf Powerful approach:} Gradient descent method.
+\item {\bf Key idea:} Apply (continuous) local greedy approach. 
+\item Start with some point $x^0$.
+\item In each iteration: move a bit (locally) in the direction that reduces the value of $f$ the most (greedily).
+
+$\Rightarrow$ Guarantees that $f(x^{t+1})<f(x^t)$.
+\end{itemize}
+
+{\bf Question:} What is the direction of the steepest decrease of $f$?
+
+\begin{itemize}
+\item Recall (multi-variate) Taylor theorem: for any $x\in \RR^n$ and (vector) displacement $\delta\in \RR^n$, we have that
+\[
+f(x+\delta)= f(x) + \nabla f(x)^T \delta + \frac{1}{2} \delta^T\nabla^2 f(y) \delta,
+\]
+for some $y=x+\lambda\delta$ with $0\leq \lambda\leq 1$, where
+\begin{itemize}
+\item $\nabla f(x)\in \RR^n$ is the {\em gradient} of $f$ at point $x$ and 
+\[
+\nabla f(x)_i:=\frac{\partial f(x)}{\partial x_i},
+\]
+for each $i$. 
+\item $\nabla^2 f(x)\in \RR^{n\times n}$ is the {\em Hessian} of $f$ at point $x$ and 
+\[
+\nabla^2 f(x)_{ij} := \frac{\partial^2 f(x)}{\partial x_i \partial x_j},
+\]
+for each $i$ and $j$. 
+\end{itemize}
+\item {\em Observe:} the gradient term in the Taylor expansion is linear in $\|\delta\|$ while the Hessian term is quadratic in $\|\delta\|$.
+\item Consequently, for small enough step, i.e., $\|\delta\|$, the Hessian term is negligible. That is, 
+\[
+f(x+\delta)= f(x) + \nabla f(x)^T \delta + O(\|\delta\|^2)\approx f(x)+\nabla f(x)^T \delta
+\]
+\item {\bf Key conclusion:} Even though $f$ might be very complex, locally it is "simple", i.e., it is well approximated by, essentially, the simplest function possible: the linear function!
+
+$\Rightarrow$ We know how to minimize linear functions. Just take $\delta=-\eta \nabla f(x)$, for some {\em step size} $\eta>0$.
+\end{itemize}
+
+\textbf{Resulting algorithm:} {\em Gradient descent method}:
+\begin{itemize}
+\item Start with some $x^0\in \RR^n$. 
+\item In each step $t$: $x^{t+1}\leftarrow x^t - \eta \nabla f(x^t)$.
+\end{itemize}
+
+{\bf Question:} What should $\eta$ be?
+\begin{itemize}
+\item Assume that $f$ is {\em $\beta$-smooth}, for some $\beta>0$. That is, 
+\[
+\|\nabla f(y)-\nabla(x)\| \leq \beta \|y-x\|,
+\]
+for any $x, y\in \RR^n$. Intuitively, $\beta$ measures how much the gradient of $f$ can change between two nearby points. 
+\item {\em Equivalently (for twice differentiable functions):} $f$ is $\beta$-smooth iff $y^T \nabla^2 f(x) y \leq \beta \|y\|^2$, for any $x,y$; or, put yet another way, the maximum eigenvalue of $\nabla^2 f(x)$ is at most $\beta$. 
+
+$\Rightarrow$ We have that
+\[
+f(x+\delta)\leq f(x) + \nabla f(x)^T \delta + \frac{\beta}{2} \|\delta\|^2,
+\]
+for any $x$ and $\delta$ 
+
+$\Rightarrow$ {\em Intuitively:} For every point $x$, there is a corresponding quadratic (i.e.,  relatively``simple'') function that upper bounds $f$ {\em everywhere} and agrees with $f$ at the point $x$. 
+
+$\Rightarrow$ Our progress on minimizing this quadratic function at $x$ lowerbounds our progress on reducing the value of $f$ at $x$.
+
+$\Rightarrow$ If we plug in our choice of $\delta=-\eta \nabla f(x)$, we get that
+\begin{eqnarray*}
+f(x+\delta) &\leq & f(x) + \nabla f(x)^T \delta + \frac{\beta}{2} \|\delta\|^2\\
+&\leq & f(x) - \eta \|\nabla f(x)\|^2+ \frac{\beta}{2} \eta^2 \|\nabla f(x)\|^2\\
+& \leq & f(x)- \frac{1}{2\beta}  \|\nabla f(x)\|^2,
+\end{eqnarray*}
+for the optimal setting of $\eta = \frac{1}{\beta}$. 
+
+$\Rightarrow$ Setting $\eta= \frac{1}{\beta}$ ensures that 
+\[
+f(x^{t+1})\leq f(x^t) -\frac{1}{2\beta}  \|\nabla f(x)\|^2,
+\] 
+i.e., we make progress of at least $\frac{1}{2\beta}  \|\nabla f(x)\|^2$ towards minimizing the value of $f$. 
+\item In practice, we choose best $\eta$ adaptively in each step via binary search -- this is often called {\em line search}.
+\end{itemize} 
+
+{\bf Remaining issue:} What if $\|\nabla f(x^k)\|=0$ (or is just very small)?
+
+\begin{itemize}
+\item $x^k$ has to be a critical point -- means $x^k$ is either a local minimum {\em or} maximum (with bad initialization) {\em or} a saddle point. 
+\item If $\nabla^2 f(x^k)\succeq 0$, we know it is a local minimum. 
+\item We can deal with the other two possibilities by perturbing our point slightly and resuming the algorithm. 
+\item {\em In general:} Typically, gradient descent converges to {\em local} minimum. 
+\item What if we want this local minimum to be a global one?
+\item We need additional (strong) assumption. 
+\item $f$ is {\em convex} iff, for any $x$ and $y$, 
+\[
+f(\lambda x + (1-\lambda) y)\leq \lambda f(x) + (1-\lambda) f(y),
+\]
+for any $0\leq \lambda \leq 1$. That is, the epigraph of the function is a convex set. 
+\item {\em Alternatively:} $f$ is convex iff $\nabla^2 f(x^k)\succeq 0$, for all $x$. 
+
+$\Rightarrow$ The only critical points are local minimums!
+
+\item In fact, a {\em much} stronger property holds: all critical points are {\em global} minimums. 
+\item To see that, note that by Taylor theorem convexity implies that
+\[
+f(x+\delta) = f(x) + \nabla f(x)^T \delta + \frac{1}{2} \delta^T \nabla^2 f(x) \delta \geq f(x) + \nabla f(x)^T \delta.
+\]
+That is, every gradient defines a lowerbounding hyperplane for $f$ that agrees with $f$ at $x$. 
+
+$\Rightarrow$ If $\nabla f(x)=0$ then $f(x+\delta)\geq f(x)$ for {\em all} $\delta$. 
+
+\item It turns out that convexity is a very widespread phenomena in optimization. But there are very important domains, e.g., deep learning, where the underlying optimization problems are inherently {\em non-}convex.
+\end{itemize}
+
+\subsection{Convergence Analysis}
+
+How fast does gradient descent converge?
+
+\begin{itemize}
+\item Convexity allows us to bound our (sub-)optimality. Specifically, if $x^*$ is the minimum of $f$, we have that, for any $x$, 
+\[
+f(x^*)\geq f(x) + \nabla f(x)^T(x^*-x).
+\]
+
+$\Rightarrow$ $f(x)-f(x^*)\leq -\nabla f(x)^T(x^*-x)\leq \|\nabla f(x)\|\|x^*-x\|$,
+where the last inequality follows by Cauchy-Schwartz inequality. \\
+
+$\Rightarrow$ If $\|\nabla f(x)\|\leq \frac{\eps}{\|x^*-x\|}$, we are by at most $\epsilon$ off from optimum. 
+
+\item The fact that the above near-optimality condition involves $\|x^*-x\|$ is unfortunate (but inherent!). After all, we don't know what this distance is.
+
+\item To connect this distance to the optimum to the norm of the gradient/difference in function value, and thus to get rid of this dependence, we need to make an (even stronger)  assumption on $f$. 
+
+\item Assume that $f$ is {\em $\alpha$-strong convexity}. That is, assume that, for any $x$ and $y$, 
+\[
+y^T \nabla^2 f(x) y \geq \alpha \|y\|^2.
+\] 
+
+$\Rightarrow$ The smallest eigenvalue of $\nabla^2f(x)$ is always at least $\alpha$. 
+
+$\Rightarrow$ "Normal" convexity would correspond to $\alpha=0$ (but we require $\alpha>0$ here).
+
+$\Rightarrow$ We can now strengthen our lowerbounding inequality we got from convexity. Specifically, for any $x$ and $\delta$ we have that
+\[
+f(x+\delta) \geq f(x) + \nabla f(x)^T\delta + \frac{1}{2} \delta^T \nabla^2 f(x)\delta\geq f(x)+ \nabla f(x)^T\delta + \frac{\alpha}{2} \|\delta\|^2.
+\]
+That is, for each point $x$, there is a quadratic function that {\em lowerbounds} $f$ everywhere and agrees with $f$ at $x$.
+
+\item Strong convexity indeed allows us to tie distance to optimum in the function value with the metric distance to optimum. We have that, for any $x$, 
+\[
+f(x)\geq f(x^*)+\nabla f(x^*)^T (x-x^*) + \frac{\alpha}{2}\|x-x^*\|^2.
+\]
+
+$\Rightarrow$ $f(x)-f(x^*)\geq \frac{\alpha}{2}\|x-x^*\|^2$, since $\nabla f(x^*)=0$.
+\item To get the convergence bound, let us just put together everything we derived so far: 
+\begin{itemize}
+\item Recall that each gradient descent step decreases $f(x^t)-f(x^*)$ be at least $\frac{1}{2\beta}\|\nabla f(x^t)\|^2$. That is, 
+\[
+f(x^{t+1})-f(x^*)\leq f(x^k)-f(x^*)-\frac{1}{2\beta}\|\nabla f(x^t)\|^2.
+\]
+\item On the other hand, by ($\alpha$-strong) convexity of $f$, we know that
+\[
+\|\nabla f(x^t)\|^2\geq  \frac{(f(x^t)-f(x^*))^2}{\|x^*-x^t\|^2}\geq \frac{\alpha}{2} \left(f(x^t)-f(x^*)\right)
+\]
+\item Combining these two inequalities we get that
+\begin{eqnarray*}
+f(x^{t+1})-f(x^*) &\leq  &\left(f(x^k)-f(x^*)\right)\left(1-\frac{1}{2\beta}\frac{\|\nabla f(x^t)\|^2}{f(x^t)-f(x^*)}\right)\\
+&\leq & \left(f(x^k)-f(x^*)\right)\left(1-\frac{\alpha}{4\beta}\right)\leq \left(f(x^k)-f(x^*)\right)\left(1-\frac{1}{4\kappa}\right),
+\end{eqnarray*}
+where $\kappa:=\frac{\beta}{\alpha}$ is the {\em condition number} of $f$. (Intuitively, condition number tells us how ``nicely'' it behaves. The smaller condition number the faster convergence.)
+
+$\Rightarrow$ After $O(\kappa \log \frac{f(x^0)-f(x^*)}{\epsilon})$ steps we obtain a solution that is within $\epsilon$ of the optimal value! {\em Note:} The dependence on $\epsilon$ is only logarithmic, which essentially allows us to solve the problem exactly.  
+\end{itemize}
+\item What to do if $f$ is {\em not} $\alpha$-strongly convex for any $\alpha>0$? (This is often the case in applications.)
+%\item A different analysis gives a (much weaker) convergence bound of $O(\frac{\beta \|x^*-x^0\|^2}{\epsilon^2})$. (Here, the dependence on $\epsilon$ is polynomial, so in this regime we can only get approximate answers.)
+\item Idea: we could {\em make} $f$ $\alpha$-convex by adding $\alpha\|x-x^0\|^2$ to it. (This is an example of a more general technique called {\em regularization}.)
+
+$\Rightarrow$ Adding this new term corresponding to adding $\alpha \cdot I$ to the Hessian $\nabla^2 f(x)$ of $f$. So, $f$ is indeed $\alpha$-strongly convex now. 
+
+$\Rightarrow$ {\em Problem:} The minimizer of $f$ changed! Will need to deal with that by reducing the regularization as we get closer to $x^*$. 
+
+$\Rightarrow$ Setting $\alpha=\frac{\varepsilon}{2\|x^*-x^0\|^2}$ ensures the error is at most $\frac{\varepsilon}{2}$ and gives an $\widetilde{O}\left(\frac{\beta \|x^*-x^0\|^2}{\varepsilon}\right)$ running time bound. (But this bound depends on $\varepsilon^{-1}$ and $\|x^*-x^0\|$ polynomially instead of logarithmically, so no free lunch.) 
+\end{itemize}
+%
+%\section{Newton's Method}
+%
+%\begin{itemize}
+%\item The basic idea underlying gradient descent method was to consider the linear approximation of $f$ around current point $x$ and take a step that minimizes this simple function.
+%\item But, how about generalizing this idea and work with a local approximation that is more complex but also provides tighter grasp of $f$?  That is, how about approximating $f$ by a {\em quadratic} function? 
+%\item Specifically, by Taylor theorem we know that
+%\[
+%f(x+\delta)= f(x) + \nabla f(x)^T \delta + \frac{1}{2} \delta^T\nabla^2 f(x) \delta + O(\|\delta\|^3).
+%\]  
+%\item What is the step $\delta^*$ that minimizes this quadratic approximation?
+%
+%$\Rightarrow$ This approximation is strongly convex, a point is its minimizer iff its gradient (wrt to $\delta$) is zero. 
+%
+%$\Rightarrow$ We need that
+%\[
+%\nabla f(x) + \nabla^2 f(x) \delta^* = 0.
+%\]
+%(We use here the fact that $\nabla f(x)$ and $\nabla^2f(x)$ do not depend on $\delta$.)
+%
+%$\Rightarrow$ The resulting {\em Newton's step} is 
+%\[
+%\delta^*=-\left(\nabla^2f(x)\right)^{-1} \nabla f(x).
+%\]
+%\item {\em Note:} To apply this step we need to either invert the Hessian, or at least solve the linear system $\nabla^2 f(x) z = \nabla f(x)$. (As long as $f$ is strongly convex, $\nabla^2 f(x)\succ 0$, so it is invertible.)
+%
+%$\Rightarrow$ This can be quite expensive computationally: Gaussian elimination takes $O(n^3)$ time and best matrix multiplication algorithm takes $O(n^\omega)=O(n^{2.37})$ time.  So, gradient descent is usually more useful.  In some special cases, however, i.e., when the Hessian has some special structure, Netwon's step might have a much faster implementation.
+%
+%\item What is the convergence of this algorithm? 
+%\begin{itemize}
+%\item If our starting point $x^0$ is relatively close to optimum, in a sense of $\nabla^2 f(x^0)\approx \nabla^2 f(x^*)$, i.e., the Hessian at the two points being similar, the convergence is {\em extremely} fast. In fact, it depends {\em doubly } logarithmically on $\epsilon^{-1}$. (In practice, we never need more than $6$ iterations to get a solution that is essentially optimal.)
+%\item {\em But:} As our step is not "dampened" by any step size $\eta>0$, if we don't start sufficiently close to $x^*$ we might {\em not} converge at all. Instead, we end up jumping around uncontrollably, as we end up using our local quadratic approximation of $f$ way outside of its region of applicability. 
+%\item One can remedy the latter aspect of convergence by introducing a step size $\eta$ that keeps our steps be within the region where our quadratic approximation is still valid. 
+%\item Still, the convergence then depends on the "smoothness" of the Hessian of our function. (Instead of smoothness of the gradients, as was the case for gradient descent.)
+%\end{itemize}
+%\end{itemize}
+%\subsection{Newton's Method as a Variant of Gradient Descent}
+%
+%\begin{itemize}
+%\item It turns out that there is an alternative view/derivation of Newton's method/step. One can view it as an instance of gradient descent but with respect to {\em other} than Euclidean/$\ell_2$-norm. 
+%
+%\item  Define, for a positive-definite matrix $A\succ 0$, an {\em $A$-norm} $\|\cdot\|_A$ as 
+%\[
+%\|x\|_A^2 := x^TAx,
+%\]
+%for each vector $x$. {\em Note:} If $A=I$ this is just the$\ell_2$-norm. 
+%
+%\item Now, recall that the basic idea behind gradient descent method is to consider the first order local approximation of $f$ given by the Taylor approximation 
+%\[
+%f(x+\delta)=f(x)+\nabla f(x)^T \delta + O(\|\delta\|^2).
+%\]
+%\item {\em But:} What if we measure the approximation error in an $A$-norm, for some $A$ other than $I$, instead of $\ell_2$-norm? (Note that this will affect the terms hidden in the $O(\cdot)$ notation.) That is, we have that
+%\[
+%f(x+\delta)=f(x)+\nabla f(x)^T \delta + O(\|\delta\|_A^2).
+%\]
+%\item Consider now the best direction of the (gradient) improvement step $\delta$. That is, we want a direction that minimizes (the linear approximation of) $f$ as much as possible while having a fixed $A$-norm. Or, to put it yet differently, we want the direction that gives us the "best bang for the buck" when "buck" is measured via the $A$-norm of our step.
+%\item In the case of "classic" gradient descent, this direction was simply $-\nabla f(x)$. However, here, it turns out to be $-A^{-1}\nabla f(x)$. (As a sanity check, if $A=I$, these two directions coincide.)
+%
+%$\Rightarrow$ Our gradient step thus becomes $-\nabla A^{-1}\eta f(x)$, for appropriate step size $\eta>0$.
+%
+%\item {\em Note:} Now our gradient step requires inverting/solving a linear system wrt $A$. 
+%
+%\item What did we gain then?
+%\item Our "effective" Hessian changed. That is, in a sense, our Hessian now is equal to $A^{-\frac{1}{2}}\nabla^2 f(x) A^{-\frac{1}{2}}$. 
+%
+%$\Rightarrow$ But this affects our "effective" $\beta$-smoothness and $\alpha$-strong convexity of $f$, and thus the condition number of $f$, too! After all, these correspond to the smallest and largest eigenvalues of the Hessian. 
+%
+%\item So, what is the {\em best} choice of $A$ to make the corresponding  condition number the smallest? 
+%
+%$\Rightarrow$ Take $A=\nabla^2 f(x)$!
+%
+%$\Rightarrow$ The "effective" Hessian at $x$ will become just an identity and thus the condition number at this point will be only $1$.
+%
+%\item But the gradient step corresponding to such "best" choice of $A$ is exactly the Newton's step we derived above.
+%
+%\item The $A$-norm $\|\cdot\|_{\nabla^2 f(x)}$ corresponding to setting $A=\nabla^2 f(x)$ is called  a {\em local norm} at $x$ and sometimes denoted just by $\|\cdot\|_x$.
+%
+%
+%\item {\em Subtle but important point:} It is true that whenever we use the local norm to take the gradient step, the function $f$ behaves as if it had condition number of $1$. However, this behavior is only {\em local} in nature.
+%
+% In particular, it does {\em not} mean that we can use our earlier analysis of gradient descent to conclude that we are guaranteed to converge, say, in $O(\log \frac{\|x^*-x^0\|_{x^0}}{\epsilon})$ iterations. The problem is that our new algorithm uses {\em different} norm at each step, while parts of our earlier analysis  - specifically, the lower bounding part relating to $\alpha$-strong convexity - relied on using a single {\em fixed} norm throughout the whole algorithm. 
+% 
+%General analysis of this new algorithm is therefore much more nuanced and it goes beyond the scope of the class. Still, special cases of this analysis, i.e., when we consider special classes of the function $f$, become much easier and will, in fact, play important role in the analysis of interior-point methods that we will discuss next time. 
+%
+%\end{itemize}
+
+\end{document}
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: t
+%%% End: 
+
+
+

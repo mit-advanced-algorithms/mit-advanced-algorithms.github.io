@@ -1,0 +1,275 @@
+\documentclass{article}
+\usepackage{me}
+%\input{abbrevs}
+\setlength{\parindent}{0pt}
+
+\title{Blocking Flows\\ 6.854 Notes \#10}
+\author{David Karger}
+
+\begin{document}
+
+\section{Last Time: Scaling}
+
+\begin{itemize}
+\item Analyzed augmenting flow via {\em shortest} augmenting paths.
+\item Each search for such a path takes $O(m)$ time (via BFS).
+\item \textbf{Intuition:} Killing/augmenting by shortest augmenting path should increase source to sink distance in the residual graph.
+\item Proved the distance from source can only increase.
+
+$\Rightarrow$ There can be at most $\frac{mn}{2}$ of such augmentations. 
+\item Led to a strongly polynomial bound of $O(m^2n)$.
+\item \textbf{But:} Aren't we a bit wasteful here?
+
+$\Rightarrow$ Each search for a path (i.e., BFS) gives us the whole shortest path {\em tree} but we use only one path. 
+
+$\Rightarrow$ Can we use this information to kill/augment by more than one shortest augmenting path?
+
+\item Yes! This is made precise by the blocking flow primitive.
+\end{itemize}
+
+\section{Blocking Flows} % 2017 lecture 10 (10/2/2017) end
+% 2017 lecture 11 (10/5/2017) start
+
+Extension of shortest augmenting path.\\
+
+Dinic's algorithm:
+\begin{itemize}
+\item In each iteration, consider the residual graph layered by running a BFS from the source. That is, each layer corresponds to a different distance from the source. 
+\item Define:
+\begin{itemize}
+\item {\em Admissible edges}: Edges in the residual graph that point away of the source, i.e., are a part of some shortest path from the source. These edges ``hop'' exactly one BFS layer (all the other edges either stay in the same layer or go back).
+\item {\em Admissible graph}:  The graph consisting only of admissible edges.
+\item {\em Admissible path}: Path in the admissible graph, i.e., path consisting solely of admissible edges.
+\item note: admissible path iff shortest path
+\end{itemize}
+\item \textbf{Goal:} Find a {\em blocking flow}: a flow in the admissible graph, i.e., a flow supported {\em only} on admissible edges, that saturates an edge on {\em every} admissible path. (\textbf{Note:} For {\em unit}-capacity graphs (only!), this corresponds to finding a {\em maximal} collection of edge-disjoint admissible path.)
+\item \textbf{Key observation:} Augmenting the flow using an admissible path does {\em not} create new admissible edges/paths.
+
+$\Rightarrow$ When we saturate an edge on an admissible path, we can just {discard} it, as the reverse arc is never admissible.
+
+$\Rightarrow$ This is very much {\em not} the case for maximum flows!
+
+\item So, blocking flow $\neq$ maximum flow in the admissible graph. 
+(For unit capacity graphs, this corresponds to the difference between the collection of edge-disjoint admissible paths being {\em maximal} and {\em maximum}.)
+
+$\Rightarrow$ Computing a blocking flow is much easier. 
+
+\item What is the benefit of finding a blocking flow?
+
+\item \textbf{Claim:} After augmenting our flow with a blocking flow, the source to sink distance in the residual graph increases by at least $1$.
+
+\item \textbf{Proof:}
+  \begin{itemize}
+  \item admissible/shortest paths advance on level on every step
+  \item any not-forward arc ``wastes a step'' since it doesn't advance a level
+  \item blocking flow only uses forward arcs
+  \item so only creates backward arcs
+  \item no paths of only forward arcs remain
+  \item any remaining path uses a combination of forward and not-forward arcs
+  \item so at least one step is wasted
+  \item so not a shortest path.
+
+    $\Rightarrow$ The source to sink distance in the new graph had to increase by at least one.
+\end{itemize}
+\item So, after at most $n$ blocking flow computations we will have a max flow. (\textbf{Recall}: If source and sink at distance $\geq n$ in the residual graph, current flow has to be optimal.)
+\item \textbf{Key remaining question:} How to find a blocking flow?
+\end{itemize}
+
+\subsection{Blocking Flows in Unit-capacity Graphs}
+\begin{itemize}
+\item Let's consider first the case of unit capacities. 
+\item Use DFS/greedy approach (``greedy'' is usually the best strategy when solving a problem involving finding ``maximal'' -- as opposed to ``maximum'' -- collections.):
+
+\begin{itemize}
+\item Start a DFS from $s$.
+\item In each step, {\em advance} along yet unexplored outgoing admissible edge.
+\item If you reach $t$, retrace the path back to $s$ and {\em block} that path, by adding it to the blocking flow. 
+
+$\Rightarrow$ You can discard all the edges on this path now. 
+
+\item If you reach a vertex $v\neq t$ with no outgoing admissible edges, {\em retreat} back along the edge you got through and discard that edge. 
+
+\item Once there is no admissible edges leaving $s$, the blocking flow construction is complete.
+\end{itemize}
+\item Seems much like just searching for an augmenting path but it is not. 
+\item {\bf Key difference:} Can save info about which part of the graph we already explored. Crucially, as we never add new admissible arcs. Once a vertex is a dead end, it stays that way. This is why it is ok for us to discard an edge upon retreat.
+\item What is the running time of this procedure?
+\item We have three types of operations: advance, retreat, and block. 
+\item There is at most $m$ retreats, as we always discard the edge when we do that.
+
+$\Rightarrow$ Total cost  of retreats: $O(m)$.
+\item Advances can be charged to the total cost of retreats and blocks corresponding to traversing back the edge. 
+\item Each blocking of a path $P$ takes $O(|P|)$ time, but also discards $|P|$ edges. 
+
+$\Rightarrow$ $O(1)$ per edge, amortized.
+
+$\Rightarrow$ Total time for blocks: $O(m)$.
+\item So, total cost of blocking flow is $O(m)$.
+
+$\Rightarrow$ The resulting maximum flow algorithm runs in $O(mn)$.
+\end{itemize}
+
+{\bf Wait a minute:} This does not sound too impressive. We already knew how to do that! (Our first algorithm run in time $O(mnU)$.) Why bother?
+\begin{itemize}
+\item This bound holds even if we allow parallel edges. (But this is a weak motivation.)
+\item \textbf{Much more important:} Can actually get significantly nicer bounds, {\em both} for unit-capacity {\em and} general capacities. 
+\item Also, much better in practice (in large part because of the above).
+\end{itemize}
+
+How to get a better bound for unit-capacities?
+
+\begin{itemize}
+\item Suppose we already did $k$ blocking flows.
+\item Consider the maximum flow in the residual graph.
+\item If we decompose into paths, the number of these paths will be exactly the value of the remaining flow.
+\item After $k$ blocking flows, the source to sink distance in the residual graph $\geq k$. 
+
+$\Rightarrow$ Each flow path has length $\geq k$.
+\item \textbf{Key observation:} These flow paths are edge-disjoint and their total volume has to be $m$.
+
+$\Rightarrow$ The number of flow paths $\leq \frac{m}{k}$
+\item Each blocking flow increases the value of the flow by at least one. (As there always is at least one admissible path.)
+
+$\Rightarrow$ $\frac{m}{k}$ additional blocking flow (or even just augmenting paths) suffices!
+\item \textbf{Total time:} $O(km+m^2/k)=O(m^{3/2})$, if we set $k=\sqrt{m}$. (Note though that we do not even need to know $k$ here.)
+\item \textbf{On the homework:} Show how similar argument gives a bound of $O(mn^{2/3})$.
+
+\item Also, can get an $O(m\sqrt{n})$ bound for bipartite matchings. (Note this is always better than $O(m^{3/2})$.)
+%% \begin{itemize}
+%% \item Recall that we could reduce this problem to a unit-capacity flow instance.
+%% \item \textbf{Key observation:} Initial and residual graphs are {\em unit graphs}, i.e., every vertex either has an in-degree of $1$ or an out-degree  of $1$.
+%% \item After we did $k$ blocking flows, decompose the remaining flow into flow paths, as above.
+%% \item Note that these flow paths are {\em vertex} disjoint now. (Instead of only {\em edge} disjoint.)
+
+%% $\Rightarrow$ There can be at most $\frac{n}{k}$ instead of $\frac{m}{k}$ flow paths, and after additional $\frac{n}{k}$ blocking flow computations we are done.
+
+%% $\Rightarrow$ \textbf{Total time:} $O(km+\frac{m^2}/k)=O(m\sqrt{n})$, if we set $k=\sqrt{n}$. 
+%% \end{itemize} 
+\end{itemize}
+
+\subsection{Blocking Flows in General Graphs}
+
+What breaks when we try the above analysis in general graphs?
+
+\begin{itemize}
+\item The basic idea of advance/retreat/block still valid.
+\item Every advance is still paid for by costs of corresponding retreat or block.
+\item Also, still $O(m)$ time for all retreats.
+\item \textbf{Key problem:} Augmentation might saturate only one (bottlenecking) edge on the path. 
+
+$\Rightarrow$ Must now charge the whole $O(n)$ work to that single edge. 
+\item Blocking flow takes $O(mn)$ time now. 
+\item Gives an $O(mn^2)$ overall time maximum flow. 
+\item Still better than shortest augmenting path algorithm!
+\item \textbf{Intuitively:} Using blocking flows enables us to ``change'' $m$ into $n$ because of the resulting more efficient search for augmenting paths. 
+\item In fact, we can make this intuition even stronger:
+\begin{itemize}
+\item Each block corresponds to finding a new augmenting path.
+
+$\Rightarrow$ Each block increases the value of our flow by at least $1$. 
+\item So, if value of max flow is $|f^*|$, the total cost of blocks is $O(n|f^*|)$.
+\item In other words, blocking flow approach takes $O(n)$ time ``per unit of flow routed'', while the basic/naive augmenting path approach  took $O(m)$ time. (This is true even if capacities are not unit.)
+\item Thus, the running time of blocking flow algorithm in general graphs is actually $O(mn+n|f^*|)=O((m+|f^*|)n)$. (Compare to the $O(m|f^*|)$ running time of the naive augmenting path approach.)
+
+\item \textbf{Note:} Advances are charged here per each blocking flow computation, while blocks are amortized over all the blocking flow computations.
+\end{itemize}
+\end{itemize}
+
+\subsection{Scaling Blocking Flows}
+
+\begin{itemize}
+\item Blocking flows enable us to find the maximum flow in $O((m+|f^*|)n)$ time.
+\item This is good for $|f^*|$ large but not too large.
+\item How to capitalize on that even further?
+\item Use scaling!
+\item As before, round down the edge capacities to zero, and shift in one bit at a time (starting with the most significant bit). 
+\item Extend the current flow to the optimal one after each bit shift-in. 
+\item \textbf{Recall:} After the bit shift-in (and doubling the current flow), finding the new optimum boils down to solving max flow in a graph with max flow value $|f^*|\leq m$. 
+\item This takes $O((m+|f^*|)n)=O(mn)$ time. 
+\item As there is $\leq \log U$ bit shift-ins, the total running time of the algorithm is $O(mn\log U)$. Big improvement over what we had before! (Modulo not being strongly polynomial anymore.) 
+\end{itemize}
+
+\subsection{Dynamic Trees/Link-Cut Trees}
+
+\begin{itemize}
+\item Our best strongly polynomial time algorithm runs in $O(mn^2)$. 
+\item The best weakly polynomial time algorithm is $O(mn\log U)$. 
+\item Do we need to pay this extra factor of $n$ for being strong polynomial?
+\item Maybe there is a better way to implement blocking flows in general graphs?
+\item \textbf{Recall:} Key bottleneck, blocks might take $\Theta(n)$ time, but might result in discarding only a single edge from the whole admissible path found. 
+\item Still, the pieces of this path that were not discarded are still useful. 
+\item Can we somehow take advantage of this fact and maintain these pieces for efficient access later?
+\item Is there a data structure that can help us here?
+\item Yes! {\em Dynamic trees} (sometimes called link/cut trees) designed by (surprise, surprise) Sleator and Tarjan. 
+
+\end{itemize}
+
+\textbf{Basic idea:}
+\begin{itemize}
+\item Maintain a forest of directed arborescences, i.e., directed trees with all edges pointing towards single root, of ``blockable'', i.e., non-saturated, admissible edges.
+\item Initially all vertices are isolated in this forest, i.e., there is no edges.
+\item When we do our DFS search for a new source-sink path to be blocked, the ``current'' vertex is always a root of the arborescence that contains the source $s$.
+\item To advance on a new outgoing admissible edge:
+\begin{itemize}
+\item ``Link'' current (root) vertex to the head of that edge.
+
+$\Rightarrow$ This merges our current arborescence with the arborescence that contains the head, with the new root being the root of arborescence that contained the head.
+\item Jump to the root of the (new) current arborescence.
+\end{itemize}
+\item To retreat from a vertex (root) that has no outgoing admissible edges:
+\begin{itemize}
+\item ``Cut'' the arborescence into separate pieces corresponding to removing its root. 
+
+$\Rightarrow$ Tail of each cut edge becomes the new root of corresponding (new) arborescence. 
+\end{itemize}
+\item To block a source-sink path once found:
+\begin{itemize}
+\item Find the bottleneck capacity $c$ on the arborescence path from source to sink. (Note that both the source and sink have to be in the same (current) arborescence at this point, as per our definition of advance operation.)
+\item Decrease all edge capacities on this path by $c$
+\item Cut at all the edges that drop their capacity to $0$.
+\end{itemize}
+\item We have above four operations: link, cut, bottleneck-path-capacity, decrease-path-capacity.
+\item Can be implemented using (even bigger surprise) Splay trees. 
+\item To get a high level idea of the implementation, let us just consider representation of an arborescences that is just a path:
+\begin{itemize}
+\item Maintain ordered list of vertices on path in splay tree (but we could use any balanced BST).
+\item \textbf{Key trick:} Instead of storing the current residual capacity of each edge, store  only ``deltas''. This way, the true value of the residual capacity of an edge is obtained by summing all the ``deltas'' on the path from that edge node to the root of the tree. 
+\item This representation is easy to maintain under rotations.
+\item To subtract a capacity of $x$ on a path from some vertex $v$ to the root of the path,  splay successor of $v$ to root, subtract $x$ from the root of left subtree.
+\item Similarly, one can maintain at each node the minimum capacity of its subtree (to help with bottleneck-path-capacity operation).
+\end{itemize}
+\end{itemize}
+
+\textbf{End result:} Implementation of the blocking flow primitive in only  $O(m\log n)$ (instead of $O(mn)$) time. ($O(\log n)$ overhead comes from the splay trees.)
+
+$\Rightarrow$ Gives an $O(mn\log n)$ time algorithm!
+
+\section{Beyond Flow Decomposition Barrier}
+
+\begin{itemize}
+\item Dynamic trees enabled us to get an $O(mn\log n)$ algorithm, which is strongly polynomial and comparable to $O(mn\log U)$ we had before.
+\item In fact, by doing some tweaks, one can get $O(mn \log_{m/n} n)$ (which is $O(mn)$ for dense graphs). 
+\item Recently, Orlin showed an $O(mn)$ algorithm.
+\item This meets a so-called ``flow decomposition'' barrier for maximum flow algorithms: any algorithm that implicitly computes a decomposition of the flow into flow paths has to run in $\Omega(mn)$ time, as this is the worst-case size of such decomposition. (Recall our proof of the flow decomposition lemma.)
+\item All the algorithms we discussed so far fall into this category. 
+\item{\em  Except} the dynamic tree--based implementation of the blocking flows. (In that implementation we do not keep track of individual flow paths, just represent the flow via net edge flows. This is, one of the aspects that makes this implementation so efficient.)
+\item In 1999, Goldberg and Rao combined this blocking flow primitive with a (very sophisticated) form of scaling to get an $O(\min\{m^{3/2}, mn^{2/3}\}\log U)$ algorithm. Thus matching our bound for unit-capacity case and breaking the above flow decomposition barrier!
+\item Is this the end of the story?
+\item No! 
+\item Recent results:
+\begin{itemize}
+\item Madry '13, '16: $O(m^{\frac{10}{7}}U^{1/7})$ time max flow algorithm. Breaks the $O(n^{3/2})$ barrier for sparse graphs and small capacity case, that all the  blocking flow based analysis suffered from. In particular, gives an $O(m^{10/7})$ time algorithm for the bipartite matching problem. 
+\item Lee-Sidford '14: $O(m\sqrt{n}\log U)$ -- directly improving over Goldberg-Rao!
+\item Techniques very different to what we have seen. Uses continuous optimization and linear system solving instead of combinatorial techniques. (Might see a glimpse of that later in the class.)
+\item If interested in only $(1+\varepsilon)$-approximation for {\em undirected} graphs then something even faster can be obtained. 
+\item Kelner Lee Sidford Orecchia '14, Peng '15: Compute $(1+\varepsilon)$ approximation in $O(m\varepsilon^{-2} \log^{O(1)}n)$, i.e., nearly-linear, time. 
+\item Also, Karger Levine '02: Can find an undirected maximum flow in (expected) $O(m+n|f^*|)$ time using a clever flow path sampling!
+\end{itemize} 
+
+\item In practice: So-called push-relabel algorithms perform very well. (Much better than their theoretical analysis would suggest.) In particular, ``empirically'' maximum flow can be solved in close to linear time. One more reason maximum flow such an important problem in applied contexts.
+
+\end{itemize}
+
+% 2017 lecture 11 (10/4/2017) end
+
+\end{document}

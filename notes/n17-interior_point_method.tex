@@ -1,0 +1,63 @@
+\documentclass{article}
+\usepackage{me}
+\usepackage{amssymb}
+\usepackage{amsfonts}
+%\input{abbrevs}
+\setlength{\parindent}{0pt}
+
+\newcommand\vol{{\mbox{vol}}}
+
+\newcommand{\RR}{\mathbb{R}}
+
+\title{Interior-Point Methods\\ 6.854 Notes \#17}
+\author{David Karger}
+
+\begin{document}
+
+\section{Last Time}
+{\em Unconstrained minimization} problem: given a real-valued function $f$ over $\RR^n$, find its minimum $x^*$ (assuming it exists). That is, solve the problem
+\[
+x^*=\arg\min_{x\in \RR^n} f(x).
+\]
+\begin{itemize}
+\item Gradient descent (strong convexity and smoothness) - condition number and update step (good convergence for condition number)
+\item Newton's method. Second-order gradient descent, Update step. Or really gradient descent in local norm. 
+\item Works really well when Hessians close, a bit less well otherwise. 
+\item Idea - local norm is the best norm makes $f$ locally very well-condition (but not globally) 
+\end{itemize}
+
+\section{Solving the LPs via Barrier Method}
+
+\begin{itemize}
+\item Pros and cons of Simplex and Ellipsoid
+\item New idea: don't deal with constraints explicitly - try to stay away from them - as that's where complexity of simplex comes in
+\item How to quantify that? Need a potential that measures how close we are to a given constraint
+\item Barrier: bounded on int of P, goes to infinity to boundary, strongly convex (as that's a good way to do it - add later?)
+\item How to incorporate barrier trade-off? Just add them together and offset them against our objective function.
+
+\item Turned constraint problem to unconstrained one - win! 
+\item logarithmi barrier (figure!) and full objective
+\item Need normalization.  Clearly, want to phase out perturbation $LP(\mu)$ and $y^*(\mu)$. 
+\item How to do that? Optimize with GD/Newton's method?
+\item Key idea: gradually! Keep always in the sphere of rapid convergence. 
+\item Dynamical system vs. discretization. 
+\item Key questions: when to stop, how many steps needed, how to start? 
+\item compute the gradient - optimality condition, dual solution, complementary slackness
+\item update step, definition of $\delta$, how many steps based on $\delta$. Condition on $\delta$. 
+\item condition on $s$, derivation of Newton's decrement. 
+\item analysis for min-circulation problem (note - no capacities but can fix that). 
+\item gives fast max flow. 
+\item Beyond: on max flow and my result
+\item Dikin ellipsoid intuion. John's ellipsoid.
+\item How to deal with starting point?
+\end{itemize}
+
+\end{document}
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: t
+%%% End: 
+
+
+

@@ -1,0 +1,685 @@
+\documentclass{article}
+\usepackage{me}
+\setlength{\parindent}{0pt}
+
+\title{Online Algorithms\\ 6.854 Notes \#25}
+\author{David Karger}
+
+\begin{document}
+\def\OPT{\mbox{OPT}}
+
+\section{Online algorithms}
+
+Motivation:
+\begin{itemize}
+\item till now, our algorithms start with input, work with it
+\item (exception: data structures---come back later)
+\item now, suppose input arrives a little at a time, need instant
+  response
+\item eg stock market, paging
+\item question: what is a ``good'' algorithm.
+\item depends on what we measure.
+\item if knew whole input $\sigma $ in advance, easy to optimize
+  $C_{MIN}(\sigma)$
+\item but online, early decision without complete info can mess you up 
+\item ski rental problem: rent 1, buy $T$.  don't know how often we are going to ski.
+\item notice that on some inputs, can't do well! (stock market that
+  only goes down, thrashing in paging)
+\item problem isn't to decide fast, rather what to decide.
+\end{itemize}
+
+Definition: competitive ratio
+\begin{itemize}
+\item compare to full knowledge optimum
+\item $k$-competitive if for all sequences etc. $C_A(\sigma) \le
+  kC_{MIN}(\sigma)$ 
+\item sometimes, to ignore edge effects, $C_A(\sigma) \le
+  kC_{MIN}(\sigma)+ O(1)$.
+\item idea: ``regret ratio''
+\item analyze ski rental
+\begin{itemize}
+\item Only choice is after how many days to buy.
+\item If I rent $d$ days and then buy (total cost of $d+T$) what is worst
+  competitive ratio for me?
+\item Before I buy skis, ratio is 1 if adversary knows should be renting, and
+  keeps getting worse if adversary has bought.  Either way, ratio not
+  improving. 
+\item Once I have bought, my cost doesn't increase and adversary's
+  doesn't decrease, so ratio doesn't worsen
+\item combine: worst ratio is at moment I have bought skis (adversary
+  will stop there).
+\item I pay $d+T$, adversary pays $\min(d+1,T)$
+\item when $d+1 \le T$ this is $(d+T)/T$ which decreases with $T$, so
+  best at $d+1=T$.
+\item Ratio $(d+T)/\min(d+1,T)$ minimized at $d+1=T$.   
+\item ratio is $2-1/T<2$.
+\end{itemize}
+\item we think of competitve analysis as a (zero sum) game between
+  algorithm and adversary.  Want to find the best strategy for algorithm.
+\item supposed to be competitive against all sequences. So, can
+  imagine that adversary is adapting to algorithm's choices (to get
+  worst sequence)
+\end{itemize}
+
+\subsection{Finance}
+
+Known or unknown duration.  But assume know which offer is last.
+
+Need fluctuation ratio $\phi$ between largest $M$ and smallest $m$ price.
+\begin{itemize}
+\item even if know $\phi$ but don't know $m$, can just run alg
+  after seeing first price
+\end{itemize}
+
+Selling peanuts:
+\begin{itemize}
+\item Break into $\log \phi$ groups of equal amounts
+\item Sell group $i$ for value $m \cdot 2^i$
+\item One group sold for at least half of max price
+\item So achieve $\log \phi$ competitive
+\end{itemize}
+
+Selling (one) car:
+Best deterministic algorithm: agree to first price exceeding
+$\sqrt{Mm}$ 
+\begin{itemize}
+\item $\sqrt{\phi}$ competitive
+\item note have to know when last offer
+\end{itemize}
+
+Can achieve $\log \phi$ randomized
+\begin{itemize}
+\item Consider powers of 2 between $m$ and $M$
+\item Choose one at random
+\item sell all at first bid exceeding 
+\item with prob $1/\log \phi$, pick the power of 2 that is within
+  factor 2 of highest offered price.
+\end{itemize}
+
+\subsection*{Graham's Rule}
+
+Define $P||\max C_j$ to minimize load.
+
+NP-complete to solve exactly!
+
+Always assign to least loaded machine:
+\begin{itemize}
+\item any alg has 2 lower bounds: average load and maximum job size.
+\item Suppose $M_1$ has max load $L$, let $p_j$ be biggest job.
+\item claim every machine has $L-p_j$ (else wouldn't have assigned
+  last job to $M_1$
+\item thus total load at least $\sum p_i = m(L-p_j)+p_j$
+\item thus OPT $\ge L-p_j+p_j/m$
+\item but OPT$\ge p_j$, so $(2-1/m)OPT \ge L$
+\end{itemize}
+
+More recent algs do somewhat better:
+\begin{itemize}
+\item keep some machines small
+\item algorithms not too bad, proofs awful!
+\item Bartal et al '95: 2-1/70=1.986
+\item Karger et al '96: 1.945
+\item Albers '97: 1.923
+\end{itemize}
+
+
+\subsection{Paging problem}
+
+\begin{itemize}
+\item define: on miss, must evict
+\item LRU, FIFO, LIFO, Flush when full, Least Freq Use
+\item LIFO, LFU not competitive
+\item LRU, FIFO $k$-competitive.
+\item will see this is best possible (det)
+\end{itemize}
+
+Easy argument: $k+1$ competitive
+\begin{itemize}
+\item break into maximal phases of $k+1$ faults
+\item if phase has only $k$ distinct pages, at most $k$ faults
+\item thus, $k+1$ distinct requests
+\item OPT faults on one
+\end{itemize}
+
+With work, we can improve to $k$ (worth it for tightness):
+\begin{itemize}
+\item break into phases: maximal groups containing $k$ faults
+\item (so group starts with a fault)
+\item let $q$ be last page before current phase
+\item so $q$ initially in memory
+\item case 1: LRU faults on $q$
+\begin{itemize}
+\item then must see $k$ other pages to evict $q$
+\item so see $k+1$ requests including $q$ request
+\item so OPT must fault
+\end{itemize}
+\item case 2: LRU faults on a different page, twice
+\begin{itemize}
+\item again, to evict that page must see $k$ other pages between
+  faults
+\item so $k+1$ distinct pages
+\item so OPT faults
+\end{itemize}
+\item case 3: no fault on $q$ or twice on any page
+\begin{itemize}
+\item $q$ is in cache at start and stays there
+\item $k$ other requests must occur to cause $k$ faults
+\item so $k+1$ request in total
+\end{itemize}
+\end{itemize}
+Generalize: LRU is $k/(k-h+1)$ competitive against $h$-page adversary
+
+Observations:
+\begin{itemize}
+\item proved without knowing optimum
+\item instead, derived \emph{lower bound} on cost of \emph{any}
+  algorithm
+\item same argument applies to FIFO.
+\end{itemize}
+
+Lower bound: no online algorithm beats $k$-competitive.
+\begin{itemize}
+\item set of $k+1$ pages
+\item always ask for the one $A$ doesn't have
+\item faults every time.
+\item so, just need to show can get away with 1 fault every $k$ steps
+\item have $k$ pages, in memory.  When fault, look ahead, one of $k+1$
+  isn't used in next $k$, so evict it.
+\item one fault every $k$ steps
+\item so $A$ is only $k$-competitive.
+\end{itemize}
+
+Observations:
+\begin{itemize}
+\item Lower Bound can be proven without knowing OPT, often is.
+\item competitive analysis doesn't distinguish LRU and FIFO, even
+  though know different in practice.
+\item still trying to refine competitive analysis to measure better:
+  SODA paper: ``LRU is better than FIFO''
+\item applies even if just have $k+1$ pages!
+\end{itemize}
+
+Optimal offline algorithm: Longest Forward Distance
+\begin{itemize}
+\item evict page that will be asked for farthest in future.
+\item suppose MIN is better than LFD.  Will make NEW, as good,
+  agrees more with LFD.
+\item Let $\sigma_i$ be first divergence of MIN and LFD (at page
+  fault)
+\item LFD discards $q$, MIN discards $p$ (so $p$ will be accessed
+  before $q$ after time $i$)
+\item Let $t$ be time MIN discards $q$
+\item revise schedule so MIN and LFD agree up to $t$, yielding NEW
+\item NEW discards $q$ at $i$, like LFD
+\item so MIN and NEW share $k-1$ pages.  will preserve till merge
+\item in fact, $q$ is unique page that MIN has that NEW doesn't
+\item case 1: $\sigma_i,\ldots,\sigma_t,\ldots,p,\ldots,q$
+\begin{itemize}
+\item until reach $q$
+\item let $e$ be unique page NEW has that MIN doesn't (init $e=p$)
+\item when get $\sigma_l\ne e$, evict same page from both
+\item note  $\sigma_l \ne q$, so MIN does fault when NEW does
+\item both fault, and preserves invariant
+\item when $\sigma_l=e$, only MIN faults 
+\item when get to $q$, both fault, but NEW evicts $e$ and converges to
+  MIN.
+\item clearly, NEW no worse than MIN
+\end{itemize}
+\item case 2: $t$ after $q$
+\begin{itemize}
+\item follow same approach as above till hit $q$
+\item since MIN didn't discard $q$ yet, it doesn't fault at $q$, but
+\item since $p$ requested before $q$, had $\sigma_l=e$ at least
+  once, so MIN did \emph{worse} than NEW. (MIN doesn't have $p$ till
+  faults)
+\item so, fault for NEW already paid for
+\item still same.
+\end{itemize}
+\item prove that can get to LFD without getting worse.
+\item so LFD is optimal.
+\end{itemize}
+
+
+\subsection{Move to front}
+
+Studying heuristics for reorganizing a list after you access it
+\begin{itemize}
+\item a natural heuristic: move accessed item towards front
+\item maybe all the way to front?
+\item is it a good heuristic?
+\item compare to omniscient algorithms that can move accessed item
+  any amount towards front (or not at all)
+\item so e.g. \emph{won't} move item to front if not accessed again soon
+\end{itemize}
+
+Potential function: number of inversions.
+\begin{itemize}
+\item amortized cost: real plus potential
+\item summing telescopes potential and leaves real cost
+\item suppose search for item $x_j$ at $j$ in opt, at $k$ in MTF
+\item suppose $v$ items precede in MTF but not OPT
+\item then $k-v-1$ precede in BOTH
+\item so $k-v-1 \le j-1$ so $k-v \le j$
+\item MTF creates $k-v-1$ new inversions and kills $v$ old ones,
+\item so amortized cost is $k+(k-v-1)-v \le 2(k-v)\le 2j$
+\item now do opt's move.  
+\item moving $x_j$ towards front only decreases
+  inversions (since $x_j$ already at front in MTF)
+\item so cannot increase potential
+\item so doesn't increase amortized cost of access
+\end{itemize}
+
+Strengthen
+\begin{itemize}
+\item we can allow adversary to make \emph{arbitrary transposes}
+\item if we charge the adversary 1 for each transpose
+\item since then any increase in potential (and thus our
+  amortized cost) is upper bounded by the adversary's cost
+\item so we remain 2-competitive vs. algorithm that can move accessed
+  item anywhere and then do any transposes it likes
+\end{itemize}
+
+Lower bound:
+\begin{itemize}
+\item suppose $n$ items in list
+\item nasty algorithm: always request last in list
+\item generates a sequence of length $m$
+\item total cost $mn$
+\item consider alg that picks random order and doesn't change
+\item expected access time for each item is $(n-1)/2$
+\item expected total cost $m(n-1)/2$
+\item some algorithm achieves that cost
+\item offline alg can use that one
+\item ratio $2n/(n-1) \rightarrow 2$
+\end{itemize}
+
+Note: our competitive bound assumes opt is paying 1 for transposes
+\begin{itemize}
+\item if opt can rearrange anything it sees, can't beat $\Omega(n/\log n)$ competitive
+\item ``Order by Next Request'' heuristic---rearrange everything you pass
+\item Munro 2000
+\item achieves cost equal to entropy
+\item so consider a uniform random sequence
+\item entropy is $O(\log n)$
+\item an online algorithm will pay $n/2$ in expectation every time.
+\item so $\Omega(n/\log n)$ competitive
+\end{itemize}
+
+\textbf{2011 End lecture 20}
+
+
+
+\vspace{0.5cm}
+\subsection*{Randomized Online Algorithms}
+
+An online algorithm is a two-player zero sum
+game between algorithm and adversary.  Well known that optimal
+strategies require randomization.
+
+A \emph{randomized online algorithm} is a probability distribution over
+deterministic online algorithms.
+\begin{itemize}
+\item idea: if adversary doesn't know what you are doing, can't mess
+  you up.
+\item idea: can't see adversary's ``traps'', but have certain
+  probability of wiggling out of them.
+\item in practice, don't randomly pick 1 det algorithm at start.
+  Instead, make random choices on the way.  But retrospectively, gives
+  1 deterministic algorithm.
+\end{itemize}
+
+Algorithm is $k$-competitive if for any $\sigma$, $E[C_A(\sigma)] \le
+k\cdot OPT+O(1)$.
+
+Adversaries:
+\begin{itemize}
+\item \textbf{oblivous:} knows probability distribution but not coin
+  tosses.  Might as well pick input in advance.
+\item \textbf{fully adaptive:} knows all coin tosses.  So algorithm is
+  deterministic for it.
+\item \textbf{adaptive:} knows coin tosses up to present---picks sequence
+  based on what did.
+\item clearly adaptive stronger than oblivious.  
+\item oblivious adversary plausible in many cases (eg paging)
+\item problematic if online behavior affects nature (eg, paging an alg
+  that changes behavior if it sees itself thrashing)
+\item our lower bound applies to adaptive
+\item but in other cases, can do better against adaptive
+\item we'll show much better vs. oblivous
+\end{itemize}
+
+
+
+\subsubsection{Randomized Paging}
+
+Idea: evict random page?
+\begin{itemize}
+\item $k$-competitive against \emph{adaptive} adversary
+\item but uses no memory
+\item trading space for randomness
+\end{itemize}
+
+
+Marking algorithm:
+\begin{itemize}
+\item initially, all pages marked (technicality)
+\item on fault, if all marked, unmark all
+\item evict random unmarked page
+\item mark new page.
+\end{itemize}
+
+Fiat proved: Marking is $O(\log k)$ competitive for $k$ pages.
+
+Phases:
+\begin{itemize}
+\item first starts on first fault
+\item ends when get $k+1^{st}$ distinct page request.
+\item so a phase has $k$ distinct pages
+\item cost of $M$ is cost of phases
+\item note: defined by input, independent of coin tosses by $M$
+\item but, marking tracks:
+\begin{itemize}
+\item by induction, unmark iff at end of phase
+\item by induction, all pages requested in phase stay marked till end
+  of phase
+\item so, pay for page (if at all) only on first request in phase.
+\item by induction, at end of phase memory contains the $k$ pages
+  requested during the phase.
+\end{itemize}
+\end{itemize}
+
+Analysis:
+\begin{itemize}
+\item ignore all but first request to a page (doesn't affect $M$,
+  helps offline)
+\item compare phase-by-phase cost
+\item phase $i$ starts with $S_i$ (ends with $S_{i+1}$)
+\item request \emph{clean} if not in $S_i$.  $M$ must fault, but show
+  offline pays too
+\item request \emph{stale} if in $S_i$.  $M$ faults if evicted during
+  phase.  Show unlikely.
+\end{itemize}
+
+
+Online cost:
+\begin{itemize}
+\item Expected cost of stale request:
+\begin{itemize}
+\item suppose had $s$ stale and $c$ clean requests so far.
+\item at this point, we have $s+c$ pages marked in memory $\Rightarrow$ all the original locations of the $s$ stale requests are taken (possibly some by clean requests that bumped out stale pages) and additional $c$ out of these marked pages (some of them can be stale) needed to bump out the remaining $k-s$ pages.
+\item what prob current request was evicted? By symmetry, $c/(k-s)$
+\item this is expected cost of stale request.
+\end{itemize}
+\item Cost of phase.  
+\begin{itemize}
+\item Suppose has $c_i$ clean requests, $k-c_i$ stale.
+\item Pay $c_i$ for clean.
+\item for stale requests, pay at most
+\[ 
+c_i(\frac1k+\frac1{k-1}+\cdots+\frac{1}{c_i+1})  =c_i(H_k-H_{c_i})
+\]
+\item so total at most $c_i\log k$
+\end{itemize}
+\end{itemize}
+
+Offline cost:
+\begin{itemize}
+\item potential function $\Phi_i=$ difference between $M$ and $O$
+  (offline) at start of phase $i$.
+\item got $c_i$ clean requests, not in $M$'s memory.  So at least
+  $c_i-\Phi_i$ not in $O$'s memory.
+\item at end of round, $M$ has all $k$ most recent requests.  So $O$
+  is missing $\Phi_{i+1}$ of $k$ this round's requests.  Must have
+  evicted (thus paid for) them.
+\item so, $C_i(O) \ge \max(c_i-\Phi_i,\Phi_{i+1}) \ge
+  \frac12(c_i+\Phi_i-\Phi_{i+1})$.
+\item sum over all phases; telescopes.  Deduce $C_i \ge \frac12 \sum
+  c_i$.
+\end{itemize}
+
+Summary: If online pays $x\log k$, offline pays $x/2$.  So, $(\log
+k)$-competitive.  
+
+
+
+\subsection*{Lower Bounds via Yao's Minimax Principle}
+
+
+Online algorithms is a two player game:
+\begin{itemize}
+\item online wants to optimize ratio, adversary want it to be bad
+\item online chooses random alg, adversary chooses random input
+\item leads to payoff matrix---expected value of game
+\item number in matrix is ratio for alg on that input
+\item in general, optimal strategy of both sides is randomized
+\item Von Neumann proved equality of minimax and maximins
+\item notice: player who picks strategy second can use deterministic
+  choice
+\item note when one player's strategy known, other player can play
+  deterministically to meet optimum.
+\item above, assumed adversary knew online's strategy, so he played
+  deterministically
+\item for lower bound, we let adversary have randomized strategy, look
+  for best deterministic counter!
+\item If give random input for which no deterministic alg does well,
+  we get a lower bound.
+\end{itemize}
+
+Formalize:
+\begin{itemize}
+\item say online $A$ is $k$-competitive against an input distribution
+  $p_\sigma$ if $E_\sigma(C_A(\sigma)) \le
+  cE_\sigma(C_{OPT}(\sigma))$ (note: OPT gets to see sequence before
+  going)
+\item Theorem: if for some distribution no deterministic alg is
+  $k$-competitive, than no randomized algorithm is $k$-competitive.  
+\item to prove, suppose have $k$-competitive randomized alg, show det
+  $k$-competitive against any $\sigma$.
+\item consider payoff $E_{A} [C_A(\sigma) - kC_{OPT}(\sigma)]$
+\item by assumption, some dist on $A$ achieves non-positive payoff.
+\item remains true even if choose best possible randomized strategy on
+  $\sigma$ 
+\item once do so, have deterministic counter $A$
+\item so for any $p_\sigma$ on $\sigma$, some $A$ such
+  $E_{\sigma}[C_A(\sigma)-kC_{OPT}(\sigma)] \le 0$
+\item in other words, $A$ is $k$-competitive against $p_\sigma$.
+\end{itemize}
+
+For paging:
+\begin{itemize}
+\item set of $k+1$ pages
+\item uniform random sequence of requests
+\item \emph{any} deterministic (or randomized!) algorithm has an
+  expected $1/{k}$ fault per request.  So cost $n/k$ if seq
+  length $n$
+\item what is offline cost?  on fault, look ahead to page that is
+  farthest in future.
+\item \emph{phase} ends when all $k+1$ pages requested
+\item offline faults once per phase
+\item how long is a phase?  coupon collection.  $\Omega(k\log k)$.
+\item intuitively, number of faults is $n/k\log k$
+\item formally, use ``renewal theory'' that works because phase
+  lengths are i.i.d.
+\item deduce expected faults $n/k\log k$, while online is $n/k$
+\item $\log k$ gap, so online not $\log k$-competitive.
+\end{itemize}
+  
+\marnote{2011 End Lecture 21}
+\marnote{2011 Lecture 21 End.  2012 Lecture 23 End.}
+
+\marnote{2013 L25 Start}
+
+This analysis applies to an oblivious adversary.  What about other
+models?
+\begin{itemize}
+\item a fully adaptive adversary knows all your coin flips, so for
+  them you are deterministic.
+\item it's known that if you can be $c$-competitive versus a partially
+  adaptive adversary and $d<c$-competitive against an oblivious one
+  then you can be $dc$-competitive deterministically.  
+\item so, since we know $d=O(\log k)$ for paging, we conclude you
+  can't beat $k/\log k$ against a partially adaptive adversary.  Note
+  sure if that has been achieved.
+\end{itemize}
+
+\subsection{$k$-server}
+
+Manasse et al. 1988.
+
+Definition:
+\begin{itemize}
+\item metric space with $k$ servers on points
+\item request is a point in space
+\item must move a server, cost is distance.
+\item eg taxi company
+\item paging is special case: all distances $1$, servers on ``memory
+  pages''
+\item also multi-head disks
+\item compute offline by dynamic program or reduction to min cost flow
+\end{itemize}
+
+Greedy doesn't work:
+\begin{itemize}
+\item 2 servers, 1 far away, other flips between 2 points.
+\item need an algorithm that moves a far away server sometimes in case
+  a certain region is popular
+\end{itemize}
+
+Fancy algorithmics:
+\begin{itemize}
+\item HARMONIC: randomized, move with probability inversely proportional
+  to distance from goal: $O(k^k)$ [Fiat, Rabani,  Ravid]
+\item WORK FUNCTION: track what offline algorithms would have done
+  (computationally very expensive) and then do your best to move into
+  a similar configuration.
+\begin{itemize}
+\item define $W_i(X)$ to be opt cost of serving first $i$ requests and
+  ending with servers in state $X$
+\item choose configuration $X_i$ to optimize $\min_X
+  W_i(X)+d(X_{i-1},X)$
+\item you do this when you are already in state $X_{i-1}$ that you
+  picked in the previous request
+\end{itemize}
+\item in 2001, work-function was proven 2k-competitive using a black
+  magic potential function
+\item conjectured $k$-competitive.
+\item exponential time to compute a move!
+\item questions remain on finding an algorithm that does little work
+  per input.
+\end{itemize}
+
+
+\subsubsection{On a Line}
+
+A truly ``On Line'' algorithm.
+
+greedy algorithm bad if requests alternate $a$ near $b$ but server on
+distant $c$.
+
+Intuition
+\begin{itemize}
+\item What is optimum action \emph{right now} if you know the future?
+\item Move one of nearest items
+\item Since moving anything else will eventually cross a nearest
+\item so might as well move nearest instead, then replace it later
+\end{itemize}
+Problem: which of two nearest to move?
+
+double coverage algorithm (DC):
+\begin{itemize}
+\item 
+If request outside convex hull, move nearest point to it.
+
+\item else, move nearest point on each side towards it equal distance
+  till one hits.
+\end{itemize}
+
+$k$-competitive. 
+\begin{itemize}
+\item let $M$ be min-cost matching of opt points to DC points
+\item let $d$ is distance between servers in DC
+\item $\Phi=kM+\sum_{i < j}d(s_i,s_j)$
+\item analyze change when (first) adversary moves, (then) DC moves
+\item show: 
+\begin{itemize}
+\item if adversary moves $d$, increases $\Phi$ by $\le kd$
+\item if DC moves moves $d$, decreases $\Phi$ by $d$
+\end{itemize}
+\item deduce: DC is $k$-competitive 
+\begin{itemize}
+\item assume start in same configuration at starting node
+\begin{itemize}
+\item then $\Phi=0$
+\item $\Phi$ always positive
+\item if DC moves more than $k$ times OPT, get $\delta\Phi$ negative
+\item but can't have negative $\Phi$
+\end{itemize}
+\item if start in different configuration
+\begin{itemize}
+\item adds a constant (dependent
+  on metric space) to $\Phi$
+\item so asymptotically $k$-competitive.
+\end{itemize}
+\end{itemize}
+\end{itemize}
+
+Analysis:
+\begin{itemize}
+\item adv moves $d$ just increases $M$ by $d$, so $\Delta \Phi \le kd$
+\item Consider DC move to outside hull, 
+\begin{itemize}
+\item  adversary already has a point at destination;
+\item  WLOG moving point matched to it (else matches something else;
+  uncross).
+\item so $\Delta M=-d$
+\item $\Delta \Sigma = (k-1)d$. 
+\item claim follows: $\Delta \phi = -kd+(k-1)d = -d$
+\end{itemize}
+\item consider DC move to inside hull
+\begin{itemize}
+\item Consider $M$
+\begin{itemize}
+\item one of moving points is matched to request.  
+\item So
+  that move decreases $M$.  
+\item Other move may increase $M$ at most by same amount,
+\item  so no change to $M$.
+\end{itemize}
+\item Now consider $\Sigma$.  
+\begin{itemize}
+\item Moves of two points cancel out with
+  respect to other points
+\item  but they get $2d$ units closer.
+\end{itemize}
+\end{itemize}
+
+Generalizes to trees.
+
+Which yields randomized $O(\log^3 n \log^2 k)$ for general $k$-server via \emph{tree embeddings}.
+
+
+\end{itemize}
+
+Can we do better?  No, because paging is special case.
+
+% Generalizes to trees: all servers neighboring a request move toward
+% it. (server stops if other moving server ``blocks'' it.
+% \begin{itemize}
+% \item as before, if opt moves $d$, change $kd$ in matching contrib to $\Phi$
+% \item for DC, suppose $m$ servers move
+% \item as before, one moving neighbor is matched, decreases $M$.
+%   $m-1$ others increase.  total $(m-2)kd$
+% \item consider any nonmoving server: $1$ moving away from it, $m$ moving
+%   towards.  total $-(k-m)(m-2)d$
+% \item moving pairs approaching each other: total $-m(m-1)(2d)/2$
+% \item add up, get $dm$
+% \end{itemize}
+
+% Application: weighted paging 
+% \begin{itemize}
+% \item cost $w(p)$ to load $p$ (equiv, $w(p)/2$ to load and same to evict)
+% \item treat as star, with edge lengths $w(p)$
+% \end{itemize}
+
+\end{document}
+

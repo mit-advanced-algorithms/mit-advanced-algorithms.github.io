@@ -1,0 +1,166 @@
+\documentclass{article}
+\usepackage{me}
+%\input{abbrevs}
+\setlength{\parindent}{0pt}
+\def\zhat{{\hat z}}
+
+\title{Fixed Parameter Tractability\\ 6.854 Notes \#22}
+\author{David Karger}
+
+\begin{document}
+
+\subsection{Fixed Parameter Tractability}
+
+We've talked about approximation algorithms that do well on \textbf{all}
+instances.  How about on \emph{some} instances?
+\begin{itemize}
+\item For any one instance, there is polytime alg.
+\item Look for interesting (natural, common) ``easy'' \bf{classes} of
+instances
+\end{itemize}
+
+Vertex cover
+\begin{itemize}
+\item Suppose solution has $k$ vertices
+\item Try all possibilities?  $O(mn^k)$
+\item Polynomial for any fixed $k$, but in a bad way (like PAS, not
+  FPAS).
+\item Of course, cannot really have FPAS since $k \leq n$ would mean it
+  gives exact solution in polynomial time
+\end{itemize}
+
+Bounded search tree method
+\begin{itemize}
+\item Consider search space as a search tree
+\item Argue you can cut it short, so exponential in levels isn't too bad
+\item Pick any edge
+\begin{itemize}
+\item one end is in VC
+\item try each
+\item each ``branch'' of search tree is binary
+\item but after $k$ branchings you are done (success or failure clear)
+\item So, $2^k$ leaves in search tree
+\item $O(m)$ work per path
+\item time $O(2^k m)$
+\end{itemize}
+\end{itemize}
+
+Kernelization
+\begin{itemize}
+\item In polytime (independent of $k$) find a subproblem of size confined with a function of $k$ such that the
+  solution of this subproblem extends to the whole problem
+\item Gives runtime of $p(n)+f(k)$, ``better'' than $p(n)\cdot f(k)$
+\item eg vertex cover
+\begin{itemize}
+\item any vertex of degree $>k$ must be in cover
+\item mark, remove with incident edges
+\item remainder is covered by at most $k$ vertices of degree $<k$
+\item so at most only $k^2$ edges
+\item find opt in $f(k)$
+\item e.g. $2^k \cdot k^2$ using bounded search tree method.
+\end{itemize}
+\end{itemize}
+
+Equivalence
+\begin{itemize}
+\item Actually, kernelization is no better
+\item these three are equivalent:
+\begin{itemize}
+\item algorithm with runtime $f(k)\cdot p(n)$
+\item algorithm with runtime $f(k)+p(n)$
+\item algorithm to reduce to kernel of size $f(k)$
+\end{itemize}
+\item Proof is nonconstructive, however.
+\end{itemize}
+
+
+% 2011 Lecture 17 start (based on overlap with previous Demaine lecture)
+
+\subsection{Treewidth}
+Imagine a canonical recursive solution on a graph
+\begin{itemize}
+\item Pick a vertex
+\item For each possible setting of it, compute optimum solution on
+  rest of graph
+\item Kind of what we did in bounded search tree for FPT
+\item What goes wrong?  Exponential search space.  New problem for
+  each setting of variable
+\end{itemize}
+
+Perhaps we can ``memoize'' the recursion, turn into dynamic
+  programming?
+\begin{itemize}
+\item In many graph problems, feasibility is determined by ``local''
+   constraints on vertices and who they interact with
+\begin{itemize}
+\item Graph coloring
+\item Max independent set
+\item vertex cover
+\item matching
+\end{itemize}
+\item edges in graph represent ``interactions'' constraining joint
+   behavior of neighboring variables
+\item Perhaps only need to memoize one answer for each state of
+neighbors, ignoring rest of the graph
+\item get something exponential in the degree
+\item Intuition: maximum matching in a tree
+\begin{itemize}
+\item Root tree anywhere
+\item Compute, for subtree $T$ with root $v$, max matching in $T$ with $v$
+  matched and unmatched
+\item Can evaluate for $v$ given tables of children of $v$
+\end{itemize}
+\item intuition: vertex cover
+\end{itemize}
+
+Elimination orderings
+\begin{itemize}
+\item Represent an ``unraveling'' of the graph one vertex at a time,
+  with plans to memoize
+\item Problem to be solved: when I eliminate a vertex, I create hidden
+  interactions between neighbors of that vertex
+\item To represent those interactions, need to add edges between all
+  neighbors.
+\item If can do so without ever creating large neighbor set, there is
+  hope!
+\end{itemize}
+
+Treewidth
+\begin{itemize}
+\item \textbf{ Induced Treewidth:} For a given graph, for any elimination ordering, induced treewidth of that ordering is the size of the largest neighbor set created by
+  that elimination ordering
+\item \textbf{ Graph Treewidth:} For any graph, its treewidth is the induced treewidth of the best elimination ordering (the one with smallest induced treewidth)
+\item Treewidth 1: tree
+\item Treewidth 2: series-parallel graphs
+\end{itemize}
+
+SAT
+\begin{itemize}
+\item Treewidth not just for problems on graphs
+\item Use graph to reflect interactions between any variables
+\item eg, edge between two variables if they share a clause
+\item Maintain truth-table for each clause---list of satisfying
+  assignments for it
+\item Take eliminated vertex/variable $v$
+\item Combine its clause's truth tables---combined clause is happy
+  with a given assignments if original set are all happy for
+  \emph{some} setting of $v$
+\item Reduced formula is SAT iff original is
+\item Size of new clause: degree of $v$
+\item So, if small treewidth, never create large clause
+\item In which case, easy to maintain tables
+\item Runtime: $n$ eliminations, each involving about $O(2^k)$ work, where k is the treewidth of the graph.
+\item When unwinding, always have satisfying assignment that can be
+  extended to remove vertex
+\end{itemize}
+
+
+
+
+
+\end{document}
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: t
+%%% End: 

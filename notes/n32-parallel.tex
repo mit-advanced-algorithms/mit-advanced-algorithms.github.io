@@ -1,0 +1,773 @@
+\documentclass[12pt]{article}
+\usepackage{wide,me}
+\parindent0pt
+
+\title{Parallel Algorithms\\ 6.854 Notes \#32}
+\author{David Karger}
+
+\begin{document}
+
+\marnote{2013 Lecture 29 Start}
+
+\subsection*{Parallel Algorithms}
+
+Two closely related models of parallel computation.
+
+Circuits
+\begin{itemize}
+\item Logic gates (AND/OR/not) connected by wires
+\item important measures
+\begin{itemize}
+\item number of gates
+\item depth (clock cycles in synchronous circuit)
+\end{itemize}
+\end{itemize}
+
+PRAM
+\begin{itemize}
+\item $P$ processors, each with a RAM, local registers
+\item global memory of $M$ locations
+\item each processor can in one step do a RAM op or read/write to one
+  global memory location
+\item synchronous parallel steps
+\item not realistic, but explores ``degree of parallelism''
+\end{itemize}
+
+Essentially the same models, but let us focus on different things.
+
+\subsubsection*{Circuits}
+
+\begin{itemize}
+\item Logic gates (AND/OR/not) connected by wires
+\item important measures
+\begin{itemize}
+\item number of gates
+\item depth (clock cycles in synchronous circuit)
+\end{itemize}
+\item bounded vs unbounded fan-in/out
+\item $AC(k)$ and $NC(k)$: unbounded and bounded fan-in with depth
+  $O(\log^k n)$ for problems of size $n$
+\item $AC(k) \subset NC(k) \subset AC(k+1)$ using full binary tree
+\item $NC=\cup NC(k)=\cup AC(k)$
+\end{itemize}
+
+Addition
+\begin{itemize}
+\item consider adding $a_i$ and $b_i$ with carry $c_{i-1}$ to produce
+  output $s_i$ and next carry $c_i$
+\item Ripple carry: $O(n)$ gates, $O(n)$ time
+\item Carry lookahead: $O(n)$ gates, $O(\log n)$ time
+\item preplan for late arrival of $c_i$.
+\item given $a_i$ and $b_i$, three possible cases for $c_i$
+\begin{itemize}
+\item if $a_i=b_i$, then $c_i=a_i$ determined without $c_{i-1}$:
+  \emph{generate} $c_1=1$ or \emph{kill} $c_i=0$
+\item otherwise, \emph{propagate} $c_i=c_{i-1}$
+\item write $x_i=k,g,p$ accordingly
+\end{itemize}
+\item consider $3 \times 3$ ``multiplication table'' for effect of two
+  adders in a row.  
+\item pair propagates previous carry only if both propagate.
+\begin{tabular}{rr|c|c|c}
+            &&   &$x_i$&\\
+            &&$k$&$p$&$g$\\
+\hline
+         &$k$&$k$&$k$  &$g$\\
+$x_{i-1}$&$p$&$k$&$p$  &$g$\\
+         &$g$&$k$&$g$  &$g$\\
+\end{tabular}
+\item Now let $y_0=k$, $y_i = y_{i-1} \times x_i$
+\item constraints ``multiplication table'' by induction
+\begin{tabular}{rr|c|c|c}
+            &&   &$x_i$&\\
+            &&$k$&$p$&$g$\\
+\hline
+         &$k$&$k$&$k$  &$g$\\
+$y_{i-1}$&$p$&$k$&never&$g$\\
+         &$g$&$k$&$g$  &$g$\\
+\end{tabular}
+\item conclude: $y_i=k$ means $c_i=0$, $y_i=g$ means $c_i=1$, and
+  $y_i=p$ never happens
+\item so problem reduced to computing all $y_i$ in parallel
+\end{itemize}
+
+Parallel prefix
+\begin{itemize}
+\item Build full binary tree
+\item two gates at each node
+\item pass up product of all children
+\item pass down product of all $x_i$ preceding leftmost child
+\item works for any associative function
+\end{itemize}
+
+
+\subsubsection*{PRAM}
+
+various conflict resolutions (CREW, EREW, CRCW)
+\begin{itemize}
+\item $CRCW(k) \subset EREW(k+1)$
+\item $NC = \cup CRCW(k)$
+\end{itemize}
+
+PRAMs simulate circuits, and vice versa
+\begin{itemize}
+\item So $NC$ well-defined
+\end{itemize}
+
+differences in practice
+\begin{itemize}
+\item CRCW can OR in $O(1)$ time
+\item EREW requires $\log n$ time (info theory lower bound)
+\item EREW needs $\log n$ to find max
+\item CRCW finds max in constant time with $n^2$ processors
+\begin{itemize}
+\item Compare every pair
+\item If an item loses, write ``not max'' in its entry
+\item Check all entries
+\item If item is max (not overwritten), write its value in answer
+\end{itemize}
+\item in $O(\log\log n)$ time with $n$ processors
+\begin{itemize}
+\item Suppose $k$ items remain
+\item Make $k^2/n$ blocks of $n/k$ items 
+\item quadratic time max for each: $(k^2/n)(n/k)^2=n$ processors total
+\item recurrence: $T(k)=1+T(k^2/n)$
+\item $T(n/2^i)=1+T(n/2^{2i})$
+\item so $\log\log n$ iters.
+\end{itemize}
+\end{itemize}
+
+parallel prefix
+\begin{itemize}
+\item using $n$ processors
+\end{itemize}
+
+list ranking EREW
+\begin{itemize}
+\item next pointers $n(x)$
+\item $d(x)+=d(n(x))$; $n(x)=n(n(x))$.
+\item by induction, sum of values on path to end doesn't change
+\end{itemize}
+
+\subsection{Work-Efficient Algorithms}
+
+Idea: 
+\begin{itemize}
+\item We've seen parallel algorithms that are somewhat ``inefficient''
+\item do more total work  (processors times time) than sequential
+\item Ideal solution: arrange for total work to be
+  proportional to best sequential work
+\item \emph{Work-Efficient Algorithm}
+\item Then a small number of  processors (or even 1) can ``simulate''
+  many processors in a fully efficient way
+\item Parallel analogue of ``cache oblivious algorithm''---you write
+  algorithm once for many processors; lose nothing when it gets
+  simulated on fewer.
+\end{itemize}
+
+
+Brent's theorem
+\begin{itemize}
+\item Different perspective on work: count number of processors actually
+working in each time step.
+\item If algorithm does $x$ total work and critical path $t$
+\item Then $p$ processors take $x/p+t$ time
+\item So, if use $p=x/t$ processors, finish in time $t$ with efficient
+  algorithm
+\item detail: assigning processors to tasks can be tricky if e.g. work
+  emerges dynamically during execution
+\end{itemize}
+
+Work-efficient parallel prefix
+\begin{itemize}
+\item linear sequential work
+\item going to need $\log n$ time
+\item so, aim to get by with $n/\log n$ processors
+\item give each processor a block of $\log n$ items to add up
+\item reduces problem to $n/\log n$ values
+\item use old algorithm
+\item each processor fixes up prefixes for its block
+\end{itemize}
+
+Work-efficient list ranking
+\begin{itemize}
+\item harder: can't easily give contiguous ``blocks'' of $\log n$ to each
+  processor (requires list ranking)
+\item However, assume items in arbitrary order in array of $ n$
+  structs, so \emph{can} give $\log n$ distinct items to each processor.
+\item use random coin flips to knock out ``alternate'' items
+\item shortcut any item that is heads and has tails successor
+\item requires at most one shortcut
+\item and constant probability every other item is shortcut (and
+  independent)
+\item so by chernoff, 1/16 of items are shortcut out
+\item ``compact'' remaining items into smaller array using parallel
+  prefix on \textbf{array} of pointers (ignoring list structure) to
+  collect only ``marked'' nodes and update their pointers 
+\item let each processor handle $\log n$ (arbitrary) items
+\item $O(n/\log n)$ processors, $O(\log n)$ time
+\item After $O(\log\log n)$ rounds, number of items reduced to $n/\log
+  n$
+\item use old algorithm
+\item result: $O(\log n \log\log n)$ time, $n/\log n$ processors
+\item to improve, use faster ``compaction'' algorithm to collect
+  marked nodes: $O(\log\log n)$ time randomized, or $O(\log n/\log\log
+  n)$ deterministic.  get optimal alg.
+\item How about deterministic algorithm?  Use ``deterministic coin
+  tossing''
+\item take all local maxima as part of ruling set.
+\end{itemize}
+
+Euler tour to reduce to parallel prefix for
+\begin{itemize}
+\item inorder traversal of tree
+\item computing depth in tree
+\item numbering leaves
+\item work efficient
+\end{itemize}
+
+\subsection*{Expression Tree Evaluation}
+
+plus and times nodes.
+
+Idea
+\begin{itemize}
+\item merge leaves into parents (good for bushy tree)
+\item pointer jump degree-2 nodes (good for tall trees)
+\item combine?
+\item how ``pointer jump'' an operator?
+\end{itemize}
+
+Generalize problem:
+\begin{itemize}
+\item ``product lookahead''
+\item Each tree edge has a label $(a,b)$ 
+\item meaning that if subtree below evaluates to $y$ then value
+  $(ay+b)$ should be passed up edge
+\end{itemize}
+
+Merging a single leaf
+\begin{itemize}
+\item method for eliminating all left-child leaves
+\item root $q$ with right child $p$ (product node) on edge labelled $(a_3,b_3)$
+\item $p$ has left child edge $(a_1,b_1)$ leaf $\ell$ with value $v$
+\item right child edge to $s$ with label $(a_2,b_2)$
+\item fold out $p$ and $\ell$, make $s$ a child of $q$
+\item what label of new edge?
+\item prepare for $s$ subtree to eval on $y$.
+\item choose $a,b$ such that
+  $ay+b=a_3\cdot[(a_1v+b_1)\cdot(a_2y+b_2)]+b_3$
+\end{itemize}
+
+Parallelize
+\begin{itemize}
+\item keep tree full, so killing all leaves kills whole tree
+\item collapse a leaf and pointer jump parent
+\item problem: can't do to both children at once
+\item solution: number leaves in-order (Euler Tour)
+\item three step process:
+\begin{itemize}
+\item shunt odd-numbered left-child leaves
+\item shunt odd-number right-child leaves
+\item divide leaf-numbers by 2
+\item guarantees never simultaneously shunt siblings
+\end{itemize}
+\end{itemize}
+
+
+\subsection*{Sorting}
+
+%% Bitonic sort:
+%% \begin{itemize}
+%% \item Recall sorting bitonic sequences:
+%% \begin{itemize}
+%% \item Compare/swap opposite pairs
+%% \item Recurse on halves
+%% \item $O(\log n)$ time with $n$ processors.
+%% \end{itemize}
+%% \item Bitonic sort can be used to merge two sorted sequences
+%% \item So use merge sorts in parallel to make groups of 1,2,4,8 etc.
+%% \item $O(\log^2 n)$ time with $n$ processors
+%% \end{itemize}
+
+
+Parallelizing binary search
+\begin{itemize}
+\item placing one item into a sorted array takes $\log n$ time with 1
+  processor
+\item but with $k$ processors can improve to $\log_k n$
+\item compare to $k$ evenly spaced items
+\item use concurrent OR to find out which pair I'm between in $O(1)$ time
+\item recurse
+\item shows how to gain parallel speed by wasting work
+\item in particular, can find in $O(1)$ time with $n$ processors
+\item or even $\sqrt{n}$ processors
+\end{itemize}
+
+
+CREW Merge sort:
+\begin{itemize}
+\item merge two length-$k$ sequences using $k$ processors
+\item each element of first seq. uses binary search to find place in
+  second
+\item so knows how many items smaller
+\item so knows rank in merged sequence: go there
+\item then do same for second list
+\item $O(\log k)$ time with $k$ processors
+\item handle all length-$k$ lists in parallel with $n$ processors
+\item total time $O(\sum_{i \le \lg n} \log 2^i)=O(\log^2 n)$ with $n$ processors
+\end{itemize}
+
+Better with more processors?
+\begin{itemize}
+\item use $n^2$ processors to do all pairwise comparisons in parallel 
+\item For each item, count number of wins in parallel in $O(\log n)$
+  time
+\item This determines item's rank in output list
+\end{itemize}
+
+Use same ideas with fewer processors?
+\begin{itemize}
+\item Note can sort $\sqrt{n}$ items in $O(\log n)$ time
+\item Use insights to improve merge?
+\item Idea: nearby items in one list go to nearby places in merged list
+\item So don't do whole computation for every item
+\item Break $A$ into blocks and figure out roughly where each block
+  goes in $B$
+\item Then spread each block to exact right places in $B$ (recursively)
+\end{itemize}
+
+Details: merge $n$ items of $A$ into $m$ items of $B$ in $O(\log\log n)$
+  time using $m+n$ processors
+\begin{itemize}
+\item choose $\sqrt{n}$ evenly spaced fenceposts
+  $\alpha_i$ among $A$
+\item use $\sqrt{m}$ processors to find exact location of each in $B$
+\item total processors $\sqrt{nm}\le \le \max(n,m) \le n+m$ 
+\item split $B$ at locations of $\alpha_i$
+\item now know $\sqrt{n}$ items (between $\alpha_i$ and $\alpha_{i+1}$)
+  go in each split piece of $B$
+\item So recurse: $T(n)=2+T(\sqrt{n})=O(\log\log n)$
+\end{itemize}
+
+Use in parallel merge sort: $O(\log n \log\log n)$ with $n$
+processors.
+\begin{itemize}
+\item Cole shows how to ``pipeline'' merges, get optimal $O(\log n)$ time.
+\end{itemize}
+
+Qsort idea
+\begin{itemize}
+\item $\sqrt{n}$ pivots
+\item sort all in $O(\log n)$ time using $n$ processors
+\item binary search each item to locate position in pivots
+\item recurse
+\item $T(n) = O(\log n) + T(\sqrt{n}) = O(\log n)$
+\item rigorous analysis messy
+\item need to deal with variation in sizes of subproblems
+\end{itemize}
+
+
+\subsection*{Connectivity and connected components}
+
+Linear time sequential trivial.
+
+\subsubsection*{Directed}
+
+Squaring adjacency matrix
+\begin{itemize}
+\item $\log n$ time to reduce diameter to 1
+\item $mn$ processors for first iter, but adds edges
+\item so, $n^3$ processors
+\item and space to $n^2$ even if initial graph is sparse
+\item improvements to $mn$ processors
+\item But ``transitive closure bottleneck'' still bedevils parallel
+  algs.
+\item Even if just want to find $s$-$t$ path we don't know any better
+\item Problem is that output has size $n^2$ and we don't know which
+  part of it matters.
+\end{itemize}
+
+\subsubsection*{Undirected}
+
+Basic approach:
+\begin{itemize}
+\item Sets of connected vertices grouped as stars
+\item One root, all others parent-point to it
+\item Initially all vertices alone
+\item Edge ``live'' if connects two distinct stars
+\item Find live edges in constant time by checking roots
+\item For live edge with roots $u<v$, connect $u$ as child of $v$
+\item May be conflicts, but CRCW resolves
+\item Now get stars again
+\begin{itemize}
+\item Use pointer jumping
+\item Note: may have chains of links, so need $\log n$ jumps
+\end{itemize}
+\item Every live star attached to another
+\item So number of stars decreases by 2
+\item $m+n$ processors, $\log^2 n$ time.
+\end{itemize}
+
+Smarter: interleave hooking and jumping:
+\begin{itemize}
+\item Maintain set of rooted trees
+\item Each node points to parent
+\item Hook some trees together to make fewer trees
+\item Pointer jump (once) to make shallower trees
+\item Eventually, each connected component is one star
+\end{itemize}
+
+More details:
+\begin{itemize}
+\item ``top'' vertex: root or its children
+\item detect top vertex in constant time
+\item each vertex has label
+\item find root label of each top vertex
+\item Can detect if am star in constant time:
+\begin{itemize}
+\item no pointer double reaches root
+\end{itemize}
+\item for each edge:
+\begin{itemize}
+\item If ends both on top, different nonstar components, then hook smaller
+  index component to larger
+\item may be conflicting hooks; assume CRCW resolves
+\item indices prevent cycles
+\item If star points to non-star, hook it
+\item do one pointer jump
+\end{itemize}
+\end{itemize}
+
+Potential function: height of live stars and tall trees
+\begin{itemize}
+\item Live stars get hooked to something (star or internal)
+\item But never hooked to leaf.  So add 1 to height of target
+\item So sum of heights doesn't go up
+\item But now, every unit of height is in a tall tree
+\item Pointer doubling decreases by at least 1/3
+\item Total height divided each time
+\item So $\log n$ iterations
+\end{itemize}
+Summary: $O(m+n)$ processors, $O(\log n)$ time.
+
+Improvements:
+\begin{itemize}
+\item $O((m+n)\alpha(m,n)/\log n)$ processors, $\log n$ time, CRCW
+\item Randomized $O(\log n)$, $O(m/\log n)$ processors, EREW
+\end{itemize}
+
+
+\subsection{Randomization}
+
+
+Randomization in parallel:
+\begin{itemize}
+\item load balancing
+\item symmetry breaking
+\item isolating solutions
+\end{itemize}
+
+Classes:
+\begin{itemize}
+\item NC: poly processor, polylog steps
+\item RNC: with randomization.  polylog runtime, monte carlo
+\item ZNC: las vegas NC
+\item immune to choice of R/W conflict resolution
+\end{itemize}
+
+\subsection*{Sorting}
+
+Quicksort in parallel:
+\begin{itemize}
+\item $n$ processors
+\item each takes one item, compares to splitter
+\item count number of predecessors less than splitter
+\item determines location of item in split
+\item total time $O(\log n)$
+\item combine: $O(\log n)$ per layer with $n$ processors
+\item problem: $\Omega(\log^2 n)$ time bound
+\item problem: $n\log^2 n$ work
+\end{itemize}
+
+Using many processors:
+\begin{itemize}
+\item do all $n^2$ comparisons
+\item use parallel prefix to count number of items less than each item
+\item $O(\log n)$ time
+\item or $O(n)$ time with $n$ processors
+\end{itemize}
+
+Combine with quicksort:
+\begin{itemize}
+\item Note: single pivot step inefficient: uses $n$ processors and
+  $\log n$ time.
+\item Better: use $\sqrt{n}$ simultaneous pivots
+\item Choose $\sqrt{n}$ random items and sort fully to get $\sqrt{n}$ intervals
+\item For all $n$ items, use binary search to find right interval
+\item recurse
+\item $T(n)=O(\log n)+T(\sqrt{n})=O(\log n + \frac12\log n+\frac14\log
+  n + \cdots)=O(\log n)$
+\end{itemize}
+
+Formal analysis:
+\begin{itemize}
+\item consider root-leaf path to any item $x$
+\item argue total number of parallel steps on path is $O(\log n)$
+\item consider item $x$
+\item claim splitter within $\alpha\sqrt{n}$ on each side
+\item since prob. not at most $(1-\alpha\sqrt{n}/n)^{\sqrt{n}} \le
+  e^{-\alpha}$
+\item fix $\gamma, d<1/\gamma$
+\item define $\tau_k = d^k$
+\item define $\rho_k = n^{(2/3)^k}$ $(\rho_{k+1}=\rho_k^{2/3})$
+\item note size $\rho_k$ problem takes $\gamma^k\log n$ time
+\item note size $\rho_k$ problem odds of having child of size
+  $>\rho_{k+1}$ is less than $e^{-\rho_k^{1/6}}$
+\item argue at most $d^k$ size-$\rho_k$ problems whp
+\item follows because probability of $d^k$ size-$\rho_k$ problems in a
+  row is at most 
+\item deduce runtime $\sum d^k\gamma_k = \sum (d\gamma)^{k}\log n =
+  O(\log n)$ 
+\item note: as problem shrinks, allowing more divergence in quantity
+  for whp result
+\item minor detail: ``whp'' dies for small problems
+\item OK: if problem size $\log n$, finish in $\log n$ time with $\log
+  n$ processors
+\end{itemize}
+
+\subsection*{Maximal independent set}
+
+trivial sequential algorithm
+\begin{itemize}
+\item inherently sequential
+\item from node point of view: each thinks can join MIS if others stay
+  out
+\item randomization breaks this symmetry
+\end{itemize}
+
+Randomized idea
+\begin{itemize}
+\item each node joins with some probability
+\item all neighbors excluded
+\item many nodes join
+\item few phases needed
+\end{itemize}
+
+
+Algorithm:
+\begin{itemize}
+\item all degree 0 nodes join
+\item node $v$ joins with probability $1/2d(v)$
+\item if edge $(u,v)$ has both ends marked, unmark lower degree vertex
+\item put all marked nodes in IS
+\item delete all neighbors
+\end{itemize}
+
+
+Intuition: $d$-regular graph
+\begin{itemize}
+\item vertex vanishes if it or neighbor gets chosen
+\item mark with probability $1/2d$
+\item prob (no neighbor marked) is $(1-1/2d)^d$, constant
+\item so const prob. of neighbor of $v$ marked---destroys $v$
+\item what about unmarking of $v$'s neighbor?
+\item prob(unmarking forced) only constant as argued above.  
+\item So just changes constants
+\item const fraction of nodes vanish: $O(\log n)$ phases
+\item Implementing a phase trivial in $O(\log n)$.
+\end{itemize}
+
+
+
+
+Prob chosen for IS, given marked, exceeds $1/2$
+\begin{itemize}
+\item suppose $w$ marked.  only unmarked if higher degree neighbor
+  marked
+\item higher degree neighbor marked with prob. $\le 1/2d(w)$
+\item only $d(w)$ neighbors
+\item prob. any superior neighbor marked at most $1/2$.
+\end{itemize}
+
+For general case, define good vertices
+\begin{itemize}
+\item good: at least $1/3$ neighbors have lower degree
+\item prob. no neighbor of good marked $\le (1-1/2d(v))^{d(v)/3} \le
+  e^{-1/6}$.
+\item So some neighbor marked with prob. $1-e^{-1/6}$
+\item Stays marked with prob. 1/2
+\item deduce prob. good vertex killed exceeds $(1-e^{-1/6})/2$
+\item Problem: perhaps only one good vertex?
+\end{itemize}
+
+Good edges
+\begin{itemize}
+\item any edge with a good neighbor
+\item has const prob. to vanish
+\item show half edges good
+\item deduce $O(\log n)$ iterations.
+\end{itemize}
+
+Proof
+\begin{itemize}
+
+\item Let $V_B$ be bad vertices; we count edges with both ends in $V_B$.
+\item direct edges from lower to higher degree $d_i$ is indegree,
+  $d_o$ outdegree
+\item if $v$ bad, then $d_i(v) \le d(v)/3$
+\item deduce 
+\[\sum_{V_B} d_i(v) \le \frac13 \sum_{V_B}
+  d(v)=\frac13\sum_{V_B}( d_i(v)+d_o(v))
+\]
+\item so $\sum_{V_B} d_i(v) \le \frac12 \sum_{V_B} d_o(v)$
+\item which means indegree can only ``catch'' half of outdegree; other
+  half must go to good vertices. 
+\item 
+more carefully, 
+\begin{itemize}
+\item $d_o(v)-d_i(v) \ge
+  \frac13(d(v))=\frac13(d_o(v)+d_i(v))$.  
+\item Let $V_G,V_B$ be good, bad vertices
+\item degree of bad vertices is 
+\begin{eqnarray*}
+2e(V_B,V_B)+e(V_B,V_G)+e(V_G,V_B)
+&= & \sum_{v\in V_B} d_o(v)+d_i(v)\\
+&\le &3\sum(d_o(v)-d_i(v))\\
+&= &3(e(V_B,V_G)-e(V_G,V_B))\\
+&\le &3(e(V_B,V_G)+e(V_G,V_B)
+\end{eqnarray*}
+Deduce $e(V_B,V_B) \le e(V_B,V_G)+e(V_G,V_B)$.  result follows.
+\end{itemize}
+\end{itemize}
+
+Derandomization:
+\begin{itemize}
+\item Analysis focuses on edges, 
+\item so unsurprisingly, pairwise independence sufficient
+\item not immediately obvious, but again consider $d$-uniform case
+\item prob vertex marked $1/2d$
+\item neighbors $1,\ldots,d$ in increasing degree order
+\item Let $E_i$ be event that $i$ is marked. 
+\item Let $E'_i$ be $E_i$ but no $E_j$ for $j<i$
+\item $A_i$ event no neighbor of $i$ chosen
+\item Then prob eliminate $v$ at least 
+\begin{eqnarray*}
+\sum \Pr[E'_i \cap  A_i] &= &\sum\Pr[E'_i]\Pr[A_i \mid E'_i]\\
+&\ge &\sum \Pr[E'_i]\Pr[A_i]
+\end{eqnarray*}
+\item Wait: show $\Pr[A_i \mid E'_i] \ge \Pr[A_i]$
+\begin{itemize}
+\item true if independent
+\item measure $\Pr[\neg A_i \mid E'_i] \le \sum \Pr[E_w \mid E'_i]$
+  (sum over neighbors $w$ of $i$)
+\item measure 
+\begin{eqnarray*}
+\Pr[E_w \mid E'_i] &= &\frac{\Pr[E_w \cap E']}{\Pr[E'_i]}\\
+&= &\frac{\Pr[(E_w \cap \neg E_1 \cap \cdots) \cap E_i]}{\Pr[(\neg E_1
+  \cap \cdots) \cap E_i]} \\
+&= &\frac{\Pr[E_w \cap \neg E_1 \cap \cdots \mid E_i]}{\Pr[\neg E_1
+  \cap \cdots \mid E_i]} \\
+&\le &\frac{\Pr[E_w \mid E_i]}{1-\sum_{j\le i}\Pr[E_j \mid E_i]}\\
+&= &\Theta(\Pr[E_w])
+\end{eqnarray*}
+(last step assumes $d$-regular so only $d$ neighbors with odds $1/2d$)
+\end{itemize}
+\item But expected marked neighbors $1/2$, so by Markov $\Pr[A_i]>1/2$
+\item so prob eliminate $v$ exceeds $\sum\Pr[E'_i]=\Pr[\cup E_i]$
+\item lower bound as $\sum\Pr[E_i]-\sum\Pr[E_i \cap E_j] =
+  1/2-d(d-1)/8d^2 > 1/4$
+\item so $1/2d$ prob. $v$ marked but no neighbor marked, so $v$ chosen
+\item Generate pairwise independent with $O(\log n)$ bits
+\item try all polynomial  seeds in parallel
+\item one works
+\item gives deterministic $NC$ algorithm
+\end{itemize}
+
+with care, $O(m)$ processors and $O(\log n)$ time (randomized)
+
+LFMIS P-complete.
+
+
+\subsection*{Perfect Matching}
+
+We focus on bipartite; book does general case.
+
+
+Last time, saw detection algorithm in $\RNC$:
+\begin{itemize}
+\item Tutte matrix
+\item Sumbolic determinant nonzero iff PM
+\item assign random values in $1,\ldots,2m$
+\item Matrix Mul, Determinant in $\NC$
+\end{itemize}
+
+How about finding one?
+\begin{itemize}
+\item If unique, no problem
+\item Since only one nozero term, ok to replace each entry by a 1.
+\item Remove each edge, see if still PM in parallel
+\item multiplies processors by $m$
+\item but still $\NC$
+\end{itemize}
+
+Idea: 
+\begin{itemize}
+\item make unique minimum \textbf{weight} perfect matching
+\item find it
+\end{itemize}
+
+Isolating lemma: [MVV]
+\begin{itemize}
+\item Family of distinct sets over $x_1,\ldots,x_m$
+\item assign random weights in $1,\ldots,2m$
+\item Pr(unique min-weight set)$\ge 1/2$
+\item Odd: no dependence on number of sets! 
+\item (of course $<2^m$)
+\end{itemize}
+
+Proof:
+\begin{itemize}
+\item Fix item $x_i$
+\item $Y$ is min-value sets containing $x_i$
+\item $N$ is min-value sets not containing $x_i$
+\item true min-sets are either those in $Y$ or in $N$
+\item how decide? Value of $x_i$
+\item For $x_i=-\infty$, min-sets are $Y$
+\item For $x_i=+\infty$, min-sets are $N$
+\item As increase from $-\infty$ to $\infty$, single transition value
+  when both $X$ and $Y$ are min-weight
+\item If only $Y$ min-weight, then $x_i$ in every min-set
+\item If only $X$ min-weight, then $x_i$ in no min-set
+\item If both min-weight, $x_i$ is \emph{ambiguous}
+\item Suppose no $x_i$ ambiguous.  Then min-weight set unique!
+\item Exactly one value for $x_i$ makes it ambiguous given remainder
+\item So Pr(ambiguous)$=1/2m$
+\item So Pr(any ambiguous)$< m/2m=1/2$
+\end{itemize}
+
+Usage:
+\begin{itemize}
+\item Consider tutte matrix $A$
+\item Assign random value $2^{w_i}$ to $x_i$, with $w_i \in
+  1,\ldots,2m$
+\item Weight of matching is $2^{\sum w_i}$
+\item Let $W$ be minimum sum
+\item Unique w/pr $1/2$
+\item If so, determinant is odd multiple of $2^W$
+\item Try removing edges one at a time
+\item Edge in PM iff new determinant$/2^W$ is even.
+\item Big numbers?  No problem: values have poly number of bits
+\end{itemize}
+
+$NC$ algorithm open.
+
+For exact matching, $P$ algorithm open.
+
+\newcommand{\Wbar}{\overline W}
+
+\end{document}
+% Local Variables: 
+% mode: latex
+% TeX-master: t
+% End: 

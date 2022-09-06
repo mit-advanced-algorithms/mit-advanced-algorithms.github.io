@@ -1,0 +1,533 @@
+\documentclass{article}
+\usepackage{me}
+%\input{abbrevs}
+\setlength{\parindent}{0pt}
+
+\title{Min Cost Flow\\ 6.854 Notes \#9}
+\author{David Karger}
+
+\begin{document}
+
+  \section*{Min-Cost Flow}
+
+  Gross flow formulation (otherwise double-count).
+
+  Many different max-flows in a graph.  How compare?
+  \begin{itemize}
+  \item {\em cost} $c(e)$ to send a unit of flow on edge $e$
+  \item (that's why no $c$ for max-flow capacity)
+  \item find max-flow minimizing $\sum c(e)f(e)$
+  \item costs may be positive or negative!
+  \item note: pushing flow on cost $c$ edge create residual cost $-c$
+    edge.
+  \item also easy to find min-cost flow of given value $v$ less than max
+    (add bottleneck source edge of capacity $v$)
+  \end{itemize}
+
+  Clearly, generalizes max-flow.  Also shortest path:
+  \begin{itemize}
+  \item How send flow 1 unit of flow?
+  \item just use shortest path
+  \item more generally, flow decompose into paths and cycles
+  \item cost of flow is sum of costs of paths and cycles.
+  \end{itemize}
+
+\marnote{2016 L10 start}
+
+  Min-cost circulation:
+  \begin{itemize}
+  \item no source or sink
+  \item just find flow satisfying balance everywhere, min-cost
+  \item if satisfy balance everywhere, all flow must be going in
+    circles!
+  \item more formally: circulation can be decomposed into just cycles.
+  \item hard to define in max-flow perspective, but makes sense once allow
+    negative cost arcs.
+  \item reduction to min-cost flow: add disconnected $s$, $t$.
+  \item reduction from min-cost flow:
+    \begin{itemize}
+    \item add $t$-$s$ arc of ``infinite'' capacity, ``infinite'' negative
+      cost
+    \item of course, circulation will push max possible through this edge
+    \item how much can it?  max $s$-$t$ flow
+    \item so of course, suff to assign capacity equal to max-flow value
+    \item see later, sufficient to assign cost $-nU$ (good for scaling)
+    \end{itemize}
+  \item another reduction from min-cost flow:
+    \begin{itemize}
+    \item find any old max-flow $f$
+    \item consider min-cost flow $f^*$
+    \item difference $f^*-f$ is a circulation
+      \begin{itemize}
+        \item $-f$ is sending flow backwards from $t$ to $s$
+        \item diff of two equal    capacity flows is a circulation
+      \end{itemize}
+\begin{itemize}
+    \item claim feasible in $G_f = G-f$.  
+    \item if $f^*_e-f_e$ positive, have flow $f^*_e-f_e$ on $e$
+    \item meanwhile capacity in $G_f$ is $u_e-f_e$
+    \item but $f^*_e<u_e$, done
+    \item if $f^*_e-f_e$ negative, have flow $f_e-f^*_e$ on $e'$ (reverse)
+    \item meanwhile residual capacity is $f_e$, greater!
+    \item (note $e'$ is reverse residual arc for $e$, not the original
+      $G$ edge reverse to $e$ (may have different cost, and must
+      be considered entirely separately)
+\end{itemize}
+    \item so find circulation $q$ in $G_f$.
+    \item $q+f$ is a feasible flow in $G$ (note: flow+circulation$=$flow with same demand)
+    \item cost is $c(q)+c(f)$
+    \item so adding min-cost $q$ in $G_f$ yields min-cost flow
+    \end{itemize}
+  \end{itemize}
+
+\marnote{2011 Lecture 8 End}
+
+\subsection*{Deciding optimality:}
+Given a max-flow.  How decide optimal?
+  \begin{itemize}
+  \item by above, optimal if the cost of the min-cost residual circulation is 0
+  \item suppose not.  so have negative cost circulation
+  \item decomposes into cycles of flow
+  \item one must have negative cost.
+  \item so, if $f$ nonoptimal, negative cost cycles in $G_f$
+  \item converse too: if negative cost cycle, have negative cost
+    circulation.  So min-cost$<0$.
+  \end{itemize}
+
+\subsection*{Cycle Canceling Algorithm}
+
+(Klein)
+
+Cycle canceling algorithm:
+\begin{itemize}
+\item start with any max-flow (or min-cost circulation problem)
+\item find a negative cost cycle
+\item push flow around it
+\item analogue of generic augmenting paths under circulation reduction
+\item how many times?
+\begin{itemize}
+\item cost decreases by 2 each push
+\item initial cost (in residual graph) 0
+\item final cost at least $-mCU$ (why?)
+\item so $mCU$ iterations.
+\end{itemize}
+\end{itemize}
+
+How find negative-cost cycle?
+\begin{itemize}
+\item think back to shortest paths
+\item dijkstra only works for positive edges
+\item but Floyd, Bellman-Ford work for negative edges too
+\item {\bf Unless} have negative cost cycle
+\item then, of course, shortest paths undefined
+\item however, Floyd/BF will indentify one negative cycle that is
+  wrecking things.
+\item Floyd $O(n^3)$, BF $O(nm)$.
+\item fancy scaling algorithm running in $O(m\sqrt{n}\log C)$ also
+  known.
+\end{itemize}
+
+So: time bound of $O(m^2\sqrt{n}CU\log C)$ or $O(nm^2CU)$ time.
+
+Slow, and not even weakly polynomial!  Let's do better.
+
+Later (homework), you'll see that cycle canceling is a good idea
+combined with scaling.  But for now,
+lets take a different approach.
+
+\marnote{2013 Lecture 11 end}
+
+\section*{Prices and Reduced Costs}
+
+
+Recall: flow/circulation optimal iff no residual negative cost cycle.
+
+Reduced-Cost optimality.
+\begin{itemize}
+\item another way to decide optimal
+\item based on LP duality (see next week)
+\item given min-cost flow problem
+\item one way to solve: compute opt flow (command economy)
+\item alternative: market economy!
+\item infinite boba tea {\em supply} at source $s$, infinite {\em
+    demand} for boba at MIT source $t$
+\item give boba away at $s$
+\item at $t$  will pay for any boba they can get
+\item creates ``market'' where prices get set at all vertices
+\item {\em price} $p(v)$ for widget at vertex $v$
+\item costs reflect shipping charges
+\item circulation version: boba free everywhere, but possible profit
+  for shipping in circles (government subsidies?)
+\end{itemize}
+
+When is a set of prices ``stable''?
+\begin{itemize}
+\item suppose have $p(v),p(w),c(vw)$ such that $p(w) \ge p(v)+c(vw)$
+\item then merchant can make money by buying at $v$, shipping to $w$,
+  and selling.
+\item {\em reduced cost} $c_p(vw) = c(vw)+p(v)-p(w)$
+\item reduced costs reflect ``net cost'' of moving boba from $v$
+  to $w$
+\item merchant will want to ship if reduced cost negative.
+\item this will increase demand at $v$, raise price: so current prices wrong.
+\item what stops him?  no residual capacity!
+\item Also, if there is any residual $s$-$t$ capacity, more will get
+  shipped
+\begin{itemize} 
+\item $t$ will pay whatever it costs
+\item so prices will rise on $s$-$t$ path until shipping happens
+\item so can only be stable if shipping max-flow
+\end{itemize}
+\item {\bf Definition:} a price function is {\em feasible} for a (residual) graph if no (residual) arc has negative reduced cost
+\end{itemize}
+
+Important observation: prices don't affect overall cost:
+\begin{itemize}
+\item reduced cycle cost same as original cycle cost
+\item cost of every $v,w$ path changes by $p(v)-p(w)$
+\item negative cost cycles still negative
+\item min-cost paths still min-cost
+\item every flow of same value sees same cost change (path decomposition)
+\item also, all prices can be shifted by a constant without change
+\end{itemize}
+
+{\bf Claim:} A circulation/flow is optimal iff there exists a feasible
+price function on its residual graph.
+\begin{itemize}
+\item first: price function implies optimal
+\begin{itemize}
+\item recall: optimal iff no negative cost cycles in residual graph
+\item suppose have feasible price function
+\item so no negative reduced-cost edges in residual 
+\item so no negative cost cycles under reduced costs
+\item thus no negative cost cycles under original costs!
+\item key: cost of cycle unchanged under reduced costs (prices
+  telescope)
+\end{itemize}
+\item converse: suppose have optimal flow/circulation
+\begin{itemize}
+\item then residual graph has no negative cycles.  How find prices?
+\begin{itemize}
+\item what does no negative cycles allow?  Shortest paths from source!
+\item i.e., find price of boba if give away at $s$
+\item formalizes our market idea
+\item problem: only defines prices on vertices reachable from $s$
+\item attach vertex $s'$ with 0-cost edges to everywhere
+  \item (or just add huge-cost arcs from $s$)
+\item  compute shortest residual paths from $s'$
+\item well defined because no negative cycles
+\item define $p(v)=d(s',v)$
+\item (note: yields reduced cost of shipping a unit from $s'$)
+\end{itemize}
+\item note $p(w) \le p(v)+c(vw)$
+\item thus $c_p(vw) \ge 0$ everywhere, as desired.
+\item 0-edges guaranteed finite price at all vertices (this why didn't
+  do paths from $s$)
+\end{itemize}
+\item {\bf note:} given min-cost flow, can verify optimality via one
+  shortest path computation!
+\item {\bf note:} Using this computation, all edges on shortest paths
+  from $s'$ have reduced cost exactly 0 (useful for later).
+\end{itemize}
+
+Feasible prices \emph{certify} a min-cost flow
+\begin{itemize}
+  \item given prices, checking optimality takes linear time
+\end{itemize}
+
+Price function is a general concept
+\begin{itemize}
+\item like min-cut for max-flow
+\item shifts difficult test for global optimum to easier local test
+\item by creating a ``bound'' that optimum cannot beat
+\item so if you meet it you must be optimum
+\item (later, we'll see there's actually a \emph{number} on the
+  feasible price function that is \emph{equal} to the value of the min
+  cost flow.
+\end{itemize}
+
+
+
+\section*{Algorithms}
+
+
+\subsection*{Shortest Augmenting Path}
+
+Idea:
+\begin{itemize}
+\item Previously, started with max-flow, made min-cost by cycle
+  canceling
+\item Now, start with empty ``min-cost'' flow, make optimal by augmenting to
+  maximum
+\item For min-cost, assume starting with no negative cycles
+\item Augment in ways that don't create them
+\item When reach max-flow, know optimal
+\end{itemize}
+
+Idea: augmenting paths
+\begin{itemize}
+\item natural greedy strategy: what augmenting path to use?
+\item Repeatedly augment shortest (min-cost) path (just like max-flow SAP)
+\end{itemize}
+
+Claim: shortest augmenting path doesn't create negative cycles
+\begin{itemize}
+\item Suppose none at start
+\item Suppose shortest augmenting path creates one
+\item only new edges are residual from augmenting path
+\item So cycle includes a residual edge
+\item So is connected to the shortest augmenting path
+\item So insert cycle into SAP at some vertex where they intersect
+\item ie, add ``send flow around residual cycle'' to augmenting path
+\item Yields a shorter augmenting path
+\end{itemize}
+
+
+Alternative correctness argument: use price function.
+\begin{itemize}
+\item key: price function changes {\em value} of paths, but not which
+  is shortest (proof: telescoping)
+\item claim: at no time does residual graph have negative cost cycle
+\item proof by induction
+\item if currently true, can compute shortest paths from $s$ to define
+  (new) prices
+\item result: all edges on shortest $s$-$t$ paths have cost 0
+\item so augmentation is along cost 0 edges
+\item create residual arcs, but only cost 0
+\item so, no negative reduced cost arcs
+\item so, no negative cost cycles.  induction proved.
+\item so after $f$ iterations, have flow value $f$ of minimum cost.
+\item Wait, why no $s'$ supersource?
+\begin{itemize}
+\item shortest paths from $s$ assigns a new price to every vertex
+  reachable from $s$
+\item new prices don't affect cycle costs anywhere
+\item some vertices/edges don't get repriced because not reachable
+\item but then we won't augment through them
+\item So: if cannot reach, then (by induction) can't ever reach.
+\item Discarding doesn't change max-flow or future shortest paths
+\item Alternatively, add a large value to every vertex $v$ not reachable from $s$.
+\item Makes edges \emph{from} $v$ to anything reachable from $s$ very positive
+  \item And nothing goes from $s$-reachable to $v$, so no negative.
+\end{itemize}
+\end{itemize}
+
+Is SAP strongly polynomial for MCF?
+\begin{itemize}
+\item no
+\item we had length-1 edges when we did SAP for max-flow
+\item and SAP increased distance to $n$ to finish, no dependence on numbers
+\item but now our lengths are edge costs---numeric, maybe large
+\item so progress in distance is no longer a number-independent measure
+\end{itemize}
+
+Special case algorithm:
+\begin{itemize}
+\item integer capacity edges (or at least small flow),
+\item no negative cost edges.
+\item so mincost circ 0, but min-cost flow maybe not
+\item one unit of flow per (integer) augmentation
+\item Time analysis: $O(mf\log n)$ for flow of value $f$
+\item so $O(mn\log n)$ for typical unit capacity graph
+\item since {\em capacity} of flow at most $n$.
+\end{itemize}
+
+Note: don't need explicit prices to run
+\begin{itemize}
+\item prices don't change which paths are shortest
+\item but with good prices, can use Dijkstra's fast algorithm.
+\end{itemize}
+
+Limitations:
+\begin{itemize}
+\item unit capacity
+\item no negative edges
+\end{itemize}
+
+Lets handle negative arcs.
+\begin{itemize}
+\item Min-cost circulation
+\item Still unit-cap edges (or at least small flow)
+\item Can't do shortest paths to eliminate
+\item So, try brute force
+\item saturate all negative arcs
+\item creates excesses, deficits
+\item now, need to send excess back to deficits
+\item find min-cost flow in residual graph
+\item (know one exists, namely saturations)
+\item sum of saturations and flow back is circulation
+\item and, since min cost flow back, min-cost circulation
+\item now, no negative arcs
+\item so shortest augmenting path works
+\item total excess is $m$
+\item so $m$ augmentations send it back
+\item time $O(m^2\log m)$
+\end{itemize}
+
+Handle min-cost flow via max-flow plus above min-cost circulation
+
+
+\section*{Scaling Min-Cost flow}
+
+
+\subsection*{Capacity Scaling}
+
+Scale in capacity bits one at a time. (Edmonds Karp 1972)
+\begin{itemize}
+\item min-cost circulation problem
+\item in scaling step, double capacities, possibly add 1
+\item double flow values
+\item changes residual capacities by at most 1
+\item so some negative reduced cost arcs might get capacity 1
+\item how fix? just like unit case
+\item saturate all negative cost arcs (creates excess, deficits)
+\item find min-cost flow to ship excesses to deficits (know one exists)
+\item total excess $O(m)$
+\item so $O(m)$ shortest augmenting paths solve
+\item time $O(m^2 \log n)$
+\item $O(\log U)$ phases
+\item total $O(m^2 \log n \log U)$.
+\end{itemize}
+
+\marnote{2012 Lecture 11 End}
+\marnote{2013 Lecture 12 End}
+
+\subsection*{Cost Scaling}
+
+HW
+
+\iffalse
+{\bf skip this.  takes 15 minutes to survey.  just mention exists.}
+
+Idea:
+\begin{itemize}
+\item Recall goal: flow/price function such that all residual arcs
+  have nonnegative cost
+\item On capacity scaling, allow negative arcs that are almost nonresidual
+\item now, allow residual arcs that are almost nonnegative.
+\item a flow/price-function is {\em $\epsilon$-optimal} if every
+  residual arc has cost at least $-\epsilon$
+\end{itemize}
+
+Outer loop:
+\begin{itemize}
+\item scaling phase reduces $\epsilon$ to $\epsilon/2$
+\item Any flow is $C$-optimal (gives starting point)
+\item problem: may get nonintegral prices.  when can we stop?
+\item (note with flow, knew stayed integral so $1/2$-optimal was optimal.
+\item claim: an $1/n$-optimal flow is optimal
+\item proof: no negative cycle.  cycle cost unchanged, was originally
+  an integer.
+\end{itemize}
+
+Scaling phase.  Many different approaches, we'll start with one based
+on push relabel.
+\begin{itemize}
+\item start by saturating all negative cost arcs.  Creates excesses,
+  deficits.
+\item preserve $\epsilon/2$-optimality (by juggling flow, prices)
+\item uses pushes to send excesses to deficits
+\item need notion of ``downhill''
+\item An arc is {\em admissible} if negative reduced cost
+\item pushes are only on admissible arcs
+\item if an active vertex has no admissible arc, {\em relabel} it.
+\item reduce its price by $\epsilon/2$
+\item decreases cost of outgoing arcs, increases incoming
+\item since no outgoing arc started negative, all outgoing arcs
+  $>\epsilon/2$, so still $\epsilon/2$-optimal.
+\item no incoming admissible arcs!
+\item clearly, so long as have excess, can push or relabel
+\end{itemize}
+
+Claim: no vertex relabeled more than $3n$ times.
+\begin{itemize}
+\item Initially, had pushed flow from supersink $t$ to supersource $s$
+\item then did some push of active flow
+\item so can think of current situation as a preflow with source $t$
+\item decompose into paths from $t$ ending at current excesses.
+\item consider path $P$ from $t$ to $v$
+\item since started $\epsilon$-optimal, cost of path at least
+  $-\epsilon n$
+\item so reverse path originally had cost at most $\epsilon n$
+\item this is a residual path in current graph
+\item so (by $\epsilon/2$-optimality) has cost at least $-\epsilon/2
+  n$
+\item each relabel of $v$ decreased path cost by $\epsilon/2$
+\item so only $3n$ relabels.
+\end{itemize}
+
+Claim: $O(nm)$ saturating pushes
+
+Claim: admissible network acyclic
+
+Claim: $O(n^2 m)$ nonsaturating
+\begin{itemize}
+\item let $g(v)$ be number of nodes admissibly reachable from
+  $v$
+\item $\phi=\sum g(v)$ over active $v$
+\item saturating push increases by $n$ (makes dest active)
+\item relabel increases by $n$ ($v$ can reach more stuff, but noone
+  can reach $v$)
+\item nonsaturating push $(v,w)$ decreases by 1 ($g(w)<g(v)$)
+\end{itemize}
+
+Cleverer methods give $O(n^3)$.
+
+Other approaches (eg double-scaling) gives $O(nm)$ per scaling phase.
+\fi
+
+\marnote{2011 Lecture 9 end}
+\marnote{2013 Lecture 13 start}
+\section*{Complementary Slackness}
+Looking ahead to linear programming.
+\begin{itemize}
+\item what do merchants do?  think about reduced costs.
+\item if reduced cost positive, noone will ship: flow 0 on edge
+\item if negative, will ship: flow equals capacity on edge
+\item if 0, don't care: flow arbitrary on edge.
+\item flow with these properties has {\em complementary slackness:},
+  another optimality condition.
+\item complementary slackness implies optimal, since no residual
+negative  reduced cost arcs
+\item suppose optimal.  assign prices so no residual negative cost
+  arcs.  implies any negative reduced cost original arc is saturated,
+  any positive reduced cost arc empty (since reverse would have neg cost)
+\end{itemize}
+
+Complementary slackness is on {\bf original graph}, corresponds to
+feasible pricing on {\bf residual graph}
+
+Given feasible price function, can find opt flow easy:
+\begin{itemize}
+\item delete positive redued cost arcs (no flow in optimum)
+\item saturate negative arcs
+\item creates excesses/deficits at nodes
+\item ship excesses to deficits on 0-cost arcs
+\item know this can be done, since optimum does
+\item do by creating supersource for excesses, supersink for deficits,
+  finding max-flow on 0 arcs
+\end{itemize}
+
+saw converse: given flow, need to compute optimum distances.  So
+  min-cost flow really is max-flow plus shortest paths!
+\begin{itemize}
+\item some flow algs use prices implicitly, to prove correctness
+\item others use explicitly, to guide solution.
+\end{itemize}
+
+\section*{Conclusion}
+
+Finish remarks on min-cost flow.
+\begin{itemize}
+\item Strongly polynomial algorithms exist.
+  \begin{itemize}
+  \item Tardos 1985
+  \item minimum mean-cost cycle
+  \item reducing $\epsilon$-optimality
+  \item ``fixing'' arcs of very high reduced cost
+  \item best running running time roughly $O(m^2)$
+  \item best scaling time (double scaling) $O(mn \log\log U \log C)$.
+  \end{itemize}
+\end{itemize}
+
+\end{document}

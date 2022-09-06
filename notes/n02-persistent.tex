@@ -1,0 +1,281 @@
+\documentclass{article}
+\usepackage{me}
+\setlength{\parindent}{0pt}
+
+\title{Persistent Data Structures\\ 6.854 Notes \#2}
+\author{David Karger}
+
+\begin{document}
+
+\marnote{This material takes 1 hour.}
+
+\section{Persistent Data Structures}
+
+
+Sarnak and Tarjan, "Planar Point Location using persistent trees",
+Communications of the ACM 29 (1986) 669--679
+
+"Making Data Structures Persistent" by Driscoll, Sarnak, Sleator and Tarjan 
+Journal of Computer and System Sciences 38(1) 1989
+
+Idea: be able to query and/or modify past versions of data structure.
+\begin{itemize}
+\item ephemeral: changes to struct destroy all past info
+\item partial persistence: changes to most recent version, query to
+  all past versions
+\item full persistence: queries and changes to all past versions
+  (creates ``multiple worlds'' situtation)
+\end{itemize}
+
+Goal: general technique that can be applied to \emph{any} data
+structure.
+
+
+
+\section{Persistent Trees}
+
+Many data structures
+\begin{itemize}
+\item consist of fixed-size \emph{nodes}
+  conencted by \emph{pointers}
+\item accessed from some \emph{root} entry point
+\item data structure ops traverse pointers
+\item and modify node fields/pointers
+\item runtime determined by number of traverse/modify steps
+\end{itemize}
+
+Our goal: use \emph{simulation} to transform any ephemeral data
+structure into a persistent one
+\begin{itemize}
+\item measure of success: time and space cost for each \emph{primitive
+    traversal} and \emph{primitive modification} step.
+\item An exposed data structure operation will do some number of
+  primitive steps
+\item we will add persistence to primitive steps, so any data
+  structure can be made persistent
+\item we'll measure cost of simulation in slowdown and storage
+\item We'll limit to trees.
+\item But ideas generalize
+\end{itemize}
+
+
+Key principles:
+\begin{itemize}
+\item Lazy: don't work till you must
+\item If you must work, use your work to ``simplify''
+  data structure too
+\item force user (adversary) to spend lots of time to make you work
+\item analysis via potential function measuring ``complexity'' of
+  structure.  
+\begin{itemize}
+\item user has to do lots of changes to raise potential, 
+\item so you can spread cost of complex ops over many insertions.  
+\item potential says how much work \emph{adversary} has done that you
+  haven't had to deal with yet.  
+\item You can charge your work against that work.
+\end{itemize}
+\item another perspective: procrastinate.  if you don't do the work,
+  might never need to.
+%\item Why the name?  Wait and see.
+\end{itemize}
+
+Lazy approach:
+\begin{itemize}
+\item During change, do minimum, i.e. nothing.
+\item Indeed, for only change, don't even need to remember change!
+\item but we also want lookups, so record changes
+\item Then apply relevant changes when a lookup happens
+\item So, amortized cost 1.
+\end{itemize}
+
+Problem?
+\begin{itemize}
+\item issue with second and further lookups
+\item so, do need to incorporate 
+\end{itemize}
+
+
+
+
+Full copy bad.
+
+Fat nodes method:
+\begin{itemize}
+\item replace each (single-valued) field of data structure by list of
+  all values taken, sorted by time.
+\item requires $O(1)$ space per data change (\textbf{unavoidable} if keep
+  old data)
+\item to lookup data field, need to search based on time.
+\item store values in binary tree
+\item checking/changing a data field takes $O(\log m)$ time after $m$
+  updates
+\item \textbf{multiplicative} slowdown of $O(\log m)$ in structure
+  access.
+\item big number from data structures perspective
+\end{itemize}
+
+Path copying:
+\begin{itemize}
+\item can only reach node by traversing pointers starting from root
+\item changes to a node only visible to \emph{ancestors} in pointer
+  structure
+\item when change a node, copy it and ancestors (back to root of
+  data structure
+\item keep list of roots sorted by update time
+\item $O(\log m)$ time to find right root (or const, if time is
+  integers) (\textbf{additive} slowdown)
+\item same access time as original structure
+\item \emph{additive} instead of multiplicative $O(\log m)$.
+\item modification time and space usage equals number of ancestors:
+  possibly huge!
+\item especially if structure not balanced!
+\end{itemize}
+
+Combined Solution (trees only):
+\begin{itemize}
+\item Path copying is too aggressive
+\item how can we be lazy about path copying?
+\item fat nodes bad, but ``pleasingly plump'' ok.
+\item use fat nodes, but when get too fat, make new path copy
+\item in each node, store 1 \emph{extra} time-stamped field
+\item if full, overrides one of standard fields for any accesses
+  later than stamped time.
+\item access rule
+\begin{itemize}
+\item standard access, just check for overrides while following
+  pointers
+\item constant factor increase in access time.
+\end{itemize}
+\item update rule: 
+\begin{itemize}
+\item when need to change/copy pointer, use extra field if available.
+\item otherwise, make new copy of node with new info, and recursively
+  modify parent.
+\item Idea: lazy path copying
+\item copy only as much as you must
+\end{itemize}
+\end{itemize}
+
+Analysis idea: adversary has to do many changes to make copying expensive.
+\begin{itemize}
+\item analysis: \textbf{potential function} $\phi$ measuring amount of
+  ``deferred work''.
+\begin{itemize}
+\item amortized$_i=$ real$_i+\phi_i-\phi_{i-1}$
+\item then $\sum a_i=\sum r_i+\phi_n-\phi_0$
+\item upper bounds real cost if $\phi_n \ge \phi_0$.
+\item sufficient that $\phi_n \ge 0$ and $\phi_0$ fixed
+\end{itemize}
+\end{itemize}
+
+Analysis
+\begin{itemize}
+\item What represents work you need to do later?
+  \begin{itemize}
+  \item full nodes (that may need copying)
+  \item that may still be modified (current values)
+  \end{itemize}
+\item \emph{live} node: pointed at by \emph{current} root.
+\item potential function: number of \emph{full} live nodes.
+\item copying a node is free (new copy not full, pays for copy
+  space/time)
+\item pay for filling an extra pointer (do only once, since can stop
+  at that point).
+\item amortized space per update: $O(1)$.
+\end{itemize}
+
+
+
+\section{Application: planar point location.}
+\begin{itemize}
+\item a computational geometry foreshadow
+\begin{itemize}
+\item Different model
+\item algebraic operations are $O(1)$
+\item e.g. computing line intersections or lengths
+\item even when these return irrationals!
+\item sweep precision under the rug.
+\end{itemize}
+\item planar subdivision
+\begin{itemize}
+\item division of plane into polygons
+\item query: ``what polygon contains this point''
+\item define complexity of input?
+\item edges of polygons form $n$ \emph{segments}/edges
+\item segments meet only at ends/vertices
+\end{itemize}
+\item numerous special-purpose solutions
+\item One solution: dimension reduction
+\begin{itemize}
+\item vertical line through each vertex
+\item divides into slabs
+\item in slab, segments maintain one vertical ordering
+\item find query point slab by binary search
+\item build binary search tree for slab with ``above-below'' queries
+\item $n$ binary search trees, size $O(n^2)$, time $O(n^2\log n)$
+\end{itemize}
+\item observation: trees all very similar
+\item think of $x$ axis as time, slabs as ``epochs''
+\item at end of epoch, ``delete'' segments that end, ``insert'' those
+  that start.
+\item over all time, only $n$ inserts, $n$ deletes.
+\item must be able to query over all times
+\end{itemize}
+
+Persistent sorted sets:
+\begin{itemize}
+\item find$(x,s,t)$ find (largest key below) $x$ in set $s$ at time $t$
+\item insert$(i,s,t)$ insert $i$ in $s$ at time $t$
+\item delete$(i,s,t)$.
+\end{itemize}
+
+
+
+%Power of twos: Like Fib heaps.  Show binary tree of modifications.
+
+\section{Method: persistent red-black trees}
+
+Red black trees
+\begin{itemize}
+\item aggressive rebalancers
+\item amortized cost $O(1)$ to change a field.
+\item store red/black bit in each node
+\item use red/black bit to rebalance.
+\item depth $O(\log n)$
+\end{itemize}
+
+Add persistence
+\begin{itemize}
+\item updates only in ``present''
+\item search: standard binary tree search; $O(1)$ slowdown for persistence
+\item update: causes changes in red/black fields on path to item,
+  $O(1)$ rotations.
+\item result: $(\log n)$ space \emph{per insert/delete}
+\item geometry does $O(n)$ changes, so $O(n\log n)$ space.
+\item $O(\log n)$ query time.
+\end{itemize}
+
+Improvement:
+\begin{itemize}
+\item red-black bits used only for updates
+\item only need current version of red-black bits
+\item don't persist old bit versions: just overwrite
+\item only persistent updates needed are for $O(1)$ rotations
+\item so $O(1)$ space per update
+\item so $O(n)$ space overall.
+\end{itemize}
+
+Result: $O(n)$ space, $O(\log n)$ query time for planar point
+location.
+
+Extensions:
+\begin{itemize}
+\item method extends to arbitrary pointer-based structures.  
+\item $O(1)$ cost per update for any pointer-based structure with any
+  constant indegree and constant number of fields.
+\item use one extra pointer per field in node
+\item and one pointer per indegree
+\item full persistence with same bounds.
+\end{itemize}
+
+\end{document}

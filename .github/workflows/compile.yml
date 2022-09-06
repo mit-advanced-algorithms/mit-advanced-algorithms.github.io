@@ -1,22 +1,63 @@
-name: Compile Markdown and Latex
+# Simple workflow for deploying static content to GitHub Pages
+name: Pandoc and deploy to Github Pages
 
-on: push
+on:
+  # Runs on pushes targeting the default branch
+  push:
+    branches: ["main"]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow one concurrent deployment
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
 
 jobs:
-  convert_via_pandoc:
+  # Single deploy job since we're just deploying
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        file: [notes/n00-intro, notes/n01-fibonacci]
+        file: [
+          notes/n00-intro,
+          notes/n01-fibonacci,
+          notes/n02-persistent,
+          notes/n03-splay,
+          notes/n04-bucket,
+          notes/n05-hashing,
+          notes/n06-flow,
+          notes/n07-flow_computation,
+          notes/n08-advanced_flow_algorithms,
+          notes/n09-blocking_flows,
+          notes/n10-mincostflow,
+          notes/n11-lp,
+          notes/n12-duality,
+          notes/n14-LP_algorithms,
+          notes/n16-gradient_descent,
+          notes/n17-interior_point_method,
+          notes/n20-approx,
+          notes/n22-fixedparam,
+          notes/n25-online,
+          notes/n27-geometry,
+          notes/n28-external,
+          notes/n32-parallel
+        ]
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@master
-
-      - name: Make output directory
-        run: |
-          mkdir compiled
-          mkdir compiled/notes
-
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup Pages
+        uses: actions/configure-pages@v2
       - name: Compile Tex to HTML
         uses: docker://pandoc/latex:2.17
         with:
@@ -26,11 +67,13 @@ jobs:
             -N
             -t html5
             --variable linestretch=1.25
-            --output=compiled/${{ matrix.file }}.html
+            --output=${{ matrix.file }}.html
             ${{ matrix.file }}.tex
-
-      - name: Upload compiled HTML
-        uses: actions/upload-artifact@master
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v1
         with:
-          name: compiled
-          path: compiled
+          # Upload entire repository
+          path: '.'
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v1

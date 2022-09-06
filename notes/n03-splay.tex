@@ -1,0 +1,455 @@
+\documentclass{article}
+\usepackage{me}
+\setlength{\parindent}{0pt}
+
+\title{Splay Trees\\ 6.854 Notes \#3}
+\author{David Karger}
+
+\def\lefteqn#1{\rlap{\displaystyle{#1}}}
+\begin{document}
+
+%\marnote{This is a full 1:25 lecture.}
+
+\begin{center}
+{\bf  Lecture 3: Splay Trees}
+\end{center}
+
+\section{Binary Search Trees}
+
+\begin{itemize}
+\item Store a set of $n$ (distinct) keys.
+\item Operations: Search, Insert, and Delete.
+\item In general: Very bad worst-case performance ($\Theta(n)$ time per operation! - as bad as linear search).
+\item Solution: Keep your BST (approx.) balanced.
+\item LOTS of variants: AVL trees, red-black trees, scape-goat trees, 2-3 trees, etc.
+\item Deliver $O(\log n)$ time per operation.
+\item But: 
+\begin{itemize}
+\item Require maintaining of extra state + invariants.
+\item Can get complicated to implement.
+\end{itemize} 
+\end{itemize}
+
+\section{Splay Trees}
+
+Sleator and Tarjan, ``Self Adjusting Binary Search Trees'' JACM 32(3)
+1985
+
+
+\begin{itemize}
+\item No need to maintain any extra state.
+\item Extremely elegant and simple -- only one non-trivial operation needs to be implemented.
+\item Delivers $O(\log n)$ time per operation performance too. But only in amortized (as opposed to worst-case) sense!
+\item Is actually optimal in a much more meaningful way (will explain later).
+\end{itemize}
+
+{\bf Key design principle:} Be lazy! That is, don't work until you must. 
+
+\begin{itemize}
+\item Don't try to keep the tree always balanced.
+\item Re-balance only when convenient\\ $\Rightarrow$ Use the work of searches to re-balance ``along the way''.
+\item Need a potential function $\Phi$ to facilitate the analysis.
+\begin{itemize}
+\item $\Phi$ aims to keep track of the amount of work we ``saved'' by procrastinating.
+\item Will charge this ``saved'' work against the ``bursts'' of work we actually will need to do from time to time. (As we are mostly procrastinating, when we finally have to do some work, it will be a lot of work!).
+\item Cool feature: our data structure does not need to actually keep track of the potential. This potential is implicitly captured by the complexity/''messiness'' of our data structure (resulting from our procrastination).
+\end{itemize}
+\item {\bf Two important intuitions:} path shortening and re-balancing.
+\end{itemize}
+
+
+
+{\bf Path shortening:}
+
+\begin{itemize}
+\item If executing a Search took too long -- fix it. \\
+$\Rightarrow$ When you go down a long path, make it shorter on your way back!
+\item Intuition: shortening of the path releases potential (= makes the data structure more ``orderly''). This pays for
+  long traversal (and for work done to shorten it afterwards).
+\item Note inserting an item makes paths longer -- source of potential for later shortening.
+\item Problem: shortening our search path might makes other paths longer!
+\item Need to make sure that this shortening is helpful overall.
+\end{itemize}
+
+
+{\bf Re-balancing (via Rotations):}
+\begin{itemize}
+\item Why are paths in a balanced tree short? What is going on when a path is long?
+\item  When my search descends to smaller child, happy -- reduced the number of descendant by at least a half. \\
+$\Rightarrow$ Can happen at most $O(\log n)$ times.
+\item But what if we descend to the larger child?
+\item Tree balanced $\Rightarrow$ Larger child has at most, say, $2/3$ of all the descendants.\\
+$\Rightarrow$ The number of descendants reduced by at least one third.\\
+$\Rightarrow$ Can happen at most $O(\log n)$ times, happy again!
+\item So, tree balanced $\Rightarrow$ can divide well (and thus conquer wins us more).
+\item Root of lack of balance/long search paths: ``fat'' children.
+\item But: Fat children have a lot of potential! (They got fat because of our procrastination.)
+\item We can use their potential to take care of them.
+\item Simple idea: Single-rotate to root (will be cheap to access next time!). 
+\item  Doesn't work---might pull up a leaf but leave whole fat subtree behind to be descended again and again.
+\item Better idea: Use more sophisticated rotations to halve the depth of {\bf
+    all} nodes on the search path.\\
+    $\Rightarrow$ This draws up the whole fat subtree.
+\item Note: we don't actually destroy fat children here -- we just promote them.
+\item Unfortunate: analysis is black magic.  No idea how discovered. (A possible heuristic provided in one of the homework problems.)
+\end{itemize}
+
+{\bf Key operation:}  {\em Splaying} a node $x$:
+\begin{itemize}
+\item Moves $x$ to root via a sequence of rotations.
+\item Goal: To shorten the original root-$x$ path.
+\item Already know: single rotations don't work---leave original path unchanged.
+\item Instead, use double rotations (see the figures) + possibly one single rotation at the very end.
+\item Ideally: Splaying a path should halve its length.
+\end{itemize}
+
+Figures of rotations
+\begin{itemize}
+\item Zig-zag -- same as two single rotations on $x$:
+\begin{verbatim}
+       z                x
+      / \              / \
+     y   D            y   z
+    / \       ====>  / \ / \ 
+   A   x            A  B C  D
+      / \
+     B   C
+\end{verbatim}
+\item Zig-zig -- single rotate $y$, \emph{then} $x$:
+\begin{verbatim}
+       z                x
+      / \              / \
+     y   D            A   y
+    / \       ====>      / \
+   x   C                B   z
+  / \                      / \   
+ A   B                    C   D
+\end{verbatim}
+\item The remaining two ``mirror'' cases (zag-zig and zag-zag) completely analogous.
+\item Good exercise: Contrast zig-zig to two single rotations ($x$ then $x$ again):
+\begin{verbatim}
+       z                x
+      / \              / \
+     y   D            A   z
+    / \       ====>      / \
+   x   C                y   D
+  / \                  / \   
+ A   B                B   C
+\end{verbatim}
+Why is zig-zig better?  Not obvious; perhaps because shifts stuff
+``farther right''?
+\end{itemize}
+
+{\bf Implementing $Search(x)$ operation:}
+\begin{itemize}
+\item Walk down tree to find item $x$.
+\item Splay $x$.
+\item That's it!
+\end{itemize}
+
+(Will talk about $Insert(x)$ and $Delete(x)$ later.)
+
+\section{Analysis}
+
+\begin{itemize}
+\item Assume that each node $x$ has a positive {\em weight} $w_x$ 
+\begin{itemize}
+\item These weights are just for the analysis -- they don't affect the implementation.
+\item For now: can think of these weights being all equal to $1$. But later different choices of weights will give us very interesting conclusions. 
+\end{itemize}
+\item Define {\em size} $s(x)$ of a node $x$ is total weight of subtree nodes, i.e. ``number of nodes'' (if all weights equal to $1$).
+\item Define {\em rank} $r(x)=\lg s(x)$.
+\begin{itemize}
+\item Intuitively: $r(x) \approx$ ``best height of subtree at $x$''.
+\item Remember that this is log base $2$ -- will be important to get the constants right.
+\end{itemize}
+\end{itemize}
+
+{\bf Our potential function:} $\Phi=\sum r(x)$.
+
+Some intuition:
+\begin{itemize}
+\item Recall: Having fat subtree deep down is bad---makes us search deep.\\
+$\Rightarrow$ This should be reflected by large potential.\\
+$\Rightarrow$ And it is: because that fat subtree contributes to all ranks
+  above it.
+\item Also: we should make that large potential of fat subtrees vanish to pay for the search that encountered them.\\
+$\Rightarrow$ Want to bring that fat subtree up the tree\\
+(Note: that for a single fat subtree even single rotations would achieve this, but we want to do it for all fat subtrees that we encounter -- and these can be nested (think of a tree being a path). Hence the  need for more sophisticated rotations.)
+\end{itemize}
+
+
+\subsection{The Access Lemma}
+{\bf Key technical fact:}
+
+\begin{center}
+{\bf Access Lemma:} Amortized time to splay a node $x$ given root $t$ is at most
+$$3(r(t)-r(x))+1 = O(\log(s(t)/s(x))).$$
+(Recall: Amortized cost of an operation $=$ real cost $+ \ \Delta \Phi$. )
+\end{center}
+
+{\bf Note:} $x$ is the root of the tree after the splay operation and the rank of the root is always the same $\log W$, where $W=\sum_x w_x$ is the total weight of the nodes.\\
+ $\Rightarrow$ So, rank $r'(x)$ after the splay is equal to $r(t)$.\\
+ $\Rightarrow$ $r(t)-r(x)=r'(x)-r(x)$ -- the amortized cost of a splay is within a constant of its change in rank.\\
+
+{\bf Intuition:}
+
+\begin{itemize}
+\item If all nodes are in ``right place'' then $r(t)-r(x)$ is the ``ideal'' depth of $x$.
+\item If $x$ has high rank (i.e., is fat), we expect it to be high in the tree.
+\item If this is not the case, i.e., if $x$ is deep in the tree, then: 
+\begin{itemize}
+\item $x$ has to contribute a lot to the potential.\\
+$\Rightarrow$ $\Phi$ is large.
+\item Splaying $x$ will bring it to the root.\\
+$\Rightarrow$ The large amount of potential released as a result will make 
+the amortized cost be still small. (That is, real cost will be large but $\Delta \Phi$ will be very negative and thus account for this overhead.)
+\end{itemize}
+\end{itemize}
+
+{\bf One immediate consequence of Access Lemma:}
+\begin{itemize}
+\item Let all weights $w_x$ be equal to $1$.\\
+$\Rightarrow$ Total weight $W$ is equal to $n$.\\
+$\Rightarrow$ Rank of the root is $\log W$ and rank of every node is at least $1$. 
+\item By Access Lemma, the amortized time to (find and) splay a node $x$ is at most 
+\[
+O(\log W/w_x) = O(\log n).
+\]
+\end{itemize}
+
+{\bf Important detail:} To make the above analysis work also for unsuccessful {\em Search(x)} operations, we need to splay the last node we visited in that search.
+\begin{itemize}
+  \item even though it's not what we searched for
+\end{itemize}
+
+\subsection{Proof of the Access Lemma}
+\begin{itemize}
+\item Will analyze one double rotation at a time. 
+\item Specifically: if $s'$ and $r'$ are the sizes and ranks after that rotation then the amortized cost of it is at most $3(r'(x)-r(x))$. 
+\item Summing up across all rotations during a splay and telescoping them will give the lemma. (Remember: $r(t)$ is equal to the final rank of $x$ after the splay.) Also, $+1$ corresponds to the extra single rotation that might be needed at the end.
+\item {Will analyze only zig-zig (harder case) -- zig-zag is in the paper.}
+\end{itemize}
+
+
+
+
+\begin{verbatim}
+       r                r' 
+
+       z                x
+      / \              / \
+     y   D            A   y
+    / \       ====>      / \
+   x   C                B   z
+  / \                      / \   
+ A   B                    C   D
+
+\end{verbatim}
+
+{\bf Observe:}
+\begin{itemize}
+\item Only nodes $x,y,z$ change ranks.
+\item Real cost equal to $2$.
+\item $\Delta \Phi = r'(x)+r'(y)+r'(z)-r(x)-r(y)-r(z)$.
+\item Rank of $x$ can only increase and the rank of $z$ can only decrease. I.e., $r'(x)\geq r(x)$ and $r'(z)\leq r(z)$. 
+\end{itemize}
+
+{\bf Intuition:}
+\begin{itemize}
+\item Assume that $r'(y)\approx r(x)$ (this is not always the case).
+\item If $x$ rank increases a lot, then $r'(x)-r(x)$ very large.\\ 
+$\Rightarrow$ $3(r'(x)-r(x)) >> (r'(x)-r(x))+2$, i.e. tripled potential in our desired bound ``absorbs''  real cost into the change of potential. 
+\item Trouble: if rank of $x$ unchanged (recall: it can't decrease).
+\item But that means $x$ was fat to begin with  \\
+$\Rightarrow$ Bringing $x$ up releases a lot of potential as the rank of $z$ decreases a lot (since they no longer contain $x$).\\
+$\Rightarrow$ That decrease in potential ``cancels'' real rotation cost.
+\end{itemize}
+
+{\bf Actual Math (requires more care):}
+\begin{itemize}
+\item The amortized cost of the operation:
+\[
+2+\Delta \Phi = 2+r'(x)+r'(y) + r'(z)-r(x)-r(y)-r(z).
+\]
+\item Let us simplify things first:
+\begin{align*}
+2+r'(x)+r'(y) +& r'(z)-r(x)-r(y)-r(z)\\
+&= 2+r'(y)+r'(z)-r(x)-r(y)&  \text{ since $r'(x)=r(z)$}\\
+&\le 2+r'(x)+r'(z)-r(x)-r(x)\\
+&=2 +(r'(z)-r(x))+ (r'(x)-r(x))
+\end{align*}
+\item The last term is already a part of the bound we want to establish
+\item So just need to show that $2+r'(z)-r(x) \le 2(r'(x)-r(x))$, i.e., that $r'(z)+r(x)-2r'(x) \le -2$.
+\item Now,  note that $r'(z)-r'(x) + r(x)-r'(x) = \lg s'(z)/s'(x) + \lg s(x)/s'(x)$
+\item Also: $s'(z) + s(x) \le s'(x)$ since the subtree of $z$ after rotations and the subtree of $x$ before rotations are disjoint, and $x$ is the root at the end. \\
+$\Rightarrow$ We have that 
+\[
+r'(z)+r(x)-2r'(x) =\lg s'(z)/s'(x) + \lg s(x)/s'(x)\le \log a + \log(1-a)=\log a(1-a)
+\] 
+for some $0 < a < 1$.\\
+$\Rightarrow$ This function is concave and thus maximized for $a=\frac{1}{2}$.\\
+$\Rightarrow$ yields $r'(z)+r(x)-2r'(x) \leq -2$ as desired. (recall we are using $\log_2$)
+\end{itemize}
+
+
+%% Some intuitive analysis:
+%% \begin{itemize}
+%% \item $r'(z) \le r'(x)$, i.e. $r'(z)-r(x) \le r'(x)-r(x)$
+%% \item So done if $2 \le r'(x)-r(x)$
+%% \item Trouble if $r'(x)-r(x)< 2$
+%% \item i.e., $r(x)$ almost as big as $r'(x)$
+%% \item Means most of tree weight is under $r(x)$, ie $x$ is fat child
+%% \item Consider rotation step: initially $z$ above $x$ so fat, then $z$
+%%   below $x$ so not fat
+%% \item i.e. $r'(z) \ll r(x)$
+%% \item In which case $r'(z)-r(x)$ term cancels additive 2
+%% \end{itemize}
+
+\subsection{Bounding Overall Change of Potential}
+
+{\bf Important Caveat:} The Access Lemma bounds only the {\em amortized} cost of each operation.\\
+$\Rightarrow$ If there is a sequence of $m$ operations, its total {\em real} cost is at most 
+\[
+O(m \log n) - \left(\Phi_m - \Phi_0\right)=O(m \log n) + \Phi_0 - \Phi_m,
+\]
+where $\Phi_m$ is the potential of our data structure at the end of processing the whole sequence and $\Phi_0$ is its initial potential.\\
+
+{\bf Key question:} How large can $\Phi_0-\Phi_m$ be?
+
+\begin{itemize}
+\item Observe: $\Phi_0 \leq n\log W$ (corresponds to ``everyone being the root of the whole tree''.)
+\item Also, $\Phi_m \geq \sum_x \log w_x$ (corresponds to the fact that each node has itself in its subtree).
+\item As a result:
+$\Phi_0-\Phi_m\leq n\log W - \sum_x w_x = \sum_x \log W/w_i$.
+
+\end{itemize}
+
+{\bf Note:} 
+
+\begin{itemize}
+\item Even if we do only one operation we incur this large (but fixed) additive cost. 
+\item This additive cost has a natural interpretation though: it's the (upper bound on the) cost of splaying each item once. (Recall: after splaying $x$ is the root, so by Access Lemma the total amortized cost is $O(r'(x)-r(x))=O(\log W/w_i)$.)\\
+$\Rightarrow$ Our amortized cost bound is valid if each item is splayed/requested  at least once in the request sequence.
+\end{itemize}
+
+{\bf Also:} Note that potential of empty tree is $0$.\\
+$\Rightarrow$ If we start with empty tree, no problem (but for that we need inserts...)
+
+\subsection{Applications of Access Lemma}
+
+By applying the above analysis with different weights we can derive a lot of interesting facts about performance of splay trees. (Key fact to keep in mind: the behavior of the splay tree is completely independent of our choice of the weights!)
+
+\begin{itemize}
+\item {\bf Balance theorem:} Total cost for $m$ operations is $O((m+n)\log n)$ (as good as any
+balanced tree!)
+\begin{itemize}
+\item Set $w_x=1/n$, for each node $x$.
+\item Overall potential drop $\leq \sum_x \log W/w_x = \log n$.
+\item Amortized cost of $Search(x)$: $1+3\log n=O(\log n)$.
+\end{itemize}
+
+However, the performance guarantee that splay tree offer go way beyond the above mere ``$O(\log n)$ time per operation'' guarantee that ``traditional'' balanced BSTs give. Some important example below!
+
+\item {\bf Static Optimality:}  Total cost for $m$ operations is as good as of {\em any} fixed tree. (Including trees that were designed while knowing what the request sequence will be!)
+\begin{itemize}
+\item If node $x$ accessed $p_i m$ times, set $w_x=p_x$.
+\item $W=1$
+\item Overall potential drop $O( \sum_x \log 1/p_x)$.
+\item Amortized cost of $Search(x)$: $3(1-\log p_x)+1 = O(1+\log
+  1/p_x)$.
+\item Total cost of the whole sequence of requests:
+\[
+\sum_x p_x m \cdot O\left(1+\log 1/p_x\right) + O\left( \sum_x \log 1/p_x\right)=O\left(m \sum_x \log 1/p_x\right).
+\]
+Matches the lower bound for static access (\'a la Huffman coding)!
+\end{itemize}
+
+
+\item {\bf Static Finger Optimality:} Total cost for $m$ operations is as good as of {\em any} fixed tree in which additionally we start our search from any fixed node $f$ (instead of the root). 
+
+\begin{itemize}
+\item Set $w_x=1/(1+|x-f|)^2$, for each node $x$, where $|x-f|$ is the distance from $x$ to the finger $f$. 
+\item $\sum w_i \le 2 \sum 1/k^2 = O(1)$.
+\item Overall potential drop $O(n\log n)$.
+\item Amortized cost of $Search(x)$: $O(\log |x-f|)$.
+\item In fact: Can also show that splay trees are optimal for dynamic finger too, i.e., when the next search is started from the previously found node (instead of the root). But the proof is very hard (and requires much more than just the Access Lemma).
+\end{itemize}
+
+
+\item {\bf Working Set/Cache Optimality:} 
+\begin{itemize}
+\item At access $j$ to node $x_j$, let $t_j$ be number of distinct
+  nodes accessed since that node $x_j$ was previously accessed.  Then time is:
+  \[
+   O(n\log n+\sum
+  \log t_j).
+  \]
+ Note: $O(\log t_j)$ is the time we would expect it takes to find element $x_j$ even if our tree contained {\em only} the $t_j$  nodes that were accessed since previous access to $x_j$.
+\end{itemize}
+
+\item {\bf Best-of-the-Above Optimality:}  Cost is at most as good as the {\em best}  one of the choices stemming from the above optimality conditions. 
+
+
+\item {\bf Dynamic Optimality Conjecture:}  One of the most outstanding open problems in data structures is the Dynamic Optimality Conjecture. This conjecture states that the performance of splay tree matches (up to constant) the performance of the best {\em dynamic} BST. That is, performance of a BST that can perform rotations between requests (each rotation having a cost of $1$) and such that these rotations are chosen optimally with the full knowledge of the whole request sequence.
+
+This conjecture is still open. The best result on this front is due to Demaine et al. (FOCS 2004) and presents a {\em different} (much more complicated) BSTs, called Tango trees, that have performance that is within $O(\log \log n)$ of that of the optimal dynamic BST.
+
+Still, it is generally believe that Dynamic Optimality Conjecture is true and splay tree indeed is the ultimate BST construction.  See a survey ``In Pursuit of the Dynamic Optimality Conjecture'' by John Iacono about this fascinating conjecture.
+
+\end{itemize}
+
+\section{Update Operations}
+
+We have two remaining operations we need to implement: $Insert(x)$ and $Delete(x)$. There are two ways to implement them:
+
+\begin{enumerate}
+\item Insert/delete the item as in a standard BST and then just splay the inserted element/parent of deleted element.
+\begin{itemize}
+\item Splaying ensures that our work is ``paid for'' by the resulting potential change.
+\item But showing that this is the case requires a little bit of calculations. 
+\end{itemize}
+\item Alternatively, consider the following operations:
+\begin{itemize}
+\item $Split(x)$ splits the BST into two BST, one containing all the elements smaller or equal to $x$ and one containing all the elements larger than $x$. \\
+$\Rightarrow$ Can be achieved by simply splaying $x$ and thus takes amortized $O(\log n)$ time (corresponds to taking all weights be equal to $1$ in the analysis). 
+\item $Join$ takes two BSTs $S$ and $T$ such that all elements in $S$ are not larger than all elements in $T$ and creates a single BST contains elements of both $S$ and $T$.\\
+$\Rightarrow$ Can be achieved by splaying first the largest element $x$ of $S$ (note that then this element becomes a root with no right child) and adding the root of $T$ as the right child of $x$.\\
+$\Rightarrow$ Joining increases only the potential of the new root, and only by at most $O(\log n)$.\\
+$\Rightarrow$ Thus, again, the whole operation takes $O(\log n)$ amortized time (if we take all $w_x$ equal to $1$ in the analysis). 
+\end{itemize}
+{\bf Note:} For most balanced trees such $Split(x)/Join$ operations do {\em not} take only $O(\log n)$ time!
+\item To implement $Insert(x)$:
+\begin{itemize}
+\item Perform $Split(x')$, where $x'$ is the largest element not larger than $x$. (Finding $x'$ can be easily amortized into the subsequent splay.)
+\item Create a new BSTs with $x$ as a root and the two BSTs obtained from splitting be its subtrees.\\
+$\Rightarrow$ Total potential increased by $O(\log n)$, i.e., the increase of potential of the root. (Remember: we are performing analysis with all weights being $1$ here.)\\
+$\Rightarrow$ Total amortized cost is $O(\log n)$. 
+\end{itemize} 
+\item To implement $Delete(x)$:
+\begin{itemize}
+\item Perform $Split(x)$\\
+$\Rightarrow$ $x$ will be the root of one of the resulting BSTs and will have no right child.
+\item Remove $x$ and perform $Join$ on the resulting two BSTs.
+\item $O(\log n)$ amortized cost, as desired.
+\end{itemize}
+\end{enumerate}
+
+\section{Possible Heuristics}
+
+\begin{itemize}
+\item Top down splaying.
+\item Choose to splay only when path is ``long''. (Real cost too
+  large so need to amortize).  Drawback: must know weights.
+\item Can choose to stop splaying after a while. Good for random
+  access frequencies.
+\end{itemize}
+
+
+\end{document}
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:

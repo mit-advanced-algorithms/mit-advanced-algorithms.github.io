@@ -1,0 +1,164 @@
+\documentclass{article}
+\usepackage{me}
+%\input{abbrevs}
+\setlength{\parindent}{0pt}
+
+\title{Advanced Max Flow Algorithms\\ 6.854 Notes \#8}
+\author{David Karger}
+
+\begin{document}
+
+\section{Strongly Polynomial Max Flow Algorithms}
+
+\begin{itemize}
+\item So far, our crowning achievement was an $O(m^2 \log U)$ maximum flow algorithm
+  \begin{itemize}
+  \item via scaling
+  \item polynomial time in representation size (including numeric values in binary)
+  \item but \emph{weakly polynomial} because depends on (bits of) capacities
+\end{itemize}
+\item now, aim for {\em strongly} polynomial running time.
+  \begin{itemize}
+  \item running time that does {\em not} depend at all on $U$
+  \item only number of vertices and edges of the graph.
+  \item (We assume that arithmetic operations can be performed in $O(1)$ time.)
+  \end{itemize}
+\item Why weakly polynomial?
+
+  \begin{itemize}
+  \item \textbf{Recall:} Our algorithms so far were ``primal'' greedy.
+  \item  improve our current solution in each step
+  \item lower bounded progress made by each such step \emph{relative to max flow}.
+  \item so runtime will depend in some way on value of max-flow
+  \item which will depend on capacities.
+  \item[$\Rightarrow$] We need a different progress measure, independent of max-flow value. 
+  \end{itemize}
+
+\item How strongly polynomial?
+  \begin{itemize}
+  \item \textbf{Recall:} certified optimality of flow $f$ by looking whether $s$ and $t$ are connected in residual $G_f$.
+    \begin{itemize}
+    \item If not, $f$ is a max flow;
+    \item if yes, $f$ not maximum
+    \item (and an $s$-$t$ augmenting path exists to improve it). 
+    \end{itemize}
+  \item \textbf{Key:} test is independent of flow value
+
+  \item Can we make this yes/no test quantitative?
+    \begin{itemize}
+    \item to differentiate between the flows that are ``almost maximum'' and the ones that are ``far'' from being maximum?
+    \item compare an $n$-edge $s$-$t$ path to $n$ parallel $s$-$t$ edges
+    \item both have same ``room'' for flow
+    \item why is one able to carry so much more?
+    \item because on path each unit of flow uses up a lot of capacity
+    \item suggests looking at $s$-$t$- distance
+    \end{itemize}
+
+
+%If you want to get them thinking the right direction, draw a graph where s and t and very far apart and ask for an easy to justify argument that it is not possible to send a lot of flow from s to t.  They will argue cuts, but then ask them to come up with an explanation for someone who doesn't know max-flow min-cut.  You could even comparse n parallel edges versus n sequential edges, and ask them what's the difference (without talking about cuts).  The both have the same "room" for flow so why is one worse?
+
+  \item \textbf{Idea:} consider $s$-$t$ distance $d_f(s,t)$ in the residual graph $G_f$.
+    \begin{itemize}
+    \item edge with positive residual capacity has length $1$
+    \item edge with zero residual capacity has length $+\infty$.
+    \item network has \emph{volume} $=$ sum of capacities
+    \item flow fits---has volume less than network
+    \item $s$ and $t$ far apart $\Rightarrow$ each flow path uses a lot of volume.
+      
+    $\Rightarrow$ not many paths can fit.
+    \item (Consider $s$-$t$ path vs. a multiple parallel $(s,t)$ edges.)
+    \item  If $d_f(s,t)\geq n$, $s$ and $t$ are disconnected in $G_f$.
+
+      $\Rightarrow$ $f$ is already a maximum flow. 
+    \end{itemize}
+  \end{itemize}
+\end{itemize}
+
+\textbf{Our New Goal:} Design an augmenting path based algorithm that aims to increase the $s$-$t$ distance $d_f(s,t)$ in the residual graph.
+\begin{itemize}
+\item What are the best augmenting paths to increase $d_f(s,t)$?
+\item \textbf{Intuition:} Shortest (residual) paths prevent $d_f(s,t)$ being large.
+  \item So "destroy" them. 
+  \item How? Augment the flow using them!
+  \item \textbf{Note:} Finding the shortest augmenting path correspond to running BFS in the residual graph.
+    \begin{itemize}
+    \item So it take $O(m)$ time.
+    \item same as the "normal" augmenting path search.
+    \end{itemize}
+
+  \item \textbf{Challenge:} How to ensure that this augmentation does not introduce {\em new} shortest paths in $G_f$?
+    \begin{itemize}
+    \item Maybe even {\em reduce} $d_f(s,t)$ instead of increasing it.
+    \item Fortunately, this can't happen the case. But we need to prove that!
+    \end{itemize}
+
+  \item \textbf{Lemma:} For any vertex $v$, if $d(v)$ (resp. $d'(v)$ is the distance from $s$ to $t$ in the residual graph before (resp. after) augmenting the flow along some shortest augmenting path, then $d(v)\leq d'(v)$. 
+
+\item So, the distance from $s$ does not decrease not only for $t$ but for {\em every} vertex. (Note that the proof relies on establishing this stronger claim - it is one of the examples when sometime proving a stronger claim is actually easier.) 
+
+\item By symmetry, one can argue that the distance from any vertex $v$ to $t$ is non-decreasing as well. 
+
+\item \textbf{Proof:}
+
+\begin{itemize}
+\item Assume for the sake of contradiction that this is not the case. 
+\item Let $A$ be the (non-empty) set of vertices $u$ for which $d(u)>d'(u)$. Take $v$ to be the vertex with minimal $d'(v)$ among all vertices in $A$. 
+\item Let $P'$ be the shortest $s$-$v$ path in the residual graph after augmentation, and let $w$ be the vertex preceding $v$ on this path. (Note that we cannot have that $v=s$, so such path and $w$ exist.)
+\item Note $d'(v)=d'(w)+1$. Moreover, we must have that $d(w)\leq d'(w)$ as otherwise $w\in A$ and $d'(w)<d'(v)$, which would contradict minimality of $v$. 
+\item We claim that the last edge of $P'$, i.e., $(w,v)$, had zero residual capacity before augmentation by $P$. Otherwise, we would have that 
+\[
+d(v)\leq d(w)+1 \leq d'(w)+1 = d'(v),
+\]
+and thus contradict the fact that $v\in A$. 
+\item The only way for the edge $(w,v)$ to have non-zero residual capacity after augmentation by $P$ would be if the edge $(v,w)$ belonged to $P$. 
+
+\item But $P$ was the shortest path before the augmentation. 
+
+$\Rightarrow$ $d(w)=d(v)+1$. 
+
+\item However, all of that means that 
+\[
+d(v)=d(w)-1\leq d'(w)-1=d'(v)-2\leq d'(v),
+\]
+which contradicts our assumption that $v\in A$.
+\end{itemize} 
+
+
+\end{itemize}
+
+\begin{itemize}
+
+\item So, augmenting the flow using shortest paths indeed does not make things worse.  But does it make them better?
+
+\item Yes! But, again, we need to prove that.
+
+\item {\bf Lemma:} We have at most $\frac{mn}{2}$ shortest path flow augmentations before $d_f(s,t)\geq n$ (and thus $f$ is the maximum flow).
+
+\item  \textbf{Proof:}
+\begin{itemize}
+\item Each flow augmentation saturates at least one "bottlenecking" edge $(u,v)$. 
+\item Before this edge is used saturated again in some subsequent flow augmentation, we must have pushed some flow via an augmenting path that contained the opposite edge $(v,u)$. 
+\item Let $d(w)$ be the distance of $s$ to $w$ in the residual graph just before the first saturation of $(u,v)$, and let $d'(w)$ be the corresponding distance just before the flow was pushed along $(v,u)$. 
+\item As we always use shortest paths to augmenting flow we need to have that $d(v)=d(u)+1$ and $d'(u)=d'(v)+1$. 
+\item But, by the lemma we proved above, we know that $d(v)\leq d'(v)$. 
+
+$\Rightarrow$ We thus need to have that 
+\[
+d'(u)=d'(v)+1\geq d(v)+1 = d(u)+2.
+\]
+
+$\Rightarrow$ The distance from $s$ to $u$ had to increased by at least $2$ by the time the edge $(u,v)$ can again be saturated by some augmenting path. 
+
+$\Rightarrow$ $(u,v)$ can be saturated at most $\frac{n}{2}$ times before the $s$-$u$ distance becomes $\geq n$ and thus $d_f(s,t)\geq n$ as well. 
+
+\item Each edge can be saturated at most $\frac{n}{2}$ times. So, there is at most $\frac{mn}{2}$ saturations and thus flow augmentations.
+\end{itemize}
+
+\item \textbf{Total running time:} $O(m^2 n)$. Strongly polynomial! 
+
+\item \textbf{Note:} In this analysis we have no way of lower bounding how much flow a particular flow augmentation pushed. We just can argue that over all the $\frac{mn}{2}$ augmentations we managed to push the whole max flow value (no matter how large it was!).  This is an important feature of so-called primal-dual algorithms. (Will get back to this later on.)
+
+\end{itemize}
+
+
+\end{document}

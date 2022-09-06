@@ -1,0 +1,683 @@
+\documentclass{article}
+\usepackage{me}
+\usepackage{amssymb}
+\usepackage{amsfonts}
+%\input{abbrevs}
+\setlength{\parindent}{0pt}
+
+\newcommand\vol{{\mbox{vol}}}
+
+\title{Linear Programming Algorithms\\ 6.854 Notes \#14}
+\author{David Karger}
+
+\begin{document}
+
+\section{LP Solving Algorithms}
+
+So far we learned a lot about the structure of LPs. But how do we actually solve them?
+Can we do it faster than by just enumerating all basic feasible solutions (BFS)?
+
+\begin{itemize}
+\item Simplex -- 1940s.
+\item Ellipsoid method -- 1970s.
+\item Interior point method -- 1980s. 
+\end{itemize}
+
+\section{Simplex}
+
+\begin{itemize}
+\item Recall that we know that for an LP (in standard form) opt always corresponds to a vertex of a polytope (a BFS).
+\item Imagine we are given some BFS, how to check if it is optimal? 
+\item Naive approach: check all other BFS' and compare their costs. 
+
+$\Rightarrow$ Problem: there can be $m \choose n$ of them! 
+
+\item But do we really need to look at all the other BFS'?
+
+\end{itemize}
+\section{Interlude: Vertices in Standard form/bases}
+\begin{itemize}
+	\item
+	Without loss of generality make $A$ have full row rank (define):
+	\begin{itemize}
+		\item find basis in rows of $A$, say $a_1,\ldots,a_k$
+		\item any other $a_\ell$ is linear combo of those.
+		\item so $a_\ell x = \sum \lambda_i a_i x $
+		\item so better have $b_l = \sum \lambda_i a_i$ if any solution.
+		\item if so, anything feasible for $a_1,\ldots,a_\ell$ feasible for
+		all.
+	\end{itemize}
+	\item $m$ constraints $Ax=b$ all tight/active
+	\item given this, need $n-m$ of the $x_i \ge 0$ constraints
+	\item also, need them to form a basis with the $a_i$.
+	\item {\bf write matrix} of tight constraints, first $m$ rows then
+	identity matrix adjacent to zero matrix
+	\[
+	\begin{array}{l}
+	\\
+	\\
+	m\text{ constraint rows}
+	\\
+	\\
+	\\
+	\\
+	\\
+	\\
+	n\text{ row identity}
+	\\
+	\\
+	\\
+	\end{array}
+	\left(
+	\begin{array}{lccccccc}
+	&\multicolumn{4}{c}{n-m\text{ columns}}&\multicolumn{3}{c}{m\text{ columns}}\\
+	&\multicolumn{4}{c}{\overbrace{\qquad\qquad\qquad}}&\multicolumn{3}{c}{\overbrace{\qquad\qquad}}\\
+	\\
+	&\multicolumn{3}{c}{\cdots}&A&\multicolumn{3}{c}{\cdots}\\
+	\\
+	&1&\\
+	&&1&&&&0\\
+	&&&1\\
+	&&&&1\\
+	&&&&&1\\
+	&&0&&&&1\\
+	&&&&&&&1\\
+	\end{array}
+	\right)x
+	\begin{array}{c}
+	\\
+	\\
+	=
+	\\
+	\\
+	\\
+	\\
+	\ge
+	\\
+	\\
+	\\
+	=
+	\\
+	\end{array}
+	\left(
+	\begin{array}{c}
+	\\
+	\\
+	\\
+	b
+	\\
+	\\
+	\\
+	\\
+	0
+	\\
+	\\
+	\\
+	0
+	\\
+	\\
+	\end{array}
+	\right)
+	\]
+	\item zero matrix corresponds to slack (nonzero) $x_i$
+	\item need linearly independent rows
+	\item equiv, need linearly independent columns
+	\item but columns are linearly independent iff $m$ columns of $A$
+	including all that correspond to nonzero $x_i$ are linearly
+	independent
+	\begin{itemize}
+		\item because columns of identity matrix are clearly independent
+		\item but columns of zero matrix depend entirely on $A$ for independence
+	\end{itemize}
+	\item gives other way to define a vertex: $x$ is vertex if
+	\begin{itemize}
+		\item $Ax=b$
+		\item $m$ linearly independent columns of $A$ include all $x_j \ne 0$
+	\end{itemize}
+	This set of $m$ columns is called a {\em basis}.
+	\item $x_j$ of columns called {\em basic} set $B$, others {\em
+		nonbasic} set $N$
+	\item given bases, can compute $x$:
+	\begin{itemize}
+		\item $A_B$ is basis columns, $m \times m$ and full rank.
+		\item solve $A_B x_B = b$, set other $x_N=0$.
+		\item note can have many bases (column sets) for same vertex (choice of 0 $x_j$)
+		\item note algebra is $m$-dimensional, so really depends only on number of
+		constraints not variables
+	\end{itemize}
+\end{itemize}
+
+Summary: $x$ is vertex of $P$ if for some basis $B$,
+\begin{itemize}
+	\item $x_N=0$
+	\item $A_B$ nonsingular
+	\item $A_B^{-1} b \ge 0$
+\end{itemize}
+
+\section{Back to the Simplex Method}
+\begin{itemize}
+	\item The algorithm:
+\begin{itemize}
+	\item start with a basic feasible soluion 
+	\item try to improve it
+	\item picture: move on improving edge.  
+\end{itemize}
+	\item math: work relative to current $x$
+	\item rewrite LP: $\min c_Bx_B + c_N x_N$, $A_Bx_B+A_N x_N=b$, $x \ge 0$
+	\item true for all $x$, not just current
+	\item $B$ is basis for bfs
+	\item since $A_Bx_B = b-A_Nx_N$, so $x_B = A_B^{-1}(b-A_Nx_N)$, know that
+	\begin{eqnarray*}
+		cx &= &c_Bx_B+c_Nx_N\\
+		&= & c_B A_B^{-1}(b-A_Nx_N) + c_N x_N\\
+		&= & c_B A_B^{-1} b + (c_N-c_BA_B^{-1}A_N)x_N\\
+	\end{eqnarray*}
+	\item {\em reduced cost} $\tilde c_N = c_N-c_BA_B^{-1}A_N$
+	\item if no $\tilde c_j < 0$, then increasing any $x_j \in N$
+	increases (nondecreases) cost
+	(may violate feasiblity for $x_B$, but who cares?), so are at
+	optimum!
+	\item if some $\tilde c_j < 0$, can increase $x_j$ to decrease cost
+	\item but since $x_B$ is func of $x_N$, will have to stop when $x_B$
+	hits a constraint.
+	\begin{itemize}
+		\item this happens when some $x_i$, $i \in B$ hits 0.
+		\item we bring $j$ into basis, take $i$ out of basis.
+		\item we've moved to an {\em adjacent} basis.
+		\item called a {\em pivot}
+	\end{itemize}
+	% Karger Oct 23 2017 end (we seem to have skipped the stuff on ellipsoid??)
+	\item {\bf show picture}
+\end{itemize}
+
+\subsection{Potential problems}
+\begin{itemize}
+	\item Need initial vertex.  How find?  HW.
+	\item maybe some $x_i \in B$ already 0, so can't increase $x_j$, just
+	pivot to same obj value.
+	\item could lead to cycle in pivoting, infinite loop.
+	\item can prove exist noncycling pivots (eg, lexicographically first
+	$j$ and $i$)
+			\item Would hope that you don't need to visit too many of the BFS. Not true! Klee-Minty cube (a slightly twisted hypercube)
+		\item We can't prove though that there is no pivot choice rule that leads to always fast simplex (the best ones are ``only'' subexponential)
+		\item Hirch conjecture (1957): diameter/number of pivots needed is at most $m+n$ (very optimistic!) Disproved by Santos in 2010 but only barely so: diameter $\geq (1+\eps)(m+n)$. 
+		\item Still possible that, e.g., diameter $\leq poly(m,n)$. 
+	\item Kalai-Kleitmen 1992: $m^{\log n}$ bound on path length,
+also $2^n m$.
+		\item There is a linear time simplex for fixed $n$!
+		\item Note small diameter does not guarantee fast simplex pivot rule - as some of the pivots might require increasing the value of the objective from time to time!
+		\item In practice: works really really well (unless it doesn't). (Needs some linear algebra tricks to make pivoting fast.)
+	\end{itemize}
+
+
+\subsection{Simplex and Duality}
+
+
+\begin{itemize}
+	\item defined {\em reduced costs} of nonbasic vars $N$ by 
+	\[
+	{\tilde c}_N = c_N-c_BA^{-1}_BA_N
+	\]
+	and argued that when all ${\tilde c}_N \ge 0$, had optimum.
+	\item Define $y=c_BA^{-1}_B$ (so of course $c_B=yA_B$)
+	\item nonegative reduced costs means $c_N \ge yA_N$
+	\item put together with $c_B=yA_B$, see $yA \le c$ so $y$ is dual
+	feasible
+	\item but, $yb = c_B A^{-1}_B b = c_Bx_B=cx$ (since $x_N=0$)
+	\item so $y$ is dual optimum.
+	\item simplex finds primal and dual optima simultaneously
+	\item more generally, $yb-cx$ measures duality gap for current solution!
+	\item another way to prove duality theorem: prove there is a
+	terminating (non cycling) simplex algorithm.
+\end{itemize}
+
+
+
+\subsection{Polynomial Time Bounds}
+
+We know a lot about structure.  And we've seen how to verify
+optimality in polynomial time.  Now turn to question: can we solve in
+polynomial time?
+
+Yes, sort of (Khachiyan 1979):
+\begin{itemize}
+	\item polynomial algorithms exist
+	\item strongly polynomial unknown.
+\end{itemize}
+
+
+
+
+\section{Ellipsoid Method}
+
+Basic idea: Reduce optimization to feasibility checking. (Remind how it is with polytope $P$.)
+
+\begin{itemize}
+\item Bolzano-Weierstrass Theorem---proves certain sequence has a subsequence with a limit by repeated subdividing of intervals to get a point in the subinterval.
+
+\item The Bolzano-Weierstrass method: Divide the desert by a line running from north to south. The lion is then either in the eastern or in the western part. Let's assume it is in the eastern part. Divide this part by a line running from east to west. The lion is either in the northern or in the southern part. Let's assume it is in the northern part. We can continue this process arbitrarily and thereby constructing with each step an increasingly narrow fence around the selected area. The diameter of the chosen partitions converges to zero so that the lion is caged into a fence of arbitrarily small diameter.
+\end{itemize}
+
+\begin{itemize}
+\item Analogue of a fence: separation oracle. Given point $x$ that is not in $P$  come up with a separating hyperplane, i.e., $u$ such that $u^T x \leq 0$ but $y^Tx' > 0$ for all $x'\in P$. 
+\item We want to use ellipsoid instead of boxes. 
+\item Ellipsoid $E(D,z):=\{x \mid (x-z)^TD^{-1}(x-z) \leq 1 \}$, where $D=BB^T$ for some invertible matrix $B$.
+\item Note: $E(r\cdot I,z)$ is just an radius $r$ sphere centered at $z$. 
+\item In general: $E(D,z)$ is a mapping of a unit sphere via an affine change of coordinates $x\rightarrow Bx +z$. 
+
+\item Goal: start with a big ellipsoid that encompasses everything (for sure). 
+\item In each step, query the center of the ellipsoid $z$. If $z\in P$ done. Otherwise, there is a separating hyperplane $u$. Shift it so it passes through the center and draw a smaller ellipsoid that encompasses the half in which the feasible point might lie. 
+\item How to measure progress? Keep track of the volume of the ellipsoid. Want it to shrink significantly in each step. 
+
+\item Outline of algorithm:
+\begin{itemize}
+	\item solve feasibility, which we know is equivalent to optimizing
+	\item goal: find a feasible point for $P=\set{Ax \le b}$
+	\item start with ellipse containing $P$, center $z$
+	\item check if $z \in P$
+	\item if not, use separating hyperplane to get 1/2 of ellipse
+	containing $P$
+	\item find a smaller ellipse containing this 1/2 of original ellipse
+	\item until center of ellipse is in $P$.
+\end{itemize}
+
+\item  Consider sphere case (wlog as affine transformations change the volume by the same factor and we care about the ratio change), separating hyperplane $x_1=0$
+\begin{itemize}
+	\item try center at $(\epsilon,0,0,\ldots)$
+	\item Draw picture to see constraints
+	\item requirements:
+	\begin{itemize}
+		\item $d_1^{-1}(x_1-\epsilon )^2+\sum_{i > 1}d_i^{-1}x_i^2 \le 1$
+		\item constraint at $(1,0,0)$: $d_1^{-1}(x-\epsilon )^2 = 1$ so $d_1 =
+		(1-\epsilon )^2$
+		\item constraint at $(0,1,0)$: $\epsilon ^2/(1-\epsilon )^2+d_2^{-1} = 1$ so $d_2^{-1}
+		= 1-\epsilon ^2/(1-\epsilon )^2\approx 1-\epsilon ^2$
+	\end{itemize}
+	\item What is volume?  about $(1-\epsilon )/(1-\epsilon ^2)^{n/2}$
+	\item set $\epsilon $ about $1/n$, get $(1-1/n)$ volume ratio.
+\end{itemize}
+
+
+\item Formalize shrinking lemma:
+\begin{itemize}
+	\item Let $E=(z,D)$ define an $n$-dimensional ellipsoid
+	\item consider separating hyperplane $ax \le az$
+	\item Define $E'=(z',D')$ ellipsoid:
+	\begin{eqnarray*}
+		z' &= &z-\frac{1}{n+1}\frac{Da^T}{\sqrt{aDa^T}}\\
+		D' &= & \frac{n^2}{n^2-1}(D-\frac{2}{n+1}\frac{Da^TaD}{aDa^T})
+	\end{eqnarray*}
+	\item then
+	\begin{eqnarray*}
+		E \cap \set{x \mid ax \le ez} &\subseteq &E'\\
+		\vol(E') &\le &e^{1/(2n+1)}\vol(E)
+	\end{eqnarray*}
+	\item for proof, first show works with $D=I$ and $z=0$.  new ellipse:
+	\begin{eqnarray*}
+		z' &=&-\frac1{n+1}\\
+		D' &= & \frac{n^2}{n^2-1}(I-\frac{2}{n+1} I_{11})
+	\end{eqnarray*}
+	and volume ratio easy to compute directly.
+	\item for general case, transform to coordinates where $D=I$ (using
+	new basis $B$), get new ellipse, transform back to old coordinates,
+	get $(z',D')$ (note transformation don't affect volume {\em ratios}.
+\end{itemize}
+
+\item So ellipsoid shrinks.  Now prove 2 things:
+\begin{itemize}
+	\item needn't start infinitely large
+	\item can't get infinitely small
+\end{itemize}
+
+\item Starting size: 
+\begin{itemize}
+	\item recall bounds on size of vertices (polynomial)
+	\item so coords of vertices are exponential but no larger
+	\item so can start with sphere with radius exceeding this exponential
+	bound
+	\item this only uses polynomial values in $D$ matrix.
+	\item if unbounded, no vertices of $P$, will get vertex of box.
+\end{itemize}
+
+\item Ending size:
+\begin{itemize}
+	\item suppose polytope full dimensional
+	\item if so, it has $n+1$ affinely indpendent vertices
+	\item all the vertices have poly size coordinates
+	\item so they contain a box whose volume is a poly-size number
+	(computable as determinant of vertex coordinates)
+\end{itemize}
+
+\item Put together:
+\begin{itemize}
+	\item starting volume $2^{n^{O(1)}}$
+	\item ending volume $2^{-n^{O(1)}}$
+	\item each iteration reduces volume by $e^{1/(2n+1)}$ factor
+	\item so $2n+1$ iters reduce by $e$
+	\item so $n^{O(1)}$ reduce by $e^{n^{O(1)}}$
+	\item at which point, ellipse doesn't contain $P$, contra
+	\item must have hit a point in $P$ before.
+\end{itemize}
+
+\item Justifying full dimensional:
+\begin{itemize}
+	\item feasible points form a ``lattice'' of grid points with bounded
+	number of bits
+	\item take $\set{Ax \le b}$, replace with $P'=\set{Ax \le b+\epsilon}$
+	for tiny $\epsilon$
+	\item any point of $P$ is an interior of $P'$, so $P'$ full
+	dimensional (only have interior for full dimensional objects)
+	\item $P$ empty (of lattice points) iff $P'$ is (because $\epsilon$ so small)
+	\item can ``round'' a point of $P'$ to $P$.
+\end{itemize}
+
+\item Infinite precision:
+\begin{itemize}
+	\item built a new ellipsoid each time.
+	\item maybe its bits got big?
+	\item no.
+\end{itemize}
+
+\item Optimization
+\begin{itemize}
+	\item Could use optimization to feasibility transform
+	\item But an easier approach is binary search on value of optimum
+	\item Add constraint that optimum must exceed proposed value
+	\item Vary value
+\end{itemize}
+
+\item Need to find vertex?
+\begin{itemize}
+	\item use rounding technique
+\end{itemize}
+
+\end{itemize}
+
+
+
+
+
+
+
+
+\subsection{Feasibility vs. Separation vs. Optimization}
+
+Notice in ellipsoid, were only using one constraint at a time.
+\begin{itemize}
+\item didn't matter how many there were.
+\item didn't need to see all of them at once.
+\item just needed each to be represented in polynomial size.
+\item so ellipsoid works, even if huge number of constraints, so long
+  as have {\em separation oracle:} given point not in $P$, find
+  separating hyperplane.
+\item of course, feasibility is same as optimize, so can optimize with
+  sep oracle too.
+\item this is on a polytope by polytope basis.  If can separate a
+  particular polytope, can optimize over that polytope.
+\item Another good reason to optimize by binary search on objective:
+\begin{itemize}
+\item just need feasibility oracle/separator
+\item Might not have separator for combined primal-dual formulation
+\item especially since dual can have exponentially many variables!
+\end{itemize}
+\end{itemize}
+
+This is very useful in many applications.  e.g. network design.
+
+Can also show that optimization implies separation:
+\begin{itemize}
+\item suppose can optimize over $P$
+\item then of course can find a point in $P$
+\item suppose $0\in P$ (saves notation mess---just shift $P$)
+\item define $P^* = \set{z \mid zx \le 1\ \forall x \in P}$
+\item can separate over $P^*$:  
+\begin{itemize}
+\item given $w$, run OPT$(p)$ with $w$ objective
+\item get $x^*$ maximizing $wx$
+\item if $wx^* \le 1$ then $w \in P^*$
+\item else $wx^* > 1 \ge x^*z \ \forall z \in P^*$ so $x^*$ is separating
+  hyperplane 
+\item since can separate $P^*$, can optimize it
+\end{itemize}
+\item suppose want to separate $y$ from $P$
+\item let $z=$OPT$(P^*,y)$.  
+\item if $yz>1$ then (since $z \in P^*$) we have $yz>1$ but $xz \le 1
+  \ \forall x \in P$ (separating hyperplane)
+\item if $y \le 1$ then suppose $y \notin P$.  
+\item then $ax \le \beta$ for $x \in P$ but $ay > \beta$
+\item since $0 \in P$, $\beta \ge 0$
+\item if $\beta > 0$ then $\frac{a}{\beta}x \le 1\ \forall x \in P$ so
+  its in $P^*$ but
+  $\frac{a}{\beta}y > 1$ so it is a better opt for $y$ contra
+\item if $\beta = 0$ then $\lambda ax \le 0 \le 1 \forall \lambda>0$
+  so $\lambda a \in P^*$
+  but $\lambda a y>1$ for some $\lambda>0$ so is better opt for $y$
+  contra.
+\end{itemize}
+
+
+\marnote{2011 Lecture 13 end}
+\marnote{2013 Lecture 17 end}
+\section{Interior Point}
+
+Ellipsoid has problems in practice ($O(n^6)$ for one).  So people
+developed a different approach that has been extremely successful.
+
+What goes wrong with simplex?
+\begin{itemize}
+\item follows edges of polytope
+\item complex stucture there, run into walls, etc
+\item interior point algorithms stay away from the walls, where
+ structure simpler.
+\item Karmarkar did the first one (1984)
+\item huge media hype not accurate at the time
+\item now interior point is competitive with Simplex and often better
+\item arguably known from 1960s as ``barrier methods''
+\item but visibility from Karmarkar set off huge progress
+\item 
+\end{itemize}
+
+Primal-Dual Method
+\begin{itemize}
+\item Solve primal and dual together
+\item \textbf{not} by combining into one LP
+\item use current dual to tell you how to improve primal
+\item and vice versa
+\item (This idea has become very powerful in non-LP combinatorial
+ optimization also)
+\end{itemize}
+
+\subsection{Potential Reduction}
+
+Potential function:
+\begin{itemize}
+\item Idea: use a (nonlinear) potential function that is minimized at
+ opt but also enforces feasibility
+\item use gradient descent to optimize the potential function.
+\item argue make ``sufficient progress per step'' to finish in poly steps
+\item Use {\em logarithmic barrier function}
+\[
+G(x) = cx-\mu(\sum\ln x_j)
+\]
+and try to minimize it
+\item first term aims for optimal objective
+\item second enforces positivity
+\item note barrier prevents from ever hitting optimum since $G
+ \rightarrow \infty$ at boundary
+\item but as discussed above ok to just get close.
+\item then ``round'' to a better vertex, which will be opt
+\end{itemize}
+
+Early methods used gradient descent:
+\begin{itemize}
+\item immediately take $\mu$ small so objective dominates
+\item then use gradient descent to minimize $G_\mu(x)$
+\end{itemize}
+ 
+More recent, arguably cleaner approach is \textbf{central path}
+\begin{itemize}
+\item for each $\mu$ there is an optimum point
+\item varying $\mu$ traces out the \textbf{central path}
+\item Start with $\mu$ huge, objective function term negligible
+\begin{itemize}
+\item Equivalent to ``start with a feasible point''
+\item And requires just as much thinking as simplex, ellipsoid
+\item but same kind of tricks work
+\end{itemize}
+\item shrink $\mu$ towards 0
+\item eventually objective dominates as $\mu \rightarrow 0$
+\item so we reach opt
+\item in the continuous domain unconcerned with runtime, this
+ ``obviously'' works
+\item we need a discrete version
+\end{itemize}
+
+Characterizing the central path
+\begin{itemize}
+\item fix $\mu$
+\item central path minimizes $G_\mu(x)$ 
+\item imposes condition on gradient $\nabla G(x) = \langle c_i-\mu/x_i \rangle$
+\item but gradient may not be zero
+\item because we are constrained by $Ax=b$
+\item so real condition is that gradient is perpendicular to feasible
+ set
+\item i.e. is a linear combination of rows of $A$
+\item (because these are the constraint hyperplanes' normal vectors)
+\item i.e. $yA = \langle c_i-\mu/x_i \rangle$
+\item write $yA+s=c$ where $s_i =\mu/x_i > 0$ are slack variables
+\item so $y,s$ is dual feasible
+\item duality gap is $cx-yb = (yA+s)x - yb = sx = n\mu$
+\item conversely, if have feasible $x_i, s_i$ with $x_is_i=\mu$, then
+ we know we are on the central path at parameter $\mu$
+\item this is just saying each constraint is violated ``equally'' under proper scaling
+\end{itemize}
+
+
+How discretize?
+\begin{itemize}
+\item ``predictor-corrector method''
+\item use linear approximation
+\item compute tangent to central path
+\item move along it as far as approximation holds (``predictor'')
+\item conclude $\mu$ has improved on tangent and thus on corresponding
+ central path point
+\item ``correct'' back to central path 
+\item each step improves $\mu$
+\item stop when $\mu$ ``close enough'' to 0
+\item I will show predictor step (moving towards better $\mu$)
+\begin{itemize}
+\item corrector step is similar but easier 
+\item just moving back to an optimum of the potential for new $\mu$
+\end{itemize}
+\end{itemize}
+
+Termination
+\begin{itemize}
+\item as with ellipsoid, analyze time needed to get from start to ``sufficiently good'' $\mu$
+\item once duality gap smaller than bit-precision of vertices, done
+\begin{itemize}
+\item as we saw before, can ``round'' to a vertex
+\item since are closer to opt than second-best vertex, our starting objective is better than second best
+\item so we can only round to opt
+\item thus, sufficient to get $\mu = 2^{-O(L)}$
+\end{itemize}
+\item as with simplex, there's the cold-start problem
+\begin{itemize}
+\item using similar method (designing related LP with easy starting point and opt at real desired starting point) can achieve $\mu=2^L$
+\end{itemize}
+\item so solving only requires $O(L)$ iterations of improving $\mu$ by a
+ constant 
+\end{itemize}
+
+What is the improvement direction?
+\begin{itemize}
+\item From current $x,s, \mu$, update to $x+dx$, $s+ds$ that are ``on central
+ path'' for new, smaller $\mu$
+\item central path needs $(s_i+ds_i)(x_i+dx_i) = (\mu+d\mu)$ (same constant $\forall i$)
+\begin{itemize}
+\item i.e. $s_i d(x_i) + d(s_i)x_i = d\mu +$ low order terms
+\end{itemize}
+\item but also need $A(dx)=0$ (to stay primal feasible)
+\item and $(dy)A+ds=0$ (to stay dual feasible)
+\item solve this linear system to get directions $ds$ and $dx$
+\item these are the tangent for central path
+\end{itemize}
+
+Can we solve this? 
+\begin{itemize}
+\item yes: if rescale, can see this as a projection problem
+\item rescale $A$ so all $x_i=1$, meaning all $s_i = \mu$
+\item equations now require
+\begin{eqnarray*}
+\mu dx + ds & = &\mathbf{1}d\mu\\
+Adx &= &0\\
+(dy)A+ds &= &0
+\end{eqnarray*}
+\item here $\mathbf{1}$ is the all-ones vector
+\item in other words, $\mu dx$ in nullspace of $A$ and $ds$ in span of
+ $A$
+\item but they sum to $\mathbf{1}d\mu$
+\item so $\mu dx$ and $ds$ are just decomposition of $\mathbf{1}d\mu$ onto $A$ and $A^{\perp}$
+\item note this defines \emph{directions} because both $dx$ and $ds$ (and $d\mu$ and $dy$) can be multiplied by same arbitrary scalar
+\item move in this direction until approximation breaks
+\end{itemize}
+
+How far?
+\begin{itemize}
+\item Simplify
+\begin{itemize}
+\item recall rescaled coordinates until all $x_i=1$
+\item so all $s_i = \mu$
+\item and duality gap is $\sum s_i = n\mu$
+\item rescale $dx_i$ and $ds_i$ so ``predicted'' change in $\mu$ is $d\mu = \mu$
+\item i.e. linear approximation predicts each $x_is_i$ decreases by $\mu$
+\item predicts we close duality gap by moving $dx,ds$
+\end{itemize}
+\item how far in that direction can we move---parameter $\theta$---before approximation breaks?
+\begin{itemize}
+\item we want to be on central path, i.e. $(x_i+\theta dx_i)(s_i+\theta ds_i) = \mu+d\mu$
+\item actual change is $\theta (x_ids_i + s_idx_i) +\theta^2 ds_idx_i$
+\item our linear system says  these quantities equal for all $i$ to first order (ignoring $dx_ids_i$ term)
+\item so until our linear approximation breaks down, all $s_ix_i$ are changing by about same amount
+\item i.e., we are near central path
+\end{itemize}
+\item approximation breaks when second order term is comparable to first order
+\begin{itemize}
+\item so want $\theta^2dx_ids_i \ll \theta (x_ids_i + s_idx_i)$.
+\item i.e. $\theta \ll x_i/dx_i + s_i/ds_i$
+\item we rescaled $x_i=1$ and $s_i=\mu$, so need $\theta \ll \mu/ds_i +  1/dx_i$.
+\end{itemize}
+\item so how big can $dx_i$ be?
+\begin{itemize}
+\item remember we solved $\mu dx + ds =$ orthogonal decomposition of $d\mu$
+\item and rescaled so length of $d\mu$ is $\mu$
+\item i.e. $\mu dx$ is projection of $\mathbf{1}\mu$, so $dx$ is
+ projection of $\mathbf{1}$
+\item all one's vector has length $\sqrt{n}$
+\item so any $dx_i \le \sqrt{n}$
+\item similarly, any $ds_i \le \mu\sqrt{n}$
+\item so requirement that $\theta \ll \mu/ds_i+1/dx_i$ met by $\theta \ll \mu/(\mu \sqrt{n}) + 1/\sqrt{n} = O(1/\sqrt{n})$
+\item so we can set $\theta \approx 1/\sqrt{n}$ and have second-order term negligible
+\end{itemize}
+\item How much improvement?
+\begin{itemize}
+\item we said if $\theta=1$ we close duality gap to zero (in linear approximation)
+\item since we only move $1/\sqrt{n}$ we shave a $1/\sqrt{n}$ factor.
+\item but that means we reduce $\mu$ by a constant in $\sqrt{n}$ steps
+\item which means we finish in poly$(n)$ steps!
+\end{itemize}
+\end{itemize}
+
+Interior point has recently been revolutionizing maxflow.
+
+\marnote{2012 Lecture 16 end}
+\marnote{2013 Lecture 18 end}
+\end{document}
+%
+%%%% Local Variables: 
+%%%% mode: latex
+%%%% TeX-master: t
+%%%% End: 
+
+
+

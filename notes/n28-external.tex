@@ -1,0 +1,416 @@
+\documentclass{article}
+\usepackage{me}
+%\input{abbrevs}
+\setlength{\parindent}{0pt}
+
+\title{External Memory\\ 6.854 Notes \#28}
+\author{David Karger}
+
+\begin{document}
+
+\section*{External Memory}
+
+Memory $M$, block size $B$, problem size $N$
+
+basic operations:
+\begin{itemize}
+\item Scanning: $O(N/B)$
+\item reversing an array: $O(N/B)$
+\end{itemize}
+
+matrix operations
+\begin{itemize}
+\item $N\times N$ matrix
+\item Add?
+\begin{itemize}
+\item need to decide on representation
+\item use row-major dense representation
+\item add is linear scan
+\end{itemize}
+\item Multiply?
+\item How externalize standard algorithm?
+\begin{itemize}
+\item Row major
+\begin{itemize}
+\item scan rows of first and columns of second
+\item so need $N$ reads to get each column entry from second matrix
+\item and $N^2$ items to read
+\item so $N^3$ over all
+\end{itemize}
+\item Column major
+\begin{itemize}
+\item What if could somehow transpose second matrix?
+\item Now only need $N/B$ reads per output value
+\item So $N^3/B$
+\item Still wasteful. How?
+\item Many output values rely on same column
+\item So we read the same rows repeatedly
+\item How avoid?
+\end{itemize}
+\item Block layout
+\begin{itemize}
+\item Think of matrix as array of smaller matrices
+\item Multiply main matrix as sum of products of smaller matrices
+\item We've seen addition is linear 
+\item Bigger blocks will help
+\item But the limit: need block to fit in memory
+\item so size $\sqrt{M} \times \sqrt{M}$
+\item so need to read $N/\sqrt{M}$ blocks to produce an output block
+\item time per block is $M/B$ since block size $M$
+\item $N^2/M$ output blocks
+\item so total time is product $N^3/B\sqrt{M}$
+\end{itemize}
+\end{itemize}
+\item Can improve this by starting with better sequential matrix
+  multiply---e.g Strassen.  
+\begin{itemize}
+\item get to $N^{2.376}$ sequential
+\item can extend to external memory
+\end{itemize}
+\end{itemize}
+
+
+
+Linked list
+\begin{itemize}
+\item operations insert, delete, traverse
+\item insert and delete cost $O(1)$
+\item must traversing $k$ items cost $O(k)$?
+\item keep segments of list in blocks
+\item keep each block half full
+\item now can traverse $B/2$ items on one read
+\item so $O(K/B)$ to traverse $K$ items
+\item on insert: if block overflows, split into two half-full blocks
+\item on delete:
+  \begin{itemize}
+  \item if block less than half full, check next block
+  \item if it is more than half full, redistribute items
+  \item now both blocks are at least half full
+  \item otherwise, merge items from both blocks, drop empty block
+  \end{itemize}
+\item Note: can also insert and delete while traversing at cost $1/B$
+  per operation
+\item so, e.g., can hold $O(1)$ ``fingers'' in list and insert/delete
+  at fingers.
+\end{itemize}
+
+\marnote{2013 Lecture 27 End}
+
+Search trees:
+\begin{itemize}
+\item binary tree cost $O(\log n)$ memory transfers
+\item wastes effort because only getting one useful item per block
+  read
+\item Instead use $(B+1)$-ary tree; block has $B$ splitters
+\item Require all leaves at same depth
+\item ensures balanced
+\item So depth $O(\log_B N)$, much better
+\item Need to keep balanced while insert/delete:
+  \begin{itemize}
+  \item require every block but root to be at least half full (so degree $\ge
+  B/2$)
+\item also ensures depth $\log_B N$
+  \item on insert, if block is full, split into two blocks and pass up a
+    splitter to insert in parent
+  \item may overflow parent, forcing recursive splits
+  \item on delete, if block half empty, merge as for linked lists
+  \item may empty parent, force recursive merges
+  \end{itemize}
+\item optimal in comparison model:
+  \begin{itemize}
+  \item Reading a block reveals position of query among $B$ splitters
+  \item i.e. $\log B$ bits of information
+  \item Need $\log N$ bits.
+  \item so $\log N/\log B$ queries needed.
+  \end{itemize}
+\end{itemize}
+
+\marnote{2011 Lecture 24 end.  2012 Lecture 26 end.}
+
+
+Sorting:
+\begin{itemize}
+\item Tree sort?
+\begin{itemize}
+\item $N$ inserts into $B$-tree, then scan
+\item time $O(N\log_B N)$.
+\end{itemize}
+\item Standard merge sort based on linear scans: $T(N)=2T(N/2) +
+  O(N/B)=O((N/B)\log N)$
+\item (Better than tree sort: $\log B \rightarrow B$.
+\item Can do better by using more memory
+\item $M/B$-way merge
+\item keep head block of each of $M/B$ lists in memory
+\item keep emitting smallest item
+\item when emit $B$ items, write a block
+\item when block empties, read next block of that list
+\item $T(M) = O(N/B)+(M/B)T(N/(M/B)) = O((N/B)\log_{M/B}N/B)$
+\end{itemize}
+
+Optimal for comparison sort:
+  \begin{itemize}
+  \item Assume each block starts and is kept sorted (only
+ strengthens lower bound)
+  \item loading a block reveals placement of $B$ sorted items among
+  $M$ in memory
+  \item $\binom{M+B}{B} \approx (eM/B)^B$ possibilities
+  \item so $\log() \approx B\log M/B$ bits of info
+  \item need $N\log N$ bits of info about sort, 
+  \item except in each of $N/B$ blocks $B\log B$ bits are redundant
+  (sorted blocks)
+  \item total $N\log B$ redundant i.e. $N\log N/B$ needed.
+  \item now divide by bits per block load
+  \end{itemize}
+
+\subsection*{Buffer Trees}
+
+Mismatch:
+\begin{itemize}
+\item In memory binary search tree can sort in $O(n\log n)$ (optimal)
+using inserts and deletes
+\item But sorting with $B$-tree costs $N\log_B N$
+\item So inserts are individually optimal, but not ``batch optimal''
+\item Basic problem: writing one item costs 1, but writing $B$ items
+  together only costs 1, i.e. $1/B$ per item
+\item Is there a data structure that gives ``batch optimality''?
+\item Yes, but if inserts/queries are to happen in batches, sometimes
+  you will have to wait for an answer until your batch is big enough
+\item Can achieve optimum throughput,  but must sacrifice latency.
+\end{itemize}
+
+Basic idea:
+\begin{itemize}
+\item Focus on supporting $N$ inserts and then doing inorder traversal
+\item Idea: keep buffer in memory, push into $B$-tree when we have a
+  block's worth
+\item Problem: different items push into different children, no longer
+  a block's worth going down
+\item Solution: keep a buffer at each internal node
+\item Still a problem: writing one item into the child buffer costs 1
+  instead of $1/B$
+\item Solution: make buffers \textbf{huge}, so most children get whole
+  blocks written
+\end{itemize}
+
+Details:
+\begin{itemize}
+\item make buffer ``as big as possible'': size $M$
+\item increase tree degree to $M/B$
+\item but still B items per leaf node---tree over individual blocks
+\item basic operation: pushing overflowing buffer down to children
+\begin{itemize}
+\item invariant: arriving overflow items are sorted 
+\item buffer had $M$
+\item sort $M$ items
+\item merge with sorted incoming $X$ in time $O(M/B+X/B)$ (write to external)
+\item write sorted contiguous elements to proper children
+\item check for child overflow, recurse
+\item cost is at most 1 partial block per child ($M/B$ children) plus 1 block per $B$
+  items ($K/B$) so $M/B+K/B < 2K/B$.
+\item since at least $M$ items, account as $1/B$ per item
+\end{itemize}
+\item on insert, put item in root buffer (in memory, so free)
+\item when a buffer fills, flush
+\item may fill child buffers.  flush recursively
+\item when flush reaches leaves, store items using standard $B$-tree
+  ops (split leaf nodes, possibly recursing splits)
+\begin{itemize}
+\item cost of splits dominated by buffer flushing
+\item how handle buffers when split leaves?
+\item no problem: they are empty on root-leaf path
+  because we have just flushed to leaves.
+\end{itemize}
+\item cost of flushes:
+\begin{itemize}
+\item buffer flush costs $1/B$ per item
+\item but each flushed item descends a level
+\item total levels $\log_{M/B} N/B$
+\item So cost per item is $(1/B)\log_{M/B} N/B$
+\item So cost to insert $N$ is optimal sort cost
+\end{itemize}
+\end{itemize}
+
+
+``Flush'' operation
+\begin{itemize}
+\item empties \emph{all} buffers so can directly query structure
+\item full buffers already accounted
+\item unfull buffers cost $M/B$ per internal node
+\item but number of internal nodes is $(N/B)/(M/B)$ ($N/B$ leaf blocks
+  divided among $M/B$ leaf-blocks per parent)
+\item so total cost $N/B$
+\item so can sort in $N/B\log_{M/B} N/B$
+\end{itemize}
+
+
+Extensions
+\begin{itemize}
+\item search: ``insert'' query, look for closest match as flushes down
+\item delete: insert ``hole'' that triggers when it catches up to target item
+\item delete-min: extra buffer of $M$ minimum elements in memory.
+  when empties, flush left path and extract leftmost items to refill
+\item range search: insert range, push to \emph{all} matching children
+  on flush
+\item all ops take $1/B \log_{M/B}N/B$ (plus range output)
+\end{itemize}
+
+\section*{Cache Oblivious Algorithms}
+
+In practice, don't want to consider $B$ and $M$
+\begin{itemize}
+\item hard-coding them makes your algorithm non-portable
+\item and, with multi-level memory hierarchies, unclear where bottleneck is,
+  i.e. which $B$ and $M$ you use
+\item without knowing $B$ and $M$, how can we tune for them?
+\item surprisingly often, you can
+\item key: divide and conquer algorithms
+\item these tend to be sequentially optimal
+\item and rapidly shrink subproblems to where they fit on one page
+\item regardless of the size of that page
+\end{itemize}
+
+Assumption: optimal memory management
+\begin{itemize}
+\item so we can assume whatever page eviction policy works for us
+\item because we know e.g. LRU with double memory is 2-competitive
+  against optimal  management 
+\item and we are ignoring constant factors
+\end{itemize}
+
+Example: scanning contiguous array
+\begin{itemize}
+\item $N/B$
+\item without knowing $B$!
+\end{itemize}
+
+\subsection*{Matrix Multiply}
+
+Adding matrices is easy
+\begin{itemize}
+\item $N \times N$ arrays
+\item treat as vectors and scan to add
+\item time $N^2/B$
+\end{itemize}
+
+Standard sequential algorithm
+\begin{itemize}
+\item $N \times N$ arrays
+\item $N^3$ time
+\item row major order
+\item so scanning a row is very cheap
+\item but scanning a column is super expensive
+\item unless $N \times N < M$, evict rows on every column
+\item so $N^3$ external memory accesses!
+\item can we do better?
+\end{itemize}
+
+store second matrix column major?
+\begin{itemize}
+\item One output now requires $N/B$ reads
+\item So $N^3/B$, an improvement
+\item problem: what if next have to multiply in other order?
+\item need fast transpose operation!
+\item and turns out still not optimal---not leveraging large $M$
+\end{itemize}
+
+Divide and conquer
+\begin{itemize}
+\item mentally partition $A$ and $B$ into four blocks
+\item solve 8 matrix-multiply subproblems
+\item add up the pieces
+\item sequentially, $T(N)=8T(N/2) + N^2 = O(N^3)$ (same as standard)
+\item external memory: $T(N)=8T(N/2) + N^2/B = O(N^3/B)$ (same as
+  column major)
+\item because at level $i$ of recurrence do $2^iN^2/B$ fetches
+\item wait, at size $N=\sqrt{M}$, whole matrix fits in memory
+\item no more recursions.  $T(c\sqrt{M}) = O(M/B)$
+\item this is at level $i$ such that $N/2^i = \sqrt{M}$, ie $i=\log
+  N/\sqrt{M}$
+\item so runtime $2^iN^2/B= N^3/B\sqrt{M}$
+\end{itemize}
+
+\subsection*{Binary Search Trees}
+
+$B$-trees are optimal, but you need to know $B$
+
+Divide and conquer
+\begin{itemize}
+\item We generally search an array by binary search
+\item We query one value and cut problem in half
+\item bad in external memory, because only halve on one fetch
+\item $B$-tree is better, divides by $B$ on one fetch
+\item but we don't know $B$
+\end{itemize}
+
+Van Emde Boas insight
+\begin{itemize}
+\item use new degree parameter $d$ to avoid confusion
+\item problem of finding right child among $d$ in page is same problem
+\item before, we set $d=B$ and ignored it because ``in memory''
+\item now we don't know $B$ but can still set a $d$
+\item recurrence: $T(N) = T(d) + T(n/d)$
+\item Balance: set $d=\sqrt{N}$
+\item $T(N) = 2T(\sqrt{N}) = 2^{\log\log N} = \log N$ (still
+  sequentially optimal)
+\item Wait, when $N=B$ we get the whole array in memory and finish in
+  $O(1)$
+\item so, stop at $i$ such that $N^{(1/2)^i}=B$, ie $B^{2^i}=N$ so $2^i
+  = (\log N)/\log B =\log_B N$
+\item so runtime $\log_B N$
+\item draw a picture
+\item see how you get a chain of $\log B$ items all on
+  same page.
+\item yields speedup
+\end{itemize}
+
+Generalizations:
+\begin{itemize}
+\item Dynamic
+\item Buffer Trees
+\end{itemize}
+
+\subsection*{Linked Lists}
+
+Want $O(1)$ insert/delete but $O(1/B$ scan
+\begin{itemize}
+\item Cache aware, we used dynamic splitting/merging of contiguous ``runs''
+to limit fragmentation
+\item How without $B$?
+\item Need to combat fragmentation without knowing whether it exists
+\item idea: defragment while scanning
+\item all scanned items become unfragmented
+\item use potential function (amount of fragmentation) to pay for
+  defrag
+\end{itemize}
+
+Solution:
+\begin{itemize}
+\item on delete, just leave a hole
+\item on insert, append to end of external memory
+\item on scan, append all scanned items in order to end of memory
+\end{itemize}
+
+Analysis
+\begin{itemize}
+\item potential function: number of contiguous ``runs'' of elements in
+  sequence on block
+\item equals number of ``jumps'' of pointers from one block to another
+\item suppose traverse $K$ items in $r$ runs
+\item the cost is at most $K/B+r$
+\item scanned items written to end
+\item eliminates all but first and last run: 
+\item reduces runs by $r-2$
+\item so amortized cost $O(K/B)$
+\end{itemize}
+
+Controlling size
+\begin{itemize}
+\item all operations including traversal increase size of data
+  structure
+\item solution: after $N/B$ work, scan whole list
+\item amortized cost $N/B$
+\item but now list is sorted/contiguous
+\item all previous blocks become free/irrelevant
+\end{itemize}
+
+\end{document}

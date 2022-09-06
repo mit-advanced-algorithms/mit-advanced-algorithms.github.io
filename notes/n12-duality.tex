@@ -1,0 +1,495 @@
+\documentclass{article}
+\usepackage{me}
+\usepackage{amssymb}
+\usepackage{amsfonts}
+%\input{abbrevs}
+\setlength{\parindent}{0pt}
+
+\newcommand\vol{{\mbox{vol}}}
+
+\title{Duality\\ 6.854 Notes \#12}
+\author{David Karger}
+
+\begin{document}
+
+\section{Last Time}
+
+\begin{itemize}
+\item Introduced the definition of linear programs (LPs). 
+\item Standard form LP: $\min c^Tx$, s.t., $Ax=b, x\geq 0$. 
+\item Analyzed the structure of optimal solutions of such LP. 
+\item Proved that there is always a basic feasible solution (BFS) and its bit complexity is not too large.
+
+$\Rightarrow$ The decision problem $LP-Dec$: for a given $v$, does there exists $x$ s.t. $c^Tx\leq v, Ax=b, x\geq 0$, is in $NP$.
+(If such $x$ exists, then the optimal BFS $x^*$ is a succinct certificate that can be checked in polynomial time.)
+\item How about $LP-Dec\in co-NP$? Is there always a succinct certificate of {\em infeasibility} of an LP?
+\end{itemize}
+
+\section{Duality}
+
+Checking feasibility of a given solution is easy.
+\textbf{Motivating question:} How to certify optimality of a given solution?
+\begin{itemize}
+\item \textbf{Key notion:} {\em Duality} - strongest result in the theory of LP.
+\item Enable one to give a (succinct) proof of optimality.
+\item Recovers a lot of classic results: max-flow min-cut theorem, prices for min-cost flow, existence of a Nash equilibrium in every two-player zero-sum game,
+  lots other stuff.
+\end{itemize}
+
+\textbf{Want:} Find a {\bf lower} bound on $v^*:=\min \set{c^Tx \mid Ax=b, x
+  \ge 0}$.
+\begin{itemize}
+\item Standard approach: try adding up linear combinations of existing equations.
+
+$\Rightarrow$ Try multiplying each constraint $A_i x = b_i$ by some $y_i$ and adding  all of them together.
+
+$\Rightarrow$ We will always have that $yAx=yb$.
+\item If find $y$ s.t. $y^TA=c^T$, then $y^Tb=y^TAx=c^Tx$. So, every feasible solution $x$ has the same value $v^*$!
+\item But, in general, cannot hope that such $y$ exists - $c$ might not be in the span of $A^T$. 
+\item Instead, let us focus on a looser goal:  find $y$ s.t. $y^TA \le c^T$. 
+
+$\Rightarrow$ We can lower bound $v^*$ by noting that $y^T b= y^TAx \le c^Tx$, for {\em any} feasible $x$. (The inequality holds as $x\geq 0$.)
+
+\item How about getting the {\em best} lower bound to be gotten this way?
+
+\item Write an LP for that!
+
+\item {\em Dual} LP: $\max b^Ty$ s.t. $A^Ty\leq c$. (Note that the dual LP is defined in a completely syntactic way - no thinking involved!)
+
+\item Let $w^*:=\max \set{b^Ty \mid A^Ty \le c}$.
+\item We just have shown {\em weak duality:} $w^*\leq v^*$. 
+\end{itemize}
+
+
+{\bf Important observation (and a sanity check):} The dual of the dual LP gives the primal LP. 
+
+\begin{itemize}
+\item Let the primal LP be $\min c^Tx$ s.t. $Ax=b, x\ge 0$.
+\item Its dual LP is $\max b^Ty$ s.t. $A^Ty\leq c$.
+\item Let us transform the latter LP into a standard form:
+\[
+\max b^Ty \text{ s.t. } A^Ty \le c
+\]
+$\Rightarrow$
+\[
+- \min -b^Ty \text{ s.t. } A^Ty + I s = c, s\geq 0
+\]
+$\Rightarrow$
+\[
+- \min (-b)^T(y^+-y^-) \text{ s.t. } A^Ty^+- A^Ty^-+ I s = c, s, y^+, y^-\geq 0
+\]
+$\Rightarrow$ In matrix form, this LP dual becomes
+\begin{eqnarray*}
+-\min
+\left(
+\begin{array}{ccc}
+-b&b&0
+\end{array}
+\right)
+\left(
+\begin{array}{c}
+y^+\\y^-\\s
+\end{array}
+\right) \text{ s.t. }
+&&\left(\begin{array}{ccc}
+A^T&-A^T&I
+\end{array}
+\right)
+\left(\begin{array}{c}
+y^+\\
+y^-\\
+s
+\end{array}
+\right) = c\\
+&&y^+,y^-,s \ge 0\\
+\end{eqnarray*}
+\item The dual of the above LP is then:
+\[
+-\max c^T z \text{ s.t. }  \left(\begin{array}{ccc}
+A^T&-A^T&I
+\end{array}
+\right)^T z
+\le
+\left(
+\begin{array}{ccc}
+-b&b&0
+\end{array}
+\right)^T\\
+\]
+$\Rightarrow$ 
+\[
+\min -c^T z \text{ s.t. }  A(-z)=b, z\leq 0
+\]
+$\Rightarrow$ Setting $x=-z$, we get
+\[
+\min c^T x \text{ s.t. }  Ax=b, x\geq 0,
+\]
+as desired.
+\end{itemize}
+
+{\bf A simple corollary of weak duality and the above observation:}  If $P$ is the primal LP and $D$ is the dual LP then either
+\begin{itemize}
+\item Both $P$ and $D$ are feasible and bounded. 
+\item if $P$ is feasible, $D$ either infeasible or bounded.
+\item If $P$ is feasible and unbounded (i.e., $v^*=-\infty$), $D$ infeasible.
+\item (Similarly, if $D$ feasible and unbounded (i.e., $w^*=\infty$), $P$ is infeasible.)  
+\item In fact, together with strong duality (see below), this implies that we can have only four possibilities: both $P$ and $D$ bounded and feasible, one of them unbounded and one of them infeasible,, both of them infeasible.
+\end{itemize}
+
+
+
+\section{Strong Duality}
+
+Weak duality described below is just a tip of an iceberg.
+{\bf Strong duality (key theorem of LP):} If $P$ and $D$ feasible then $v^*=w^*$. \\
+
+{\bf ``Proof'' by picture:}
+\begin{itemize}
+\item Consider a ``dual'' problem $\min b^Ty$ s.t. $A^Ty \ge c$, which we obtain by flipping the sign of $y$ in our above dual problem formulation.
+\item Suppose $b$ points straight up.
+\item  Imagine that $y$ is the position of a ball that falls down subject to gravity and the constraints correspond to ``floors'' that limit how far the ball can fall.
+
+$\Rightarrow$ Minimizing $b^T y$ subject to our constraints corresponds here exactly to minimizing the height of the ball given the limitations posed by the floor. 
+
+$\Rightarrow$ Let $y^*$ be the minimum height position the ball settles in (according to physics). This is also the optimal solution for our dual LP.  
+
+\item Why does the ball stay in position $y^*$? 
+\item The forces exerted on the ball by the floors are canceling the ``gravity'' $-b$.
+
+$\Rightarrow$ Force exerted by the floor $i$ has to be normal (i.e., perpendicular) to the surface of that floor. That is, it is equal to $A_i x_i$, for some scaling factor $x_i$, where $A_i$ is the $i$-th column of $A$. 
+
+\item Equilibrium condition: $\sum_i A_i x_i = b$. That is, $Ax=b$. 
+\item Also, the force exerted by the floors can be only pushing the ball away. So, $x_i\geq 0$, for each $i$. 
+
+$\Rightarrow$ $x\geq 0$. 
+\item In other words, $x$ is feasible (but not necessarily optimal) for the ``primal'' LP $\min c^x$ s.t. $Ax=b, x\geq 0$. 
+\item Furthermore, physics tells us that the floors that do not touch the ball, i.e., all floors $i$ with $A_i^T y^{*} >c_i$, do not exert any force. So, $x_i=0$ for them. 
+
+$\Rightarrow$ Compact way of writing that: $(c_i-A_i^Ty^{*})x_i=0$, for all $i$. (This is {\em complementary slackness} condition!)
+\item Thus we have that $c^T x = \sum_i (A_i^T y^{*}) x_i = x^T A^T y^{*} = (Ax)^Ty^{*}=b^Ty^{*}$.
+\item So, by weak duality, $x$ is indeed optimal and $v^*=c^Tx=b^Ty^*=w^*$. 
+\end{itemize}
+
+% Guest lecture, Justin Oct 18 2017 end (approximate)
+% Karger Oct 20 2017 start
+
+{\bf Formal proof:}
+\begin{itemize}
+\item Consider the optimum solution $y^*$ to the $\min b^Ty$ s.t. $A^Ty \ge c$. (The sign of $y$ is still flipped.)
+\item Let us choose a subset $S$ of constraints that are tight, i.e., $A_i^Ty^*=c$, and linearly independent. (Recall that $A_i$ is the $i$-th column of $A$.)
+\item Note that $|S|$ is at most $m$, where $m$ is the dimension of $y^*$.
+\item Let $A_S$ and $c_S$ be the matrix $A$ and the vector $c$ after dropping the rows/entries corresponding to the constraints not in $S$.
+
+$\Rightarrow$ The matrix $A_S^T$ is of full column rank and $A_S^T y^*=c_S$.
+\item Also, we still have that $b^Ty^*=w^*=\min b^Ty$ s.t. $A_S^Ty\geq c_S$.
+\item Thus, if we prove strong duality wrt to $A_S$, i.e., that there exists $x_S^*$ s.t. $A_Sx_S^*=b$, $x_S^*\geq 0$, and $c_S^T x_S^*=b^T y^*=w^*$,  then we recover strong duality for the original LP by just considering $x^*$ being $x_S^*$ with all the coordinates not in $S$ padded with zeros. Specifically, we will have that $c^Tx^*=c_S^Tx_S^*=w^*$, $Ax^*=A_Sx_S^*=b$ and $x^*\geq 0$, as desired.
+\item So, let us drop the reference to $S$ and assume from now on wlog that $A^T$ is of full column rank and $A^Ty^*=c$. 
+\end{itemize}
+
+{\bf Claim:} There exists $x^*$ such that $Ax^*=b$.
+\begin{itemize}
+\item Suppose not?  Then, by the ``duality'' for linear equalities we considered earlier, tells us there exists a vector $z$ with $A^Tz=0$ but $b^Tz\ne 0$. 
+\item Wlog assume $b^Tz<0$.  (Else, we just take $-z$.)
+\item Consider a solution $y'=y^*+z$. 
+\item It is feasible since $A^Ty'=A^Ty^*+A^Tz=A^Ty^*$.
+\item Also, we have that $b^Ty'=b^T(y^*+z)=b^Ty^*+b^Tz<b^Ty^*=w^*$. Solution $y'$ is strictly better than the optimum. Contradiction!
+\item (This formalizes our idea that if the forces are not in balance, the
+  ball will fall further down.)
+\end{itemize}
+
+{\bf Claim:} We have that $b^Ty^*=c^Tx^*$.
+\begin{itemize}
+\item We know that $Ax^*=b$ and $A^Ty^*=c$. 
+\item So $b^Ty^*=(Ax^*)^Ty^*=(A^Ty^*)^Tx^*=c^Tx^*$.
+\end{itemize}
+
+{\bf Claim:} It is the case that $x^* \ge 0$.
+
+(Formalizes the intuition that barriers have to \emph{push} ball not pull it.)
+\begin{itemize}
+\item  Suppose not, i.e., some $x_i^* < 0$.
+\item Let $c'=c+e_i$, where $e_i$ is a vector with all-zeros except a $1$ at coordinate $i$. (This corresponds to tightening the $i$-th constraint, i.e., moving it ``upwards''.)
+\item Consider solution to $A^T y'=c'$. (Such a solution has to exist as $A^T$ has a full column rank.)
+\item Clearly, $c' \ge c$, and thus $A^Ty'=c'\geq c$. 
+
+$\Rightarrow$ $y'$ is feasible for the original constraints $A^Ty\ge c$. 
+\item The value of the objective is $b^Ty'=(Ax^*)^Ty'=(A^Ty')^Tx^*=(c')^Tx^*$.
+\begin{itemize}
+\item We assumed $x_i^* < 0$, and \emph{increased} $c_i$.
+\item So $b^Ty'=(c')^Tx^* < c^Tx^* =b^Ty^*$.
+\item Again, got a feasible solution $y'$ with a better value than optimum. Contradiction!
+\end{itemize}
+\item {\em Intuition:} $x_i^*$ is telling us how much the value of the optimum will change if we ``tighten'' $i$-th constraint.
+
+$\Rightarrow$ Making constraint tighter should increase opt (as it corresponds to a minimization problem).
+
+$\Rightarrow$ $x_i^*$ should be thus non-negative.
+\end{itemize}
+
+{\bf Interesting corollary (of strong duality):} For LPs, finding a solution that is merely feasible is {\em algorithmically equivalent} to finding a solution that is optimal. 
+\begin{itemize}
+\item Given an LP optimizer, we can find a feasible solution by optimizing with an arbitrary cost vector.
+\item Given an LP feasible  solution finding algorithm, can compute the optimal solution by combining primal and dual. Specifically, suffices to find a feasible solution to the following set of LP constraints:
+  \[
+  \{ Ax=b, x\geq 0, c^Tx=b^Ty,  A^Ty\leq c\},
+  \]
+  with $x$ and $y$ being the variables. 
+\end{itemize}
+
+\section{Rules for Taking Duals}
+
+\begin{itemize}
+\item So far we defined a dual LP only when the primal LP was in standard form. 
+\item Since every LP can be converted to standard form, this was sufficient.
+\item  Still, having to go through the standard form to figure out the dual is a bit painful. \item Thus, below, we provide a general rules for taking a dual of an arbitrary LP. 
+\end{itemize}
+
+\begin{itemize}
+\item Consider a primal LP to be as follows:
+\begin{eqnarray*}
+v^* &= &\min c_1x_1+c_2x_2+c_3x_3\\
+A_{11}x_1+A_{12}x_2+A_{13}x_3 &= &b_1\\
+A_{21}x_1+A_{22}x_2+A_{23}x_3 &\ge &b_2\\
+A_{31}x_1+A_{32}x_2+A_{33}x_3 &\le &b_3\\
+x_1 &\ge &0\\
+x_2 & \le &0\\
+x_3 &&UIS,
+\end{eqnarray*}
+Here, we split the cost vector $c$ and the variables $x$ into the parts corresponding to different sign constraints. (UIS emphasizes the fact that the variables are unrestricted in sign.) Also, every submatrix of $A$ corresponds to a different combination of the sign of the variable and the constraint. 
+\item The corresponding dual LP is:
+\begin{eqnarray*}
+w&=&\max y_1b_1+y_2b_2+y_3b_3 \\
+A_{11}^Ty_1+A_{21}^Ty_2+A_{31}^Ty_3 &\le &c_1\\
+A_{12}^Ty_1+A_{22}^Ty_2+A_{32}^Ty_3 &\ge &c_2\\
+A_{13}^Ty_1+A_{23}^Ty_2+A_{33}^Ty_3 &= &c_3\\
+y_1 &&UIS\\
+y_2 &\ge &0\\
+y_3 &\le &0
+\end{eqnarray*}
+\item In general, variable corresponds to constraint (and vice versa):\\
+\begin{tabular}{|c|c|c|c|}
+\hline&&&\\
+PRIMAL & minimize & maximize & DUAL\\
+\hline&&&\\
+&$\ge b_i$ & $\ge 0$ & \\
+constraints &$\le b_i$ & $\le 0$ & variables\\
+&$= b_i$ & UIS &\\
+\hline &&&\\
+& $\ge 0$ & $\le c_j$ &\\
+variables & $\le 0$ & $\ge c_j$ & constraints\\
+& UIS & $= c_j$ &\\
+\hline
+\end{tabular}
+\end{itemize}
+
+
+{\em Some observations:}
+\begin{itemize}
+\item Adding primal constraints creates a new dual variable: more dual
+  flexibility.
+  \item The tighter the primal constraint, the looser the dual variable (and vice versa). In particular, equality primal constraints introduces a dual variable with an unrestricted sign.
+\item If constraint is in ``natural'' direction opposing the minimization/maximization, dual variable is positive (and vice versa).
+\end{itemize}
+
+\section{Insights on Specific Problems via LP Duality}
+
+\begin{itemize}
+\item The derivation of the LP dual is completely automatic/''brain-dead''.
+\item Still,  understanding what problem the dual LP captures can bring a lot of non-trivial insight into the problem corresponding to the primal LP. 
+\item This is the real power of LP duality!
+\item {\bf Nonetheless:} Knowing the actual optimal dual solution may be useless for finding the primal optimum solution! 
+
+$\Rightarrow$ More formally: if your algorithm runs in time $T$ to find primal optimal solution {\em given} an optimal dual solution, it can be adapted to run in time $O(T)$ and find the primal optimal solution {\em without} having to know the optimal dual solution!
+
+$\Rightarrow$ (See the problem set.)
+
+\item Let us take a look at the strong duality ``in action'' on a couple of example problems we studied before.
+\end{itemize}
+
+
+\subsection{Shortest Paths Problem}
+
+\begin{itemize}
+\item Let us formulate shortest paths as a ``dual'' (i.e., maximization) LP:
+\begin{eqnarray*}
+w^*&=&\max d_t-d_s\\
+\text{s.t.} && \\
+d_j-d_i &\le &c_{e} \quad \quad\quad\quad\quad \text{  $\forall_{e=(i,j)}$}
+\end{eqnarray*}
+\item The constraint matrix $A$ has one row per each edge and one column per each vertex. 
+\item The solution $d$ corresponds to embedding of vertices on the real line. 
+
+$\Rightarrow$ All the constraints and the cost vector are ``shift-invariant'', i.e., shifting each $d_i$ by the same value does not change anything.
+
+$\Rightarrow$ We can assume wlog $d_s=0$ and then $d_i$ is just the distance of vertex $i$ from vertex $s$ in this line embedding. 
+
+\item Each constraints is just a triangle inequality imposed by edge $e$. 
+
+\item Optimal solution sets $d_t$ to be the shortest $s$-$t$ path distance with all the constraints corresponding to the edges on this path being tight.
+
+\item What is the dual LP? 
+
+\item One variable $y_e$ per each edge constraint. As these are upperbounding constraints, the variables $y_e$ are non-negative (see the correspondence table above - note that our dual LP here is ``primal'' from the point of view of the table as our primal LP corresponds to maximization).
+\item One constraint per each variable $d_i$.  Since variables were unbounded, the constraint is an equality constraints. (Again, see the table above.)
+\item End result:
+\begin{eqnarray*}
+v^*&=&\min \sum_e c_e y_e\\
+\text{ s.t.} & &\\
+\sum_{j} \left(y_{ji}-y_{ij}\right) & = & 
+{\begin{cases} -1 & \text{if $i=s$}\\
+1 & \text{if $i=t$}\\
+0 & \text{otherwise}
+\end{cases}}\\
+y &\ge &0\\
+\end{eqnarray*}
+\item So, the dual of the shortest path problem is the task of sending one unit of flow from $s$ to $t$ while minimizing the cost (and having no capacity constraints).
+\item This makes a lot of sense and might seem not too profound but the key point is: we got this via purely syntactic manipulations!
+\end{itemize}
+
+\subsection{Maximum Flow Problem}
+
+\begin{itemize}
+\item Given our maximum flow instance, let us change it into a circulation problem by adding an edge from $t$ to $s$ and make it have infinite capacity, i.e., $u_{ts}=\infty$. 
+\item Our goal then becomes to find a circulation that preserves all capacity constraints and maximizes the flow on the added ``back edge'' from $t$ to $s$. 
+\item Our primal LP becomes:
+\begin{eqnarray*}
+w^*& = &\max x_{ts}\\
+\text{ s.t.} & &\\
+\sum_w x_{vw}-x_{wv} &= &0 \quad \quad\quad\quad\quad \text{  $\forall_{v}$}\\
+x_{e} &\le &u_{e} \quad \quad\quad\quad\quad \text{$\forall_{e}$}\\\
+x &\ge &0,
+\end{eqnarray*}
+with each variable $x_e$ encoding the flow on edge $e$.
+\item In our dual problem we have two types of variables: $z_v$ corresponding to each flow conservation constraint; and $y_e$ corresponding to each capacity constraint.
+\item One constraint per each variable $x_e$.  
+\item The resulting dual LP is:
+\begin{eqnarray*}
+v^*&=&\min \sum_{e} u_e y_{e}\\
+\text{ s.t.} & &\\
+z_v-z_w+y_{vw} &\ge &0 \quad \quad\quad\quad\quad \text{  $\forall_{(v,w)\neq (t,s)}$}\\
+z_t-z_s+y_{ts} &\ge &1\\
+y &\ge &0
+\end{eqnarray*}
+\item Think of $y_{e}$ as ``lengths''
+\item {\em Note:} Can wlog assume that $y_{ts}=0$ since otherwise dual infinite due to the fact that $u_{ts}=\infty$.
+\item  So, we actually need to have that $z_t-z_s \ge 1$.
+\item {\em Observe:} Variables $z_v$ can be viewed as ``distances'' and the corresponding constraints are just triangle inequality constraints for them wrt lengths given by $y$s. 
+\item Since the occurrences of $z$s are shift-invariant can assume wlog that $z_s=0$ and thus $z_v$ is again the distance of $v$ from $s$ in the line embedding given by $z$. 
+\item So, our goal is to choose edge lengths $y$ so as the sink $t$ is at distance of at least $1$ from $s$ wrt lengths $y$ while minimizing the total {\em volume} of the edges. 
+\item {\em Side note:} This gives good justification for shortest augmenting path argument and blocking flows. This is {\em not} unusual: many \emph{primal-dual} algorithms leverage dual solution to indicate the best way to optimize the primal solution. 
+\item How to solve our optimization task? 
+\item One approach: find the minimum $s$-$t$ cut $S^*$, assign lengths $1$ to all the edges leaving it and $0$ to all the remaining ones. 
+% Karger Oct 20 2017 end
+% Karger Oct 23 2017 begin
+$\Rightarrow$ Our volume will be equal to the capacity of this cut $u(S^*)$. So, by weak duality, we get $w^*\leq u(S^*)$, i.e.,  that the maximum flow value $w^*$ is at most the capacity of the minimum $s$-$t$ cut!
+\item Would like use strong duality to also get the max flow min cut theorem, but to this end need to argue that $v^*=w^*\geq u(S^*)$, i.e., the dual ``volume'' problem does not have a better solution that the one given by the minimum $s$-$t$ cut. 
+\end{itemize}
+
+
+\section{Complementary Slackness}
+
+Duality leads to another idea: {\em complementary slackness}:
+\begin{itemize}
+\item Given feasible solutions $x$ and $y$, we define their {\em duality gap} as 
+\[
+c^Tx-b^Ty.
+\]
+\item Duality gap measures ``how far off'' our dual objective is from the primal objective. That  is, how far from being optimal the solutions $x$ and $y$ are. 
+\item {\em Note:} By weak duality we know that duality gap is always non-negative. Also, by strong duality, we know that when $x$ and $y$ is optimal the gap is zero. 
+\item Let us rewrite our dual LP by changing inequalities into equalities by introducing additional variables:
+\[
+\max b^T y \text{ s.t. } A^Ty+s=c, s\geq 0.
+\]
+\item The variables $s$ are called {\em slack variables}.
+\item Observe that
+\[
+c^Tx-b^Ty = (A^Ty+s)^Tx-b^Ty = y^TAx+s^Tx-y^Tb=s^Tx.
+\]
+\item So, $x$ and $y$ are optimal iff $c^Tx-b^Ty=s^Tx=\sum_i s_i x_i$ is equal to $0$.
+\item Observe that $s,y\geq 0$. So, $\sum_i s_i x_i=0$ iff $s_ix_i=0$ for {\em each} $i$. 
+
+
+$\Rightarrow$ {\em Complementary slackness} condition: Feasible primal and dual solutions $x$ and $y$ are optimal iff $x_is_i=0$, for each $i$. 
+
+\item Note that $x_is_i=0$ implies that {\em at most one} of these variables can be non-zero. 
+
+$\Rightarrow$ Either a primal variable $x_i$ is zero or its corresponding dual constraint is tight (i.e., $s_i=0$, which means that $A_i^Ty=c_i$).
+\end{itemize}
+
+
+\subsection{Apply CS to Max-flow Duality}
+
+\begin{itemize}
+\item To do that, consider the optimal dual solution $y^*$, $z^*$. 
+\item Define a cut $S=\{v \mid z_v^* < 1\}$.
+
+$\Rightarrow$ Need to have that $s\in S$ and $t\notin S$. So, $S$ is an $s$-$t$ cut. 
+\item We now use complementary slackness:
+\begin{itemize}
+\item If $(v,w)$ \emph{leaves} $S$, then $y_{vw}^* \ge z_w^*-z_v^* > 0$
+
+$\Rightarrow$ the corresponding primal constraints $x_{vw}^* \leq u_{vw}$ corresponding to the dual variable $y_{vw}^*$ has to be tight, i.e., $x_{vw}^*=u_{vw}$ for any primal optimal solution $x^*$. 
+\item If $(v,w)$ \emph{enters} $S$, then $z_v^*>z_w^*$.  Also, we know $y_{vw}^*\ge 0$
+ 
+ $\Rightarrow$ $z_v^*+y_{vw}^*>z_w^*$ i.e. the dual constraint corresponding to the primal variable $x_{vw}^*$ is {\em not} tight.
+ 
+ $\Rightarrow$ $x_{vw}^*=0$. 
+\item So, in other words, in the optimal solution $x^*$ all  edges leaving $S$ are saturated, all edges entering $S$ are empty. 
+
+$\Rightarrow$ The value of the flow $w^*$ is equal to the capacity $u(S)$ of $S$, which is at least the capacity $u(S^*)$. 
+\end{itemize}
+\item We indeed recovered the max-flow min-cut theorem!
+\end{itemize}
+
+\subsection{Minimum Cost Circulation Problem}
+
+\begin{itemize}
+\item Can adapt our maximum flow formulation. Just need to add costs on edges (and make it be minimization instead of maximization problem).
+\item The resulting primal LP:
+\begin{eqnarray*}
+v^*&=&\min \sum_e c_{e} x_{e}\\
+\text{ s.t.} & &\\
+\sum_w x_{vw}-x_{wv} &= &0 \quad \quad\quad\quad\quad \text{  $\forall_{v}$}\\
+x_{e} &\le &u_{e} \quad \quad\quad\quad\quad \text{$\forall_{e}$}\\\
+x &\ge &0,
+\end{eqnarray*}
+\item The dual LP almost the same as before, except our right-side constraints changed (as our primal cost vector changed) and changing the primal problem to be a minimization one flipped the sign constraints on variables $y$. 
+\item The resulting dual LP:
+\begin{eqnarray*}
+w^*&=&\max \sum_{e} u_e y_{e}\\
+\text{ s.t.} & &\\
+z_v-z_w+y_{vw} &\le & c_{vw} \quad \quad\quad\quad\quad \text{  $\forall_{(v,w)}$}\\
+y &\le &0
+\end{eqnarray*}
+\item Changing variables $p_v=-z_v$ and rearranging the constraints gives us:
+\begin{eqnarray*}
+w^*&=&\max \sum_{e} u_e y_{e}\\
+\text{ s.t.} & &\\
+y_{vw} &\le & c_{vw} +p_v -p_w \quad \quad\quad\quad\quad \text{  $\forall_{(v,w)}$}\\
+y &\le &0
+\end{eqnarray*}
+\item But $c_{vw} +p_v -p_w $ is just the reduced cost $c^{(p)}_{vw}$ of the edge $(v,w)$!
+\item {\em Note:} Optimum $\le 0$ since $y=0$ is a feasible solution. (Put differently: zero circulation is feasible.)
+\item {\em Note:} $y\le 0$ says the objective function is the sum of
+  the {\bf negative parts} of the reduced costs. (Positive ones get truncated to $0$.)
+  \item Let $x^*$ and $y^*$ (and prices $p^*$) be the primal and dual optimal solutions. 
+ \item Invoking complementary slackness tells us that:
+\begin{itemize}
+\item If $x_{vw}^*<u_{vw}$ then the corresponding dual variable $y_{vw}^*$ is equal to $0$. 
+
+$\Rightarrow$ $c_{vw}^{(p^*)}\ge 0$. 
+\item If  $c_{vw}^{(p^*)}<0$ then $x_{vw}^*=u_{vw}$.
+
+\item  This means that all edges with negative reduced cost have to be saturated!
+\item On the other hand, if $c_{vw}^{(p^*)} > 0$
+
+$\Rightarrow$ the constraint on $y_{vw}^*$ is slack (as $y^*\leq 0$). 
+
+$\Rightarrow$ The corresponding variable $x_{vw}^*=0$. 
+\item So, all the edges with positive reduced cost need to carry no flow!
+\end{itemize}  
+\end{itemize}
+
+% approx 50 minutes into lecture Oct 23 2017
+
+\end{document}

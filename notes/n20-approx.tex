@@ -1,0 +1,801 @@
+\documentclass{article}
+\usepackage{me}
+%\input{abbrevs}
+\setlength{\parindent}{0pt}
+\def\zhat{{\hat z}}
+
+\title{Approximation Algorithms\\ 6.854 Notes \#20}
+\author{David Karger}
+
+\begin{document}
+
+\section*{Approximation Algorithms}
+\marnote{2012 Lecture 17 start}
+\marnote{2013 Lecture 19 start}
+% Luke Lecture Start Oct 27, 2017
+What do you do when a problem is NP-complete?
+\begin{itemize}
+\item or, when the ``polynomial time solution'' is impractically slow?
+\item consider special cases
+\item assume input is random, do ``expected performance.''  Eg,
+  Hamiltonian path in all graphs.  Problem: agreeing on good
+  distribution.  
+\item run a nonpolynomial (hopefully only slightly) algorithms such as
+  branch and bound.  Usually no proven bound on runtime, but sometime can.
+\item settle for \emph{heuristic}, but prove it does \emph{well enough}
+  (our focus) 
+\end{itemize}
+
+Definitions:
+\begin{itemize}
+\item optimization problem, instances $I$, solutions $S(I)$ with
+  values $f:S(I) \rightarrow R$
+\item maximization/minimization: find solution in $S(I)$
+  maximizing/minimizing $f$ 
+\item called OPT$(I)$
+\item eg bin-packing.  instance is set of $s_i \in {0,1}$, partition
+  so no subset exceeds 1
+\end{itemize}
+
+Techincal assumptions we'll often make:
+\begin{itemize}
+\item assumption: all inputs and range of $f$ are integers/rationals
+  (can't represent reals, and allows, eg, LP, binary search).  
+\item assumption $f(\sigma)$ is a polynomial size (num bits) number
+  (else output takes too long)
+\item look for polytime in bit complexity
+\end{itemize}
+
+NP-hardness
+\begin{itemize}
+\item optimization NP-hard if can reduce  an NP-hard decision problem to it
+\item (eg, problem of ``is opt solution to this instance $\le k$?'')
+\item but use more general notion of turing-reducibility (GJ).
+\end{itemize}
+
+Approximation algorithm:
+\begin{itemize}
+\item any algorithm that gives a feasible answer
+\item eg, each item in own bin.
+\item of course, want \emph{good} algorithm.  How measure?
+\end{itemize}
+
+\subsection*{Absolute Approximations}
+
+Definition: $k$-abs approx if on any $I$, have $|A(I)-OPT(I)| \le k$
+
+Example: planar graph coloring.
+\begin{itemize}
+\item NP-complete to decide if 3 colorable
+\item know 4-colorable
+\item easy to 5-color
+\item Ditto for edge coloring: Vizing's theorem says opt is $\Delta$
+  or (constructive) $\Delta+1$
+\end{itemize}
+Known only for trivial cases, where opt is bounded by a constant.
+
+Often, can show impossible by ``scaling'' the problem.
+\begin{itemize}
+\item 
+EG knapsack.
+\begin{itemize}
+\item define profits $p_i$, sizes $s_i$, sack $B$
+\item wlog, integers.
+\item suppose have $k$-absolute
+\item multiply all $p_i$ by $k+1$, solve, scale down.
+\end{itemize}
+\item 
+EG independent set (clique)
+\begin{itemize}
+\item $k+1$ copies of $G$
+\end{itemize}
+\end{itemize}
+
+\subsection*{Relative Approximation}
+
+Definitions:
+\begin{itemize}
+\item 
+An \emph{$\alpha$-optimum} solution has value at most $\alpha$ times
+optimum for minimization, at least $1/\alpha$ times optimum for
+maximization.  
+\item an algorithm has \emph{approximation ratio} $\alpha$ if on any
+  input, it outputs an $\alpha$-approximate feasible solution.
+\item called an \emph{$\alpha$-approximation algorithm}
+\end{itemize}
+
+How do we prove algorithms have relative approximations?  
+\begin{itemize}
+\item Can't describe opt, so can't compare to it
+\item instead, comparison to computable lower bounds.
+\end{itemize}
+
+\subsection*{Greedy Algorithms}
+\def\OPT{{\mbox{OPT}}}
+
+
+Do obvious thing at each step.
+\begin{itemize}
+\item Hard part is proving it works.
+\item Usually, by attention to right upper/lower bound.
+\end{itemize}
+
+Max cut
+\begin{itemize}
+\item Upper bound trivial
+\item Max-cut greedy.
+\end{itemize}
+
+\iffalse
+this is homework!
+Min-diameter clustering?
+\begin{itemize}
+\item Gonzales' algorithm.
+\item Distances to existing centers keep dropping
+\item Suppose after $k$ chosen, farthest remaining is distance $d$
+\item Then $\OPT \ge d$
+\begin{itemize}
+\item  $k+1$ mutually-distance-$d$ points
+\item some must  share a cluster
+\end{itemize}
+\item Now assign each point to closest center
+\item Max distance from center (radius) is $d$
+\item So max diameter is $2d$
+\item 2-approx.
+\end{itemize}
+\fi
+
+Set cover
+\begin{itemize}
+\item $n$ items
+\item $\OPT=k$
+\item At each step, can still cover remainder with $k$ sets
+\item So can cover $1/k$ of remainder
+\end{itemize}
+
+Vertex cover:
+\begin{itemize}
+\item define problem
+\item suppose repeatedly pick any uncovered edge and cover: $O(log n)$
+  from set cover
+\item suppose pick uncovered edge and cover both sides: 2-approx
+\item sometime, need to be extra greedy
+\item Explicit attention to where lower bound is coming from---lower
+  bound informs algorithm.
+\end{itemize}
+
+\marnote{2012 L17 end}
+
+Graham's rule for $P||C_{\max}$ is a $2-\frac1m$ approximation algorithm
+\begin{itemize}
+\item explain problem: $m$ machines, $n$ jobs with proc times $p_j$,
+  min proc time.
+\item can also think of minimizing max load of continuously running jobs
+\item use a \emph{greedy algorithm} to solve
+\item proof by comparison to lower bounds
+\item first lower bound: average load: $\OPT \ge \frac1m\sum p_j$
+\item second lower bound:  $\OPT \ge \max p_j$
+\item consider max-load machine
+\item load before adding was less than average load, so less than OPT
+\item then add one job, length less than OPT
+\item so final weight is at most 2OPT
+\item Tighter: suppose added last-finishing/tight $p_j$ to machine with load $L$
+\item Then average load is at least $L+p_j/m \le \OPT$
+\item We achieve 
+\begin{align*}
+L+p_j &= (L+p_j/m) + p_j(1-1/m)\\
+&\le \OPT+(1-1/m)\OPT\\
+&=(2-1/m)\OPT
+\end{align*}
+\end{itemize}
+Notice:
+\begin{itemize}
+\item this algorithm is \emph{online}, competitive ratio $2-\frac1m$
+\item we have no idea of optimum schedule; just used lower bounds.
+\item we used a greedy strategy
+\item tight bound: consider $m(m-1)$ size-1 jobs, one size-$m$ job
+\item where was problem? Last job might be big
+\item LPT achieves 4/3, but not online
+\end{itemize}
+% Luke Lecture End Oct 27, 2017
+% Karger Lecture Start Oct 30, 2017 (approximate)
+\subsection{Scheduling Theory}
+
+General notation: machines $\mid$ constraints/features $\mid$ objective
+\begin{itemize}
+\item $m$ machines $i$ (and $n$ jobs $j$)
+\begin{itemize}
+\item $1$: $1$ machine
+\item $P$: $m$ identical machines
+\item $Q$: $m$ machines of different \emph{speeds}, but all related
+\item $R$: $m$ \emph{unrelated} machines, may have completely
+  different runtimes on same jobs
+\item $F$: Flow shop (job is specific sequence of tasks on many machines)
+\item $O$: Open shop (job is specific \emph{set} of tasks on many machines)
+\end{itemize}
+\item Objectives
+\begin{itemize}
+\item $\sum C_j$ average (total) completion time
+\item $\max C_j$ time to complete whole set
+\item $\sum U_j$ number of ``late'' jobs (post deadline)
+\end{itemize}
+\item Constraints
+\begin{itemize}
+\item $p_j=1$ unit time tasks
+\item $r_j$ release dates before which jobs cannot run
+\item $d_j$ deadlines to complete
+\item \emph{pmtn} jobs can be preempted/interrupted
+\item \emph{prec} precedence constraints on jobs
+\end{itemize}
+\end{itemize}
+
+\iffalse
+\textbf{never lectured:}
+
+Edge disjoint paths
+\begin{itemize}
+\item graph
+\item pairs that want to be connected by disjoint paths
+\item maximize number of pairs that connect
+\end{itemize}
+
+Greedy:
+\begin{itemize}
+\item find closest pair, take that shortest path
+\item if closest pair $<  \sqrt{m}$, then only $\sqrt{m}$ paths of opt
+  destroyed
+\item so can do this $\sqrt{m}$ times and still have pairs connected
+\item if at some point closest pair is $>\sqrt{m}$, then each path of
+  opt costs $\sqrt{m}$, so only $\sqrt{m}$ path remain
+\item result: $\sqrt{m}$ approx
+\item NP-hard to approx better in directed graph
+\item but can do better in undirected
+\end{itemize}
+\fi
+
+\section*{Approximation Schemes}
+
+So far, we've seen various constant-factor approximations.
+\begin{itemize}
+\item What is \emph{best} constant achievable?
+\item defer APX-hardness discussion until later
+\end{itemize}
+
+An \emph{approximation scheme} is a family of algorithms $A_\epsilon$
+such that
+\begin{itemize}
+\item each algorithm polytime
+\item $A_\epsilon$ achieve $1+\epsilon$ approx
+\end{itemize}
+
+But note: runtime might be awful as function of $\epsilon$
+
+
+
+\subsection*{FPAS, Pseudopolynomial algorithms}
+
+Knapsack example.
+
+Dynamic program for bounded integer profits
+\begin{itemize}
+\item $B(j,p)=$ smallest (total size) subset of jobs $1,\ldots,j$ of
+  total profit $\ge p$.
+\item because if can achieve it, can achieve it at minimum size
+\item and now we have sub-problem optimality for dynamic program
+\item $B(j+1,p) = \min \left( B(j,p),\quad s_{j+1}+B(j,p-p_{j+1}) \right)$
+\item For each $p$, solve all $n$ values of $j$
+\item Gives runtime $nP_{\OPT}$
+\end{itemize}
+
+did this prove $P=NP$?  
+\begin{itemize}
+\item No
+\item recall pseudopoly algorithms $O(mU)$
+\item contrast to weakly polynomial $O(m\log U)$
+\end{itemize}
+
+rounding
+\begin{itemize}
+\item Let opt be $P$.  
+\item Scale prices to $\lfloor (n/\epsilon P) p_i \rfloor$
+\item New opt is it least $n/\epsilon-n = (1-\epsilon)n/\epsilon$
+\item so seek solution of this value
+\item Table size/runtime $n^2/\epsilon$ ($n$ items, range $n/\epsilon$)
+\item Gives solution within $1-\epsilon$ of original opt
+\end{itemize}
+
+Wait, how do we know $P$?
+\begin{itemize}
+\item simple option: use a lower bound on $P$, namely $\max p_i$
+  \begin{itemize}
+  \item then opt scales to $(n/\epsilon \max p_i)(\sum p_i) < n^2/\epsilon$
+  \item just slows algorithm to $n^3/\epsilon$
+  \end{itemize}
+\item Faster: suppose we guess $P>\OPT/(1-\epsilon)$
+  \begin{itemize}
+    \item OPT scales to at most $(n(1-\epsilon)/\epsilon P)\OPT < n/\epsilon-n$
+    \item scaled solution of desired value $n/\epsilon-n$ doesn't exist
+    \item so won't find
+  \end{itemize}
+\item Suppose we guess $P<\OPT$?
+  \begin{itemize}
+  \item OPT will scale to \emph{at least} $n/\epsilon-n$
+  \item so will find solution of this value
+  \item possibly much less than $\OPT$, but that's ok
+  \end{itemize}
+\item Of two cases, outcome tells us whether we guessed $P$ too high
+  or low
+\begin{itemize}
+\item so, can use binary search to find $P$
+\item note once we are close---$P<OPT<P/(1-\epsilon)$---unclear which outcome happens
+\item but that's OK, because we are close
+\item quickly get within $(1-\epsilon)$ of $P$
+\item adds another $(1-\epsilon)$ factor to approximation ratio
+\item but that gives $(1-\epsilon)^2 \approx 1-2\epsilon$
+\item so just changes the constant.
+\end{itemize}  
+\item wait, need initial low and high values?
+\begin{itemize}
+\item lower bound?  $\max p_i$
+\item upper bound? $\sum p_i$
+\item \emph{ratio} of $n$
+\item so, look at powers of $(1+\epsilon)$ in that range
+\item $\log_{1+\epsilon}n = (\log n)/\epsilon$ of them
+\item gives a solution within $(1+\epsilon)$
+\end{itemize}
+\end{itemize}
+
+
+pseudopoly gives FPAS; converse almost true
+\begin{itemize}
+\item Knapsack is only \emph{weakly} NP-hard
+\item strong NP-hardness (define) means no pseudo-poly
+\end{itemize}
+
+From FPAS to pseudo poly:
+\begin{itemize}
+\item Suppose input instance has integers bounded by $t$
+\item Solution value is $O(nt)$
+\item Find $\epsilon$-approx with $\epsilon=1/(nt+1)$
+\item Solution will be integer, so equal optimum.
+\end{itemize}
+
+% Karger Lecture End Oct 30, 2017 (approximate)
+% Karger Lecture Start Nov 1, 2017
+
+\subsection*{Enumeration}
+
+
+
+More powerful idea: $k$-enumeration
+\begin{itemize}
+\item Return to $P || C_{\max}$
+\item Schedule $k$ largest jobs optimally
+\item scheduling remainder greedily
+\item analysis: claim $A(I) \le OPT(I)+p_{k+1}$
+\begin{itemize}
+\item Consider job with max $c_j$
+\item If one of $k$ largest, done and at opt
+\item Else, was assigned to min load machine, so $c_j \le OPT+p_j \le
+  OPT+p_{k+1}$ 
+\item so done if $p_{k+1}$ small
+\item but note $OPT(I) \ge (k/m)p_{k+1}$
+\item deduce $A(I) \le  (1+m/k)OPT(I)$.
+\item So, for fixed $m$, can get any desired approximation ratio
+\item i.e., PAS
+\end{itemize}
+\end{itemize}
+
+
+Scheduling any number of machines
+\begin{itemize}
+\item As with Knapsack, focus on decision problem
+\item Can I complete all in time $T$?
+\item If can answer this, binary search will optimize $T$
+\item Again, need $T_{\min}$ and $T_{\max}$ but these are easy
+\end{itemize}
+
+Combine enumeration and rounding
+\begin{itemize}
+\item Suppose only $k$ job sizes
+\begin{itemize}
+\item Vector of ``number of each type'' on a given machine---gives
+  ``machine type''
+\item Only $n^k$ distinct vectors/machine types
+\item Similarly, only $n^k$ problem instances
+\item find out which instances are feasible with $m$ machines
+\item By deciding how many of each machine type.
+\item Use dynamic program: 
+\begin{itemize}
+\item enumerate all input instances that can be
+  completed by $j$ machines in time $T$
+\item Feasible instance is sum of feasible $j-1$ machine instance and 1-machine
+  instance (machine type)
+\end{itemize}
+\item Works because only poly many instances and types.
+\end{itemize}
+\item Use \emph{rounding} to make few important job types
+\begin{itemize}
+\item Guess OPT $T$ to within $\epsilon$ (by binary search)
+\item All jobs of size exceeding $\epsilon T$ are ``large''
+\item Round each up to next power of $(1+\epsilon)$ in range $\epsilon  T \ldots T$
+\item Only $\log_{1+\epsilon}1/\epsilon = O(1/\epsilon \ln 1/\epsilon)$ large types
+\item Solve optimally
+\item Greedy schedule remainder
+\begin{itemize}
+\item If last job to finish is large, are optimal for rounded problem so within
+  $\epsilon$ of opt
+\item If last job small, greedy analysis showes we are within
+  $\epsilon$ of opt.
+\end{itemize}
+\end{itemize}
+\end{itemize}
+
+\subsection*{Hardness}
+\begin{itemize}
+\item Is there always a PAS?
+\item MAX-SNP hard: some unbeatable constant
+\item Numerous problems in class (vertex cover, independent set, etc)
+\item Amplifications can prove \emph{no} constant.
+\end{itemize}
+
+\marnote{2012 L18 end}
+
+\section*{Relaxations}
+
+So far we've seen two techniques:
+\begin{itemize}
+\item Greedy: do the obvious
+\item Dynamic Programming: try everything
+\end{itemize}
+Can we be more clever?
+
+TSP
+\begin{itemize}
+\item Requiring tour: no approximation (finding hamiltonian path
+  NP-hard)
+\item Undirected Metric: MST relaxation 2-approx, christofides
+\item recent progress has gotten below 3/2
+\item Directed: Cycle cover relaxation (HW) gives $O(\log n)$
+\item recent progress: $O(\log n / \log\log n)$
+\item Also, \emph{Euclidean} TSP and planar graph TSP has PAS
+\end{itemize}
+
+\marnote{2011 Lecture 17 end}
+
+intuition: SPT for $1||\sum C_j$
+\begin{itemize}
+\item suppose process longer before shorter
+\item then swap improves
+\item note haven't shown local opt implies global opt
+\item rather, have relied on global opt being local opt
+\end{itemize}
+
+
+$1 | r_j |  \sum C_j$
+\begin{itemize}
+\item NP-hard
+\item relaxation: allow preemption
+\item optimum: SRPT
+\begin{itemize}
+\item assume no $r_j$: claim SPT optimal
+\item proof: local optimality argument
+\item consider swapping two pieces of two jobs
+\item suppose currently processing $k$ instead of SRPT $j$
+\item remaining times $p_j$ and $p_k$
+\item total $p_j+p_k$ time
+\item use first $p_j$ to process $j$, then do $k$
+\item some job must finish at $p_j+p_k$
+\item and no job can finish before $p_j$
+\item so this is locally optimal (for these 2 jobs)
+\end{itemize}
+\item rounding: schedule jobs in preemptive completion order
+\begin{itemize}
+\item take preemptive schedule and insert $p_j$ time at $C_j$
+\item now room to schedule nonpreemptively
+\item how much does this slow down $j$?
+\item $p_k$ space inserted before $j$ for every job completing before
+  $j$ in preemptive schedule
+\item in other words, only inserted $C_j$ time
+\item so $j$ completes in $2C_j$ time
+\item so 2-approx
+\end{itemize}
+\item More recently: rounding, enumeration gives PAS
+\end{itemize}
+
+\marnote{2013 lecture 21 end}
+\subsection*{LP relaxations}
+
+Three steps
+\begin{itemize}
+\item write integer linear program
+\item relax
+\item round
+\end{itemize}
+
+% Karger Lecture End Nov 1, 2017
+
+\subsection{Vertex cover}
+ 
+\begin{align*}
+&\min \sum x_i\\
+x_i+x_j &\ge 1& (i,j)\in E\\
+x_i&\in{0,1}
+\end{align*}
+
+Rounding
+\begin{itemize}
+\item At least one end of edge $\ge 1/2$
+\item round up to 1
+\item others to 0
+\item each vertex at most doubles
+\item so 2-approx
+\item this is tight (Nemhauser-Trotter)
+\end{itemize}
+
+Even weighted (unlike greedy).
+
+Approximation hardness:
+\begin{itemize}
+\item 7/6 Hastad 2001
+\item $10\sqrt{5} -21 \approx 1.3606\ldots$ Dinur Safra 2002
+\item $\sqrt{2}$ Khot Minzer Safra 2017
+\item $2$ if \emph{unique games conjecture} is true
+\item $2-O(1/\sqrt{\log n})$ achieved (and useful).  
+\end{itemize}
+
+\subsection*{Facility Location}
+
+\emph{Metric version}, with triangle inequality.
+\begin{itemize}
+\item general version as hard as set cover.
+\end{itemize}
+
+ILP
+\begin{align*}
+&\min \sum f_iy_i + \sum c_{ij}x_{ij}\\
+x_{ij} &\le y_i\\
+\sum_i x_{ij} &\ge 1
+\end{align*}
+
+Step 1: filtering
+\begin{itemize}
+\item Want to assign $j$ to one of its ``partial'' assignments
+  $x_{ij}>0$
+\item $C_j = \sum_i x_{ij}c_{ij}$ is ``average'' assignment cost
+\item and is amount accounted for in fractional optimum
+\item but some $x_{ij}>0$ may have huge $c_{ij}$
+\item which wouldn't be accounted for
+\item rely on ``can't have everything above average''
+\item claim at most $1/\rho$ fraction of assignment can have
+  $c_{ij}>\rho C_j$
+\item if more, average exceeds $(1/\rho)(\rho C_j)=C_j$, impossible
+\item so, zero out an $x_{ij}$ with $c_{ij} \ge \rho C_j$
+\item and compensate by scaling up other $x_{ij}$ by $1/(1-1/\rho)$ factor
+\item Also have to increase $y_i$ by $1/(1-1/\rho)$ factor to ``make room''
+\item New feasible solution to LP
+\item no longer necessarily optimal
+\item Now, assignment of client $j$ to \emph{any} nonzero $x_{ij}$
+  costs at most $\rho C_j$
+\item So, total assignment cost at most $\rho\sum C_j$
+\end{itemize}
+
+Step 2: Facility opening: intuition
+\begin{itemize}
+\item To assign, need to open facilities
+\item If $y_i$ small, opening facility isn't paid for
+\item So, find a cluster of facilities of total $y_i > 1$
+\item Open minimum cost facility
+\item Cost $f_{\min}\le f_{\min}\sum y_i = \sum f_{\min}y_i \le \sum f_i y_i$ so LP upper bounds cost
+\item Everything in cluster nearby, so using opened facility as
+  ``proxy'' for all others without adding much cost
+\end{itemize}
+
+Step 2: Facility opening: details
+\begin{itemize}
+\item Choose client with minimum $C_j$
+\item Take all his ``available'' facilities ($c_{ij} < \rho C_j$)
+\item Open the cheapest and zero the others
+\item So cost at most $\sum f_i y_i$ over $i$ in cluster
+\item assign \emph{every} client that has nonzero $x_{ij}$ to
+  \emph{any} node in cluster
+\begin{itemize}
+\item cost of assigning $j'$
+\item $\le \rho C_{j'}$ to reach its nonzero $x_{i'j'}$ in cluster
+\item then distance from $i'$ to $i$ is at most $2\rho C_j \le 2\rho C_{j'}$ 
+by  choice of $j'$
+\item so total $3\rho C_j$ by metric property
+\end{itemize}
+\item Now iterate
+\end{itemize}
+
+Combine: 
+\begin{itemize}
+\item multiplied $y_i$ by $1/(1-1/\rho)=\rho/(\rho-1)$
+\item multiplied assignment costs by $3\rho$ 
+\begin{itemize}
+\item note $x_{ij}$ are used only to
+  identify ``feasible'' facilities to connec to
+\item so assignment cost not affected by scaling up $x_{ij}$ 
+\end{itemize}
+\item for balance, set  $\rho=4/3$ and get 4-approx
+\item other settings of $\rho$ yield \emph{bicriteria approximation}
+  trading facility and connection approximation costs
+\end{itemize}
+
+Further research progress has yielded
+\begin{itemize}
+\item 1.5-approximation 
+\item .463-hardness result.  
+\item Other algorithms based on greedy and local search.
+\end{itemize}
+
+\marnote{2011 End lecture 19}
+
+
+\subsection*{MAX SAT}
+
+Define.
+\begin{itemize}
+\item literals 
+\item clauses
+\item NP-complete 
+\end{itemize}
+
+
+random setting
+\begin{itemize}
+\item achieve $1-2^{-k}$ (k is the number of literals in each clause)
+\item very nice for large $k$, but only $1/2$ for $k=1$
+\end{itemize}
+
+LP
+\begin{eqnarray*}
+  \max &&\sum z_j\\
+  \sum_{i \in C_j^+} y_i + \sum_{i \in C_j^-} (1-y_1) &\ge &z_j
+\end{eqnarray*}
+
+\marnote{2011 lecture 18 ends}
+Analysis
+\begin{itemize}
+\item $\beta_k = 1-(1-1/k)^k$.  values $1,3/4,.704,\ldots$
+\item Random round $y_i$
+\item Lemma:  $k$-literal clause sat w/pr at least $\beta_k
+  \zhat_j$.
+\item proof: 
+  \begin{itemize}
+  \item assume all positive literals. 
+  \item prob $1-\prod(1-y_i)$
+  \item maximize when all $y_i=\zhat_j/k$.
+  \item Show $1-(1-\zhat/k)^k \ge \beta_k \zhat$.
+  \item at $z=0,1$ these two sides are equal
+  \item in between, right hand side is linear
+  \item first deriv of LHS is $(1-z/k)^k=1$ at $z=0$; second deriv is
+    $-(1-1/k)(1-z/k)^{k-2}<0$
+  \item so LHS cannot cross below and then return, must always be
+  above RHS
+  \end{itemize} 
+\item Result: $(1-1/e)$ approximation (convergence of $(1-1/k)^k$)
+\item much better for small $k$: i.e. $1$-approx for $k=1$
+\end{itemize}
+
+
+LP good for small clauses, random for large.
+\begin{itemize}
+\item  Better: try both methods.  
+\item $n_1,n_2$ number in both methods
+\item Show $(n_1+n_2)/2 \ge (3/4)\sum \zhat_j$
+\item $n_1 \ge \sum_{C_j \in S^k} (1-2^{-k})\zhat_j$
+\item $n_2 \ge \sum \beta_k \zhat_j$
+\item $n_1+n_2 \ge \sum (1-2^{-k}+\beta_k) \zhat_j \ge \sum \frac32\zhat_j$
+\end{itemize}
+
+\iffalse
+
+\subsection{Chernoff-bound rounding}
+
+Set cover.
+\begin{itemize}
+\item First an elementary argument
+\item Random round each $x_i$
+\item If $\sum x_i \ge 1$ then $\Pr[$all round to 0$]<1/e$ (a constant)
+\item Proof: $\prod(1-x_i)$ maximized when all equal
+\item so $(1-1/n)^n>1/e$
+\item so if random round,  set not covered with probability $1/e$
+\item so if repeat $\log 2n$ times, probability (never cover) is $1/2n$
+\item so probability any set uncovered is $1/2$
+\item repeat till succeed
+\item expected cost is $O(\log n)\cdot$fractional opt
+\item conditioning on successful cover adds conditioning to
+  expectation
+\item but not too much (Chernoff, see below)
+\end{itemize}
+
+
+
+Theorem:
+\begin{itemize}
+\item Let $X_i$ poisson (ie independent 0/1) trials, $E[\sum
+  X_i]=\mu$
+  \[
+  \Pr[X > (1+\epsilon) \mu ] < \left[
+  \frac{e^\epsilon}{(1+\epsilon)^{(1+\epsilon)}}\right]^\mu.
+  \]
+\item note independent of $n$, exponential in $\mu$.
+\end{itemize}
+
+Proof.  
+\begin{itemize}
+\item For any $t>0$,
+\begin{eqnarray*}
+  \Pr[X > (1+\epsilon)\mu] &= &\Pr[\exp(tX) > \exp(t(1+\epsilon)\mu)]\\
+  &< &\frac{E[\exp(tX)]}{\exp(t(1+\epsilon)\mu)}
+\end{eqnarray*}
+\item Use independence.
+\begin{eqnarray*}
+  E[\exp(tX)] &= &\prod E[\exp(tX_i)]\\
+  E[\exp(tX_i)] &= &p_ie^t+(1-p_i) \\
+  &= &1+p_i(e^t-1)\\
+  &\le &\exp(p_i(e^t-1))
+\end{eqnarray*}
+$\prod \exp(p_i(e^t-1)) = \exp(\mu(e^t-1))$
+
+
+\item So overall bound is
+\[
+\frac{\exp((e^t-1)\mu)}{\exp(t(1+\epsilon)\mu)}
+\]
+True for any $t$.  To minimize, plug in $t=\ln(1+\epsilon)$.  
+
+
+\item Simpler bounds:
+\begin{itemize}
+\item less than $e^{-\mu\epsilon^2/3}$ for $\epsilon < 1$
+\item less than $e^{-\mu \epsilon^2/4}$ for $\epsilon < 2e-1$.
+\item Less than $2^{-(1+\epsilon)\mu}$ for larger $\epsilon$.
+\end{itemize}
+
+\item By same argument on $\exp(-tX)$,
+\[
+\Pr[X < (1-\epsilon)\mu] < 
+\left[   \frac{e^{-\epsilon}}{(1-\epsilon)^{(1-\epsilon)}}\right]^\mu
+  \]
+  bound by $e^{-\epsilon^2/2}$.
+\end{itemize}
+
+Basic application:
+\begin{itemize}
+\item $cn\log n$ balls in $c$ bins.  
+\item max matches average
+\item a fortiori for $n$ balls in $n$ bins
+\end{itemize}
+
+
+General observations:
+\begin{itemize}
+  \item Bound trails off when $\epsilon \approx 1/\sqrt{\mu}$, ie
+  absolute error $\sqrt{\mu}$
+  \item no surprise, since standard deviation is around $\mu$ (recall
+    chebyshev)  
+  \item If $\mu = \Omega(\log n)$, probability of
+    constant $\epsilon$ deviation
+    is $O(1/n)$,  Useful if polynomial number of events.
+  \item Note similarity to Gaussian distribution.
+  \item  \textbf{Generalizes:} bound applies to any vars distributed in range
+  $[0,1]$. 
+\end{itemize}
+
+Zillions of Chernoff applications.
+
+
+
+Wiring.
+\begin{itemize}
+\item multicommodity flow relaxation
+\item chernoff bound
+\item union bound
+\end{itemize}
+\fi
+
+\end{document}
+

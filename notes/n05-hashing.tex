@@ -1,0 +1,223 @@
+\documentclass[12pt]{article}
+\usepackage{wide,me}
+\parindent0pt
+
+\title{Hashing\\ 6.854 Notes \#5}
+\author{David Karger}
+
+\begin{document}
+
+
+\marnote{This material takes 1:05.}
+
+Everything you need to know about probability
+\begin{itemize}
+\item Linearity of expectation
+\item Indicator variables
+\item Independent events
+\item Product rule
+\item Markov inequality
+\end{itemize}
+
+\subsection*{Hashing}
+
+Dictionaries
+\begin{itemize} 
+   \item Operations.   
+      \begin{itemize} 
+      \item makeset, insert, delete, find
+      \end{itemize}
+\end{itemize}
+
+Model
+\begin{itemize}
+\item keys are integers in $M=\set{1,\ldots,m}$ 
+\item (so assume machine word size, or ``unit time,'' is $\log m$)
+\item can store in array of size $M$
+\item using power: arithmetic, indirect addressing
+\item (more than bucket based heaps that use indirection without arithmetic)
+\item compare to comparison and pointer based sorting, binary trees
+\item problem: space.
+\end{itemize}
+
+Hashing:
+\begin{itemize}
+\item find function $h$ mapping $M$ into table of size $s \ll m$
+\item use it to put $n$ items from $M$ in the table 
+\item so presumably $s \ge n$
+\item Still, some items can get mapped to same place: ``collision''
+\item use linked list etc.
+\item search, insert cost equals size of linked list
+\item goal: keep linked lists small: few collisions
+\end{itemize}
+
+
+Hash families:
+\begin{itemize}
+\item problem: for any hash function, some bad input (if space $s$,
+  then $m/s$ items to same bucket)
+\item This true even if hash is e.g. SHA1
+\item Solution: build family of functions, choose one that works well
+\end{itemize}
+
+\marnote{2013 lecture 7 start}
+
+Set of all functions?
+\begin{itemize}
+\item Idea: choose ``function'' that stores items in sorted order
+  without collisions
+\item problem: to evaluate function, must examine data
+\item evaluation time $\Omega(\log n)$.
+\item ``description size'' $\Omega(n \log m)$,
+\item Better goal: choose function without looking at data (except query key)
+\end{itemize}
+
+How about a random function?
+\begin{itemize}
+\item set $N$ of $n$ items
+\item If $s=n$,  balls in bins
+\begin{itemize}
+\item $O((\log n)/(\log\log n))$  collisions w.h.p.
+\item And matches that somewhere
+\item but we may care more about \emph{average} collisions over many operations
+\item $C_{ij}=1$ if $i,j$ collide
+\item Time to find $i$ is $1+\sum_j C_{ij}$
+\item expected value $1+(n-1)/n \le 1$
+\end{itemize}
+\item more generally expected search time for item (present or not):
+  $O(n/s)=O(1)$ if $s=n$
+\end{itemize}
+
+Problem: 
+\begin{itemize}
+\item $n^m$ functions (specify one of $n$ places for each of $n$
+  items)
+\begin{itemize}
+\item too much space to specify ($m\log n$), 
+\item hard to evaluate
+\end{itemize}
+\item for $O(1)$ search time, want to evaluate function in
+  $O(1)$ time.  
+\begin{itemize}
+\item so function description must fit in $O(1)$ machine words
+\item Assuming $\log m$ bit words
+\item So, fixed number of cells can only distinguish poly$(m)$
+  functions
+\end{itemize}
+\item This bounds size of hash family we can choose from
+\end{itemize}
+
+2-universal family: [Carter-Wegman]
+\begin{itemize}
+\item Key insight: don't need entirely random function
+\item All we care about is which pairs of items collide
+\item so: OK if items land \emph{pairwise independent}
+\item pick prime (or prime power) $p$ in range $m,\ldots,2m$ (not random)
+\item pick random $a,b$
+\item map $x$ to $(ax + b \bmod p)\bmod m$
+  \begin{itemize}
+  \item fix $x$, $y$
+  \item mapping pairwise independent, uniform before $\mod m$
+  \begin{align*}
+     ax+1\cdot b &= s\\
+     ay+1\cdot b &= t\\
+  \end{align*}
+  matrix $\binom{x\quad 1}{y \quad 1}$ determinant $x-y \ne 0$, so unique solution
+  \item So pairwise independent, near-uniform after $\mod m$
+  \item at most 2 ``uniform buckets'' to same place
+  \end{itemize}
+\item argument above holds: $O(1)$ expected search time.
+\item represent with two $O(\log m)$-bit integers: hash family of poly
+  size.
+\item \emph{max} load may be large as $\sqrt{n}$, but who cares?
+  \begin{itemize}
+  \item expected load in a bin is 1
+  \item so $O(\sqrt{n})$ with prob. 1-1/n (chebyshev).
+  \item this bounds expected max-load
+  \item some item may have bad load, but unlikely to be the requested
+  one
+\item can show the max load is probably achieved for some 2-universal families
+  \end{itemize}
+\end{itemize}
+
+\marnote{2012 lecture start}
+
+\subsection*{perfect hash families}
+Fredman Komlos Szemeredi.
+
+Ideally, would hash with \emph{no} collisions
+\begin{itemize}
+\item Get \emph{worst case} $O(1)$ lookups
+\item Explore case of fixed set of $n$ items (read only)
+\item perfect hash function: no collisions
+\item Even fully random function of $n$ to $n$ has collisions
+\end{itemize}
+
+Alternative try: use more space:
+\begin{itemize}
+\item How small can $s$ be for random $n$ to $s$ without collisions?
+  \begin{itemize}
+  \item Expected number of collisions is $E[\sum C_{ij}] =
+    \binom{n}{2}(1/s) \approx n^2/2s$
+  \item \textbf{Markov Inequality:} $n=\sqrt{s}$ works with prob. 1/2 
+  \item Nonzero probability, so, 2-universal hashes can work in
+  quadratic space.
+  \end{itemize}
+\item Is this best possible?
+  \begin{itemize}
+  \item Birthday problem: $(1-1/s)\cdots(1-n/s) \approx
+  e^{-(1/s+2/s+\cdots+n/s)} \approx e^{-n^2/2s}$
+  \item So, when $n=\sqrt{s}$ has $\Omega(1)$ chance of collision
+  \item 23 for birthdays
+  \item even for fully independent
+  \end{itemize}
+\end{itemize}
+
+Finding one
+\begin{itemize}
+\item We know one exists---how find it?
+\item Try till succeed
+\item Each time, succeed with probability 1/2
+\item Expected number of tries to succeed is 2
+\item so expect $O(n)$ work
+\item Probability need $k$ tries is $2^{-k}$
+\end{itemize}
+
+Two level hashing for linear space
+\begin{itemize}
+\item Hash $n$ items into $O(n)$ space 2-universally
+\item Build quadratic size hash table on contents of each bucket
+\item bound $\sum b_k^2=\sum_k (\sum_i [i \in b_k])^2 =\sum C_i + C_{ij}$
+\item expected value $O(n)$.  
+\item So try till get (markov)
+\item Then build collision-free quadratic tables inside 
+\item Try till get 
+\item Polynomial time in $n$, Las-vegas algorithm
+\item Easy: $6n$ cells
+\item Hard: $n+o(n)$ cells (bit fiddling)
+\end{itemize}
+
+\marnote{2013 Lecture 7 End}
+
+Define las vegas, compare to monte carlo.
+
+Derandomization
+\begin{itemize}
+\item Probability $1/2$ top-level function works
+\item Only $m^2$ top-level functions
+\item Try them all!
+\item Polynomial in $m$ (not $n$), deterministic algorithm
+\end{itemize}
+
+Followups
+\begin{itemize}
+\item Dynamic Perfect Hashing
+\end{itemize}
+
+
+\end{document}
+
+% Local Variables: 
+% mode: latex
+% TeX-master: t
+% End: 
