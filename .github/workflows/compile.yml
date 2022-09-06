@@ -35,8 +35,7 @@ jobs:
       - name: Compile Tex to HTML
         uses: docker://pandoc/latex:2.17
         with:
-          entrypoint: /bin/bash
-          args: make.sh
+          entrypoint: make.sh
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
         with:
