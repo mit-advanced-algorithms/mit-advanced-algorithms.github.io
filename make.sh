@@ -3,7 +3,7 @@
 rm -rf www
 
 echo "Copying over other HTML files..."
-for file in $(find . -name "*.html")
+for file in $(find . -name "*.html" -o -name "*.png")
 do
   mkdir -p www/$(dirname $file)
   cp $file www/$file
@@ -18,6 +18,7 @@ do
     --mathjax \
     --listings \
     -N \
+    -s \
     -t html5 \
     --variable linestretch=1.25 \
     --output=$output \
