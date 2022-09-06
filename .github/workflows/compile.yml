@@ -15,6 +15,7 @@ jobs:
       - name: Make output directory
         run: |
           mkdir compiled
+          mkdir compiled/notes
 
       - name: Compile Tex to HTML
         uses: docker://pandoc/latex:2.17
