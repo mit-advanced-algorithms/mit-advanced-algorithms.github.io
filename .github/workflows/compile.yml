@@ -35,16 +35,7 @@ jobs:
       - name: Compile Tex to HTML
         uses: docker://pandoc/latex:2.17
         with:
-          run: |
-            echo "hello world"
-            pandoc 
-              --mathjax
-              --listings
-              -N
-              -t html5
-              --variable linestretch=1.25
-              --output=notes/n00-intro.html
-              notes/n00-intro.tex
+          --entrypoint /bin/bash make.sh
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
         with:
