@@ -1,0 +1,298 @@
+\documentclass{article}
+\usepackage{scribe}
+\usepackage{epsfig}
+\renewcommand{\Pr}[1]{\textrm{\textup{Pr}}\left( #1 \right)}
+\begin{document}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Lecture command takes 4 arguments:
+%               ordinal number of the lecture
+%               date of the lecture
+%               lecturer
+%               scribe---that is you.
+%
+% Fill out the next line with this information !!!!
+\lecture{19}{10/20/2004}{David Karger}{Sergiy Sidenko}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Your notes start here!
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% For theorems, lemmas, definitions, remarks, etc. use commands
+% {\theorem{...}}, {\lemma{...}}, {\definition{...}}, etc.
+% For proofs, use \begin{proof} ... \end{proof}
+%
+% For postscript figures (.ps) use the following block:
+%
+% \begin{figure}[h]
+% \begin{center}
+% \mbox{\psfig{figure=notes-nn-fig-mm.ps}}
+% \caption{A very nice picture.}
+% \label{fig:picture}
+% \end{center}
+% \end{figure}
+%
+
+% For encapsulated postscript figures (.eps) use the following block:
+%  (also change documentstyle line )
+% \begin{figure}[h]
+% \begin{center}
+% \mbox{\epsfbox{notes-nn-fig-mm.eps}}
+% \caption{A very nice picture.}
+% \label{fig:picture}
+% \end{center}
+% \end{figure}
+%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\begin{center}
+{\large \bf Approximation Algorithms (continued)}
+\end{center}
+
+\section{Relative Approximation Algorithms}
+
+Since absolute approximation algorithms are known to exist for so few optimization problems, a
+better class of approximation algorithms to consider are relative approximation algorithms.
+Because they are so commonplace, we will refer to them simply as approximation algorithms.
+
+\begin{definition}
+  \textbf{An $\alpha$-approximation algorithm} finds a solution of value at most $\alpha \cdot
+  OPT(I)$ for a minimization problem and at least $OPT(I) / \alpha$ for a maximization problem ($\alpha \ge 1$).
+\end{definition}
+
+Note that although $\alpha$ can vary with the size of the input, we will only consider those cases
+in which it is a constant. To illustrate the design and analysis of $\alpha$-approximation
+algorithm, let us consider the Parallel Machine Scheduling problem, a generic form of load
+balancing.
+
+\begin{description}
+\item[Parallel Machine Scheduling:]
+
+Given $m$ machines $m_i$ and $n$ jobs with processing times $p_j$, assign the jobs to the machines
+to minimize the load
+
+$$
+\max\limits_{i} \sum\limits_{j \in i} p_j,
+$$
+
+the time required for all machines to complete their assigned jobs. In scheduling notation, this
+problem is described as $\mathrm {P \parallel C_{\max}}$.
+
+\end{description}
+
+A natural way to solve this problem is to use \textit{greedy algorithm} called \textbf{list
+scheduling}.
+
+\begin{definition}
+A \textbf{list scheduling} algorithm assigns jobs to machines by assigning each job to the least
+loaded machine.
+\end{definition}
+
+Note that the order in which the jobs are processed is not specified.
+
+\subsubsection{Analysis}
+
+To analyze the performance of list scheduling, we must somehow compare its solution for each
+instance $I$ (call this solution $A(I)$) to the optimum $OPT(I)$. But we do not know how to obtain
+an analytical expression for $OPT(I)$. Nonetheless, if we can find a meaningful lower bound
+$LB(I)$ for $OPT(I)$ and can prove that $A(I) \le \alpha \cdot LB(I)$ for some $\alpha$, we then
+have
+
+$$
+\begin{array}{lcl}
+A(I)    & \le & \alpha \cdot LB(I) \\
+        & \le & \alpha \cdot OPT(I).
+\end{array}
+$$
+
+Using the idea of lower-bounding $OPT(I)$, we can now determine the performance of list
+scheduling.
+
+{\claim{List scheduling is a $(2-1/m)$-approximation algorithm for Parallel Machine Scheduling.}}
+
+\begin{proof}
+
+Consider the following two lower bounds for the optimum load $OPT(I)$:
+
+\begin{itemize}
+
+\item the maximum processing time $p = \max_j p_j,$
+\item the average load $L = \sum_j p_j/m.$
+
+\end{itemize}
+
+The maximum processing time $p$ is clearly lower bound, as the machine to which the corresponding
+job is assigned requires at least time $p$ to complete its tasks. To see that the average load is
+a lower bound, note that if all of the machines could complete their assigned tasks in less than
+time $L$, the maximum load would be less than the average, which is a contradiction. Now suppose
+machine $m_i$ has the maximum runtime $L = c_{\max}$, and let job $j$ be the last job that was
+assigned to $m_i$. At the time job $j$ was assigned, $m_i$ must have had the minimum load (call it
+$L_i$), since list scheduling assigns each job to the least loaded machine. Thus,
+
+$$
+\begin{array}{lcl}
+\sum\limits_{\mbox{machine i}} p_i  & \ge & m L_i + p_j \\
+                                    & \ge & m (L - p_j) + p_j
+\end{array}
+$$
+
+Therefore,
+
+$$
+\begin{array} {lcl}
+OPT(I)  & \ge & \frac{1}{m} \left( m (L - p_j) + p_j \right) \\
+        & = & L - (1-1/m) p_j, \\
+\mbox{then}        \\
+L       & \le & OPT(I) + (1 - 1/m) p_j \\
+        & \le & OPT(I) + (1 - 1/m) OPT(I) \\
+        & \le & (2 - 1/m) OPT(I).
+\end{array}
+$$
+
+The solution returned by list scheduling is $c_{\max}$, and thus list scheduling is a
+$(2-1/m)$-approximation algorithm for Parallel Machine Scheduling.
+
+The example with $m(m-1)$ jobs of size $1$ and one job of size $m$ for $m$ machines shows that we
+cannot do better than $(2-1/m)OPT(I)$.
+
+\end{proof}
+
+\section{Polynomial Approximation Schemes}
+
+The obvious question to now ask is how good an $\alpha$ we can obtain.
+
+\begin{definition}
+A \textbf{polynomial approximation scheme (PAS)} is a set of algorithms $\{ A_\varepsilon \}$ for
+which each $A_\varepsilon$ is a polynomial-time $(1+\varepsilon)$-approximation algorithm.
+\end{definition}
+
+Thus, given any $\varepsilon >0$, a PAS provides an algorithm that achieves a
+$(1+\varepsilon)$-approximation. In order to devise a PAS we can use the method called
+$k$-enumeration.
+
+\begin{definition}
+An approximation algorithm using \textbf{$k$-enumeration} finds an optimal solution for the $k$
+most important elements in the problem and then uses an approximate polynomial-time method to
+solve the reminder of the problem.
+\end{definition}
+
+\subsection{A Polynomial Approximation Scheme for Parallel Machine Scheduling}
+
+We can do the following:
+
+\begin{itemize}
+
+\item Enumerate all possible assignments of the $k$ largest jobs.
+
+\item For each of these partial assignments, list schedule the remaining jobs.
+
+\item Return as the solution the assignment with the minimum load.
+
+\end{itemize}
+
+Note that in enumerating all possible assignments of the $k$ largest jobs, the algorithm will
+always find the optimal assignment for these jobs. The following claim demonstrates that this
+algorithm provides us with a PAS.
+
+{\claim{For any fixed $m$, $k$-enumeration yields a polynomial approximation scheme for Parallel
+Machine Scheduling.}}
+
+\begin{proof}
+
+Let us consider the machine $m_i$ with maximum runtime $c_{\max}$ and the last job that $m_i$ was
+assigned.
+
+If this job is among the $k$ largest, then it is scheduled optimally, and $c_{\max}$ equals
+$OPT(I)$.
+
+If this job is not among the $k$ largest, without loss of generality we may assume that it is the
+$(k+1)$th largest job with processing time $p_{k+1}$. Therefore,
+$$
+%\begin{array} {lcl}
+A(I) \le OPT(I) + p_{k+1}.
+$$
+
+However, $OPT(I)$ can be bound from below in the following way:
+$$
+OPT(I) \ge \frac{k p_k}{m},
+$$
+
+because $\frac{k p_k}{m}$ is the minimum average load when the largest $k$ jobs have been
+scheduled.
+
+Now we have:
+$$
+\begin{array} {lcl}
+A(I)    & \le & OPT(I) + p_{k+1} \\
+        & \le & OPT(I) + OPT(I) \frac{m}{k} \\
+        & = & OPT(I) \left( 1+\frac{m}{k} \right).
+\end{array}
+$$
+
+Given $\varepsilon > 0$, if we let $k$ equal $m/\varepsilon$, we will get
+$$
+c_{\max} \le (1+\varepsilon) OPT(I).
+$$
+
+Finally, to determine the running time of the algorithm, note that because each of the $k$ largest
+jobs can be assigned to any of the $m$ machines, there are $m^k = m^{m/\varepsilon}$ possible
+assignments of these jobs. Since the list scheduling performed for each of these assignments takes
+$O(n)$ time, the total running time is $O(nm^{m/\epsilon})$, which is polynomial because $m$ is
+fixed. Thus, given an $\varepsilon >0$, the algorithm is a $(1+\varepsilon)$-approximation, and so
+we have a polynomial approximation scheme.
+
+\end{proof}
+
+\section{Fully Polynomial Approximation Schemes}
+
+Consider the PAS in the previous section for ${\rm P \parallel C_{\max}}$. The running time for
+the algorithm is prohibitive even for moderate values of $\varepsilon$. The next level of
+improvement, therefore, would be approximation algorithms that run in time polynomial in $1/
+\varepsilon$, leading to the definition below.
+
+\begin{definition}
+\textbf{Fully Polynomial Approximation Scheme (FPAS)} is a set of approximation algorithms such
+that each algorithm $A(\varepsilon)$ in this set runs in time that is polynomial in the size of
+the input, as well as in $1/ \varepsilon$.
+\end{definition}
+
+There are few $NP$-complete problems that allow for FPAS. Below we discuss FPAS for the Knapsack
+problem.
+
+\subsection{A Fully Polynomial Approximation Scheme for the Knapsack Problem}
+
+The Knapsack problem receives as input an instance $I$ of $n$ items with profits $p_i$, sizes
+$s_i$ and knapsack size (or capacity) $B$. The output of the Knapsack problem is the subset $S$ of
+items of total size at most $B$, and that has profit:
+
+$$
+\max \sum\limits_{i \in S} p_i.
+$$
+
+Suppose now that the profits are integers; then we can write a $DP$ algorithm based on the minimum
+size subset with profit $p$ for items $1, \, 2, \, \ldots, \, r$ as follows:
+
+$$
+M(r,p) = \min \left\{ M(r-1,p), M(r-1, p-p_r) + s_r \right\}.
+$$
+
+The corresponding table of values can be filled in $O\left(n \sum_i p_i \right)$ (note that this
+is not FPAS in itself).
+
+Now, we consider the general case where the profits are not assumed to be integers. Once again, we
+use a rounding technique but one that can be considered a generic approach for developing FPAS for
+other $NP$-complete problems that allows for FPAS. Suppose we multiplied all profits $p_i$ by
+$n/\varepsilon \cdot OPT$; then the new optimal objective value is apparently $n/\varepsilon$.
+Now, we can round the profits down to the nearest integer, and hence the optimal objective value
+decreases at most by $n$; expressed differently, the decrease in objective value is at most
+$\varepsilon \cdot OPT$. Using the $DP$ algorithm above, we can therefore find the optimal
+solution to the rounded problem in $O(n^2/ \varepsilon)$, thus providing us with FPAS in
+$1/\varepsilon$.
+
+\end{document}

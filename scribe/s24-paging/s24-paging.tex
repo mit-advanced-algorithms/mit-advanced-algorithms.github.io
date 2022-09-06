@@ -1,0 +1,296 @@
+\documentclass{article}
+\usepackage{scribe}
+\usepackage{epsfig}
+\renewcommand{\Pr}[1]{\textrm{\textup{Pr}}\left( #1 \right)}
+
+\title{Online Algorithms Continued\\6.854 Scribe Notes \#26}
+\date{November 1, 2004}
+\author{Lecturer: David Karger\\ Scribe: Tushara C. Karunaratna}
+
+\begin{document}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Your notes start here!
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% For theorems, lemmas, definitions, remarks, etc. use commands
+% {\theorem{...}}, {\lemma{...}}, {\definition{...}}, etc.
+% For proofs, use \begin{proof} ... \end{proof}
+%
+% For postscript figures (.ps) use the following block:
+%
+% \begin{figure}[h]
+% \begin{center}
+% \mbox{\psfig{figure=notes-nn-fig-mm.ps}}
+% \caption{A very nice picture.}
+% \label{fig:picture}
+% \end{center}
+% \end{figure}
+%
+
+% For encapsulated postscript figures (.eps) use the following block:
+%  (also change documentstyle line )
+% \begin{figure}[h]
+% \begin{center}
+% \mbox{\epsfbox{notes-nn-fig-mm.eps}}
+% \caption{A very nice picture.}
+% \label{fig:picture}
+% \end{center}
+% \end{figure}
+%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Introduction}
+In the previous lecture, we defined the term \emph{competitive ratio}
+for deterministic online algorithms.
+We studied a 2-competitive algorithm for ski-rental.
+We also observed that our greedy algorithm for load balancing is a
+2-competitive online algorithm.
+
+In this lecture, we will study online algorithms for paging, finance,
+and $k$-server on a line.
+
+
+
+\section{Paging}
+Paging is an important problem in computer systems design.
+We model a machine's memory as consisting of two parts: 
+an unlimited number of pages of \emph{slow} memory, 
+and a cache consisting of $k$ pages of \emph{fast} memory.
+On a page request, if the requested page is not in the cache (we call
+this a \emph{cache miss } or a \emph{fault}), then a
+page in the cache must be \emph{evicted} and the requested page must
+be brought in.
+A \emph{paging strategy} specifies the choice of which page to evict
+on a cache miss.
+The goal is to minimize the number of cache misses.
+
+Here are the some of the commonly used paging strategies.
+\begin{itemize}
+\item
+LRU: evict the least recently used page. 
+We will prove that this strategy is $k$-competitive.
+\item
+Random: evict a random page.
+It is known that this strategy is $k$-competitive \footnote{The competitive ratio of a randomized algorithm is the ratio between its expected cost and cost of the OPT.}.
+\item
+FIFO: evict the earliest fetched page.
+It is known that this strategy is $k$-competitive.
+\item
+Frequency counts: evict the least frequently used page.
+It is known that this strategy is \emph{not} competitive.
+\end{itemize}
+
+\subsection{LRU is $k$-competitive}
+To analyze the performance of LRU, we partition the input sequence
+into \emph{phases}.
+The first phase begins immediately after LRU first faults.
+A phase ends immediately after LRU has faulted $k$
+times since the start of the phase; the next phase begins at this
+point.
+
+We now prove that OPT faults at least once per phase.\\
+\\
+Consider any phase such that LRU faults \emph{twice} on some page $p$ in this phase. We know that at least $k$ other distinct pages must have been
+requested in between the two requests of $p$ (because otherwise $p$
+would not have been evicted by LRU).
+Hence, there are at least $k+1$ distinct pages requested in this phase,
+and thus OPT faults at least once in this phase.
+\\\\
+On the other hand, consider any phase such that LRU faults on $k$
+\emph{distinct} pages in this phase.
+Let $p$ be the last fault of the previous phase.
+Note that even if $p$ is one of the $k$ faults in this phase, 
+at least $k$ other distinct pages must have been requested in
+this phase (because otherwise $p$ would not have been evicted by LRU).
+Since $p$ was in OPT's cache at the start of this phase, OPT faults at
+least once in this phase.
+
+Therefore, LRU is $k$-competitive.
+
+\subsection{Lower Bound for Deterministic Online Paging}
+Consider any deterministic online paging algorithm $A$.
+
+We construct a request sequence involving $k+1$ pages;
+at each step, we request the page that is \emph{not} in $A$'s cache.
+Note that for this sequence, $A$ faults on every request.
+
+Consider the offline algorithm that, on a cache miss, evicts the page
+that is requested furthest in the future.
+When this offline algorithm faults, the page that it evicted won't be
+requested until at least $k$ steps in the future.
+Therefore, this offline algorithm faults only once every $k$ requests
+for our above adverserial sequence.
+
+Therefore, no deterministic online paging algorithm can be better than
+$k$-competitive.
+
+
+
+\section{Finance}
+We own some amount of stock.
+We have no information on how the price per unit of the stock may fluctate
+in the future, but we know that the maximum possible price is $M$ and that the
+minimum price is $m$.
+We want to sell our stock so as to maximize our return.
+
+\subsection{Reserve price algorithm}
+The stategy is to sell all our stock the first time that the
+price beats $r$.
+\\
+We claim that $r=\sqrt{Mm}$ is a good choice:
+\begin{itemize}
+\item
+Case 1: We never meet the reserve price. So, we sell the stock at the very end for whatever price it is currently at. That price will be at least m. The optimal price is at most $r$, since the price never goes above $r$. Hence, the regret ratio is at most $r$/$m$.
+\item
+Case 2: We meet the reserve price $r$, and the price it eventually rises to $M$.
+Then, our regret ratio is  at most $M/r$.
+\end{itemize}
+$\max\{r/m, M/r\}$ is minimized by setting $r/m = M/r$.
+This gives us $r = \sqrt{Mm}$.
+With this choice of $r$, the regret ratio is $\sqrt{M/m}$.
+
+\subsection{Selling in fractions}
+We assume that $M = 2^k m$ for some integer $k$.
+\\
+Let OPT denote the maximum price that is reached 
+(of course, we do not know this in advance).
+
+Consider the following strategy:
+for each $i$ where $1 \le i \le k$, 
+sell $1/k$ of our stock the first time that the 
+unit price falls in the interval $[2^i\, m, 2^{i+1} \,m)$.
+
+Let $j$ be the largest integer such that $2^j\, m \le $OPT. Note that $2^j\, m > OPT/2$.
+\\\\
+Therefore, we sell $1/k$ of our stock at price at least $OPT/2$.
+\\\\
+So our regret ratio is $\frac{OPT}{OPT/(2k)} = 2k = 2\log(M/m)$.
+
+\subsection{A randomized reserve-price strategy}
+We pick $i$ uniformly at random from $1, 2, \ldots, k$. We set the reserve price to $2^i \,m$.
+
+Let $j$ be the largest integer such that $2^j\, m \le $OPT. With probability at least $1/k$, we have a revenue of $2^j\, m > OPT/2$. Therefore, our expected revenue is at least $OPT/2k$.
+\\\\
+So our expected regret ratio is $2k = 2\log(M/m)$.
+
+
+\section{$k$-server on a line}
+We have $k$ servers on a line.
+A \emph{request} specifies a point on the line to which a server must
+be moved. The cost of serving a request sequence is measured by the total
+distance traveled by servers. Thus, the goal is to be clever in the way servers are moved, such that
+the total distance traveled by the servers is minimized.
+
+\subsection{A greedy strategy that isn't competitive}
+
+A \emph{greedy} strategy for this problem is to simply move the server
+that is closest to the requested point.
+
+However, we can easily see that this greedy strategy is not
+competitive.
+Suppose that we have two servers $A$ and $B$ that are 
+initially at points $x$ and $y$, respectively, with $x<y$.
+Suppose that our requests repeatedly alternate between the points
+$y-(y-x)/4$ and $y+(y-x)/4$.
+Then, according to the greedy strategy, all the requests will be
+served by $B$, and the total distance traveled will be infinite.
+A better strategy would be to first move $A$ and $B$ to our two
+request points, in which case the total distance traveled would be
+only constant.
+\\
+
+
+\subsection{Double coverage}
+The \emph{Double Coverage} (DC) strategy is 
+\begin{itemize}
+\item
+If the request falls between two servers, then move both towards the request at the same rate until one reaches it.
+\item
+Else (in which case the request falls ``outside''), 
+just move the closest server to the request.
+\end{itemize}
+
+Now, we show that DC is $k$-competitive.
+
+We compare the moves of DC to those of an optimal offline algorithm
+OPT.
+We can assume that OPT satisfies a request by moving \emph{exactly} one
+server; 
+we can convert any offline strategy into
+a strategy that moves \emph{exactly} one server per request, without
+increasing the cost, by deferring moves to the future.
+
+Let $M$ be the cost of the minimum cost matching between DC's and
+OPT's servers.
+\\
+Let $S$ be the sum of the pairwise distances of DC's servers.
+\\
+Let $\Phi = k\cdot M + S$. This is our potential function.
+
+We consider the requests one by one.
+For each request, we first observe OPT's move, and then we observe
+DC's move.
+We compute the amortized cost incurred by DC for each move.
+
+\begin{itemize}
+\item
+{\bf OPT moves} distance $d_{OPT}$.
+The distance from the moved server to the moved server's match
+increases by at most $d_{OPT}$.
+Hence, $M$ increases by at most $d_{OPT}$.
+Of course, $S$ is unchanged.
+\\
+So $\Delta \Phi \le k \cdot d_{OPT}$.
+\\
+The real cost incurred by DC is $0$.
+\\
+So the amortized cost incurred by DC is $\le k\cdot d_{OPT}$.
+
+\item
+{\bf DC moves}. 
+There are two cases to consider.
+\begin{itemize}
+\item
+{\bf The request falls between two servers}.\\
+
+\texttt{Analysis of $\Delta S$}: Suppose that each of the two moved servers moved a distance $d_{DC}$.
+The pairwise distance between the two moved servers decreases by
+$2d_{DC}$. The changes in the other pairwise distances cancel out.
+So $S$ decreases by $2d_{DC}$.
+\\\\
+\texttt{Analysis of $\Delta M$}: One of the moving servers has its match on its destination. Let this moving server be server $A$. The other moving server might be moving further from its match. Let this moving server be server $B$. Since two servers have moved at the same rate, the increase in the distance of server $B$ from its match is at most equal to the decrease in server $A$'s distance from its match. Hence, $M$ does not increase. 
+\\\\
+So $\Delta \Phi \le -2d_{DC}$. The real cost incurred by DC is $2d_{DC}$. So the amortized cost incurred by DC is $\le 0$.
+\\
+\item
+{\bf The request falls ``outside''}.\\
+
+\texttt{Analysis of $\Delta M$}: Suppose that the moved server moved a distance $d_{DC}$.
+The moved server has its match on its destination.
+So $M$ decreases by at least $d_{DC}$.
+\\\\
+\texttt{Analysis of $\Delta S$}: Each of the $k-1$ pairwise distances involving the moved server
+increases by $d_{DC}$. So $S$ increases by $(k-1)\cdot d_{DC}$.
+\\\\
+So $\Delta \Phi \le -k\cdot d_{DC}+(k-1)\cdot d_{DC} = -d_{DC}$. The real cost incurred by DC is $d_{DC}$. So the amortized cost incurred by DC is $\le 0$.
+\end{itemize}
+\end{itemize}
+
+Note that positive amortized cost is incurred by DC only when OPT
+moves.
+When OPT moves, the amortized cost incurred by DC at most $k$ times the
+distance moved by OPT's server.
+
+Thus, the total real cost incurred by DC is at most $k$ times that
+incurred by OPT (plus some additional constant if the potential was not
+initially 0).
+
+So, DC is $k$-competitive.
+
+
+
+
+\end{document}

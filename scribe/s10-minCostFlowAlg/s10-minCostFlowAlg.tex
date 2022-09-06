@@ -1,0 +1,260 @@
+\documentclass{article}
+\usepackage{scribe}
+\usepackage{epsfig}
+
+\usepackage{latexsym}
+
+\usepackage{amssymb}
+
+
+\renewcommand{\Pr}[1]{\textrm{\textup{Pr}}\left( #1 \right)}
+\newcommand{\reals}{\ensuremath{\mathbb{R}}}
+
+\title{Min Cost Flow\\ 6.854 Scribe Notes \#9}
+\date{October 6\&11, 2006}
+\author{Lecturers: David Karger\\ Scribes: Tudor Leu, Kevin Su, Kermin Fleming and Chris Crutchfield\\ based on notes by Wendy Chu and Tudor Leu}
+
+\begin{document}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Your notes start here!
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% For theorems, lemmas, definitions, remarks, etc. use commands
+% {\theorem{...}}, {\lemma{...}}, {\definition{...}}, etc.
+% For proofs, use \begin{proof} ... \end{proof}
+%
+% For postscript figures (.ps) use the following block:
+%
+% \begin{figure}[h]
+% \begin{center}
+% \mbox{\psfig{figure=notes-nn-fig-mm.ps}}
+% \caption{A very nice picture.}
+% \label{fig:picture}
+% \end{center}
+% \end{figure}
+%
+
+% For encapsulated postscript figures (.eps) use the following block:
+%  (also change documentstyle line )
+% \begin{figure}[h]
+% \begin{center}
+% \mbox{\epsfbox{notes-nn-fig-mm.eps}}
+% \caption{A very nice picture.}
+% \label{fig:picture}
+% \end{center}
+% \end{figure}
+%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\section{Introduction to minimum cost maximum flow}
+
+We previously discussed maximum flow in a network. Today we add one parameter to a flow network, a cost per unit of flow on each edge: $c(v, w) \in \mathbf{R}$, where $(v, w) \in E$.
+
+\textbf{Definition}:
+    The {\bf cost of a flow} $f$ is defined as:
+\begin{displaymath}
+c(f) = \sum_{e \in E} f(e)\cdot c(e)
+\end{displaymath}
+
+A {\bf minimum cost maximum flow} of a network $G=(V, E)$ is a maximum flow with the smallest possible cost. This problem combines maximum flow (getting as much flow as possible from the source to the sink) with shortest path (reaching from the source to the sink with minimum cost). 
+
+Note that in a network with costs the residual edges also have costs. Consider an edge $(v, w)$ with capacity $u(v, w)$, cost per unit flow $c(v, w)$ and net flow $f(v, w)$. Then the residual graph has two edges corresponding to $(v, w)$. The first edge is $(v, w)$ with capacity $u(v, w) - f(v, w)$ and cost $c(v, w)$, and second edge is $(w, v)$ with capacity $f(v, w)$ and cost $-c(v, w)$. 
+
+\textbf{Observation}:
+Any flow can be decomposed into paths (some of which can be cycles). We define the cost of a path $p$ as $c(p) = \sum_{e\in p} c(e)$ and express the cost of a flow $f$ as $c(f) = \sum_{p\in P} c(p)f(p)$, where $P$ is the path decomposition of $f$. 
+
+\section{The min-cost circulation problem}
+
+Consider a network without a source or a sink. We can define a flow in this network, as long as it is balanced at every node in that network. This kind of flow is called a {\bf circulation}. The cost of a circulation is defined identically with the cost of a flow. 
+
+\textbf{Observation}:
+Any circulation can be decomposed entirely into cycles. The cost of a circulation $f$ can be expressed as the sum of the costs of all cycles in a decomposition of $f$. 
+
+A {\bf minimum cost circulation} is a circulation of the smallest possible cost. Note that there is no restriction on the flow through the network. For example, if all costs are positive, the minimum circulation has no flow on all edges. On the other hand, if there are negative cost cycles in the network, the minimum circulation has negative costs and flow has to exist on the edges of the cycle.
+
+\textbf{Claim}:
+Finding the minimum cost maximum flow of a network is an equivalent problem with finding the minimum cost circulation.
+
+\begin{proof}
+First, we show that min-cost max-flow can be solved using min-cost circulation. Given a network $G$ with a source $s$ and a sink $t$, add an edge $(t, s)$ to the network such that $u(t, s) = mU$ and $c(t, s) = -(C+1)n$. The minimum cost circulation in the new graph will use to the maximum the very inexpensive newly added edge. Any path from $s$ to $t$ forms a negative cost cycle together with $(t, s)$, since $-c(t, s)$ is greater than the cost of any such path. This guarantees that we obtain a maximum flow from $s$ to $t$ ``included'' in the circulation of the new network. Among all maximum flows, this one is also of minimum cost. All the maximum flows use $(t, s)$ at the same capacity, so they use the edge $(t, s)$ at the same cost. This means that the minimum cost circulation has to be minimum cost on the section from $s$ to $t$, which makes the max-flow also min-cost.  
+
+Another reduction from min-cost max-flow to min-cost circulation is to find any maximum flow in the network, regardless of the costs, then find the min-cost circulation in the residual graph. We claim that the resulted flow is a min-cost max-flow. This is because \emph{the difference between two max-flows is a circulation}, and the cost of that difference circulation is the difference between the costs of the two max-flows. Given $f$, the initial max-flow, and $f^*$, the resulting maximum flow, $f-f^*$ is a min-cost circulation in the residual network $G_f$ iff $f^*$ is a min-cost max-flow. 
+
+The second part of the proof is showing that min-cost circulation reduces to min-cost max-flow. Consider a network $G$ for which we want to find a min-cost circulation. Add a source $s$ and a sink $t$ to the network, without any edges to the rest of the network. The maximum flow in this network is 0, therefore the min-cost max-flow is actually a min-cost circulation. 
+
+We conclude then that min-cost max-flow and min-cost circulation are equivalent problems. 
+\end{proof}
+
+\subsection{Optimality criteria}
+
+We are interested to find criteria which determine whether a circulation is a min-cost circulation.
+
+\textbf{Theorem}:
+    A circulation is {\bf optimal (min-cost)} iff there are no negative cost cycles in the residual network.
+
+\begin{proof}
+First, suppose that a circulation $f$ is not optimal, and let $f*$ be an optimal circulation in a network $G$. We will show that $G_f$ has a negative cost cycle. 
+The difference $f^* - f$ is a circulation, therefore it has a cycle decomposition. Because the cost of $f^*$ is smaller than the cost of $f$, $f^* - f$ is a circulation of negative cost, and it is also feasible in $G_f$. At least one of the cycles in the decomposition has to be negative, therefore $G_f$ contains a negative cost cycle.
+
+To prove the other implication, suppose a residual network $G_f$ has a negative cycle. Then $f$ is not a min-cost circulation, because that cycle can be added to $f$, forming a new circulation of smaller cost. 
+\end{proof}
+
+The optimality criteria is checked by looking for negative cost cycles. This can be done with the Bellman-Ford shortest-path algorithm, which can handle negative cost edges (unlike Dijkstra's algorithm), but runs in $O(mn)$. 
+
+\subsection{Price function}
+We can analyze the optimality of a circulation using a price function. Think of the flow units as widgets that are given away at the destination and they are paid for at the source, where the source is a dummy node with edges of cost $0$ to every vertex. There is a market for widgets at intermediate vertices. 
+
+We can define then a price function $p$ for the vertices of the network. At the source, $p(s) = 0$. Consider an edge $(v, w)$ which has residual capacity. The price $p(w)$ is \emph{feasible} if $p(w) \leq p(v) + c(v, w)$.  
+
+    \textbf{Definition}:
+    The {\bf reduced cost} of an edge $(v, w)$ is $c_p(v, w) = c(v, w) + p(v) - p(w)$.
+
+We can think of the reduced cost as the cost of buying a widget at $v$, shipping it to $w$ and selling it there.  Note that if $c_p(v,w)$ is positive, we would therefore not ship the item from $v$ to $w$.
+
+Using this definition, we can say that a price function is feasible for a residual graph if no residual edge has a negative reduced cost. 
+
+\textbf{Observation}:
+The cost of a circulation using reduced costs is the same as the true cost of the circulation.
+
+As we discussed before, a circulation is decomposed into cycles. Cycle costs do not change if we compute them as the sum of reduced costs of the edges, since the price terms around the cycle cancel out. 
+
+\textbf{Claim}:
+A circulation is optimal iff there is a feasible price function in the residual graph
+
+\begin{proof}\\
+1) If there is a feasible price function in the residual graph, then no residual edge has negative reduced cost. Then there is no negative cost cycle in the residual graph, and therefore the circulation is optimal.
+
+2) Consider a circulation of minimum cost.  Then we can construct a feasible price function in the residual graph as follows.
+Add a source $s'$ to the residual graph, along with edges of cost 0 to all other vertices. Compute shortest paths $d(v)$ from $s'$ to each vertex $v$. The distances may be negative, but they are finite, since there are no negative cost cycles (the circulation is optimal). 
+
+We claim that we can use the distances as prices. Since $d$ is the shortest-path distance function, $d(w) \leq d(v) + c(v, w)$ if $(v, w)$ is in the residual graph $G_f$, so $d$ is a feasible price function.   
+\end{proof}
+
+\section{Algorithms}
+
+\subsection{Cycle canceling} 
+To find the minimum cost circulation, look for negative cycles and saturate them until done. Negative cycles can be found with the Bellman-Ford algorithm in $O(mn)$ time. 
+
+The number of iterations is less than the cost of the min-cost circulation (taken with a plus sign), because each negative cycle decreases the cost by at least one unit. The minimum cost of a circulation is bounded by $-mUC$, where $C$ is the maximum absolute value of the cost of an edge.  Therefore, the total time of this algorithm is $O(m^2nUC)$, a pseudo-polynomial bound.  By using a scaling algorithm for shortest paths, we can obtain a running time of $O(m^2\sqrt n CU \log C)$.
+
+\subsection{Shortest Augmenting Path for Unit Capacity Graphs}
+
+The shortest augmenting path algorithm for solving the MCF problem is the natural extension of the SAP algorithm for the max flow problem. Note that here the shortest path is defined by edge cost, not edge capacity.
+
+For the unit capacity graph case, we assume that all arcs have unit capacity and that there are no negative cost arcs.  Therefore, the value of any flow in any cycle must be less than or equal to $1$ and the value of any flow in the entire graph must be less than or equal to $n$. Given that each augmenting path increases the value of the flow by 1, at most $n$ augmentation steps will suffice in finding the MCF.
+
+Shortest augmenting paths can be found using any single-source shortest path algorithm.  We can use Dijkstra's algorithm since there are no negative-cost edges in the graph.  Each path calculation takes $O(m \log n)$ time, for a total runtime of $O(nm \log n)$.
+
+Two questions arise:
+\begin{itemize}
+\item what if augmentations create negative cost edges?
+\item how do we know the result is a MCF?
+\end{itemize}
+
+We answer both of these questions with the following claim.
+
+\textbf{Claim}:
+Under the SAP algorithm, there will never be a negative
+reduced-cost cycle in the residual graph.
+
+\begin{proof}
+(by induction).  We want to show that one SAP doesn't introduce
+negative cycles in $G_f$.  Initially there are no negative cost
+cycles.  Feasible prices can be computed by using shortest path
+distances from $s$.  After finding the shortest $s$-$t$ path, it has
+reduced cost 0.  Every arc on the path has reduced length 0.  This
+demonstrates that the triangle inequality property is tight on
+shortest path edges.  When we augment along the path, therefore, the
+residual backwards arcs we create are of reduced cost 0.  Therefore in
+the new $G_f$, the price function is still feasible.  Furthermore,
+there are:
+\begin{itemize}
+\item no residual negative reduced cost arcs
+\item no negative reduced cost cycles
+\item no negative cost cycles
+\end{itemize}
+\end{proof}
+
+Proof of this claim also proves the correctness of the algorithm, since it will also apply to the residual graph at the time the algorithm terminates.
+
+The SAP algorithm we present suffers from two limitations.  It is applicable only to unit capacity graphs, and it cannot handle graphs with negative cost cycles.
+
+\subsection{Capacity Scaling}
+
+We can extend the SAP algorithm to general-capacity networks by scaling.  During each scaling phase, we roll in one bit of precision, for a total of $O(\log U)$ phases.
+
+We start with an arbritrary price function, as initially all edge costs are $0$, so any price function is valid.  At the end of each phase we have an MCF and a feasible price function. After rolling in the next bit, though, we can introduce residual capaicty on negative reduced cost arcs.  This will cause the price function to no longer to be feasible.  We can correct this problem by sending flow along the negative arcs.  This introduces flow excesses (of one unit) at some nodes and deficits (of one unit) at others.  We use an MCF to send the excesses back to deficits (Note that we might end up with a different prince function).
+
+Since each arc can create at most one unit of excess, total excess is at most $m$ units and $m$ SAPs will suffice in returning all excesses to deficits.  Using Dijkstra's for finding SAPs as before, runtime per phase is $O(m^2 \log n)$.  The total runtime of the algorithm is $O(m^2 \log n \log U)$.
+
+\section{Cost Scaling}
+
+An alternative method of solving for MCF in a general network is by scaling by costs, rather than capacities.  This is useful for graphs with integral costs, since all cycles will have integer costs.  The idea is to allow for slightly negative cost arcs and continuously improve on the price function.  We introduce the idea of
+\emph{$\epsilon$-optimality}:
+
+    \textbf{Definition}:
+  A price function p is \emph{$\epsilon$-optimal}
+if for all residual arcs $(i,j)$, $c_p(i,j) \geq -\epsilon$.
+
+We start with a max flow and a zero price function, which will be
+$C$-optimal.  During each scaling phase, we go from an $\epsilon$-optimal max
+flow to an $(\epsilon/2)$-optimal max flow.  When can we terminate the
+algorithm?
+
+\textbf{Claim}:
+A $\frac{1}{n+1}$-optimal max flow is optimal.
+
+\begin{proof}
+We start with the observation that the least negative cycle cost is
+$-1$ in a integral-cost graph.  All cycles in the residual network
+cost at least $-\frac{n}{n+1}$, which is strictly larger than $-1$.
+Therefore the reduced cost of any residual cycle is at least
+$-\frac{n}{n+1}$, and a $\frac{1}{n+1}$-optimal max flow is optimal.
+\end{proof}
+
+This implies that $O(\log_{n}C)$ scaling phases are required to obtain an
+optimal flow.
+
+To get an $(\epsilon/2)$-optimal max flow from an $\epsilon$-optimal
+max flow, we first saturate all negative-cost residual arcs.  This
+makes all residual arcs have non-negative reduced cost, but introduces
+excesses and deficits into the network.  We then use MCF to push the
+excesses back to the deficits, without allowing any edge costs to drop
+below $\epsilon$/2.
+
+Using dynamic trees, the runtime of this algorithm is $O(mn \log n \log C)$.
+
+\section{State of the Art}
+
+The double-scaling algorithm combines cost- and capacity-scaling
+introduced here.  It has the runtime of $O(mn \log C \log \log U)$.
+
+Tardos' minimum mean-cost cycles algorithm ('85) is a strongly
+polynomial algorithm for MCF.  The algorithm proceeds by finding the
+negative cycles in which the average cost per edge is most strongly
+negative.  Thus short cycles of a particular negativity are preferred
+over long ones.  The algorithm uses a cost scaling technique from the
+ideas of $\epsilon$-optimality.  After every $m$ negative-cycle
+saturations, an edge becomes ``frozen,'' meaning its flow value never
+changes again.  The minimum mean-cost cycle algorithm has time bound
+$O(m^2\ \textrm{polylog}\ m)$.  An algorithm due to Trajan and Goldberg
+cancels minimum average weight cycles, which can be found in polynomial
+time, to obtain a MCF after a polynomial number of cycles have been
+cancelled.  This algorithm has runtime $O(n^{2}m^{3}(\log n))$.
+
+
+\section{References}
+
+A. V. Goldberg and R. E. Tarjan. Finding minimum-cost circulations by canceling
+negative cycles.
+       \textit{J. Assoc. Comput. Mach.}, 36(4):873-886, 1989.
+
+\'E. Tardos. A strongly polynomial minimum cost circulation algorithm.
+\textit{Combinatorica}, 5(3):247-255, 1985.
+
+
+\end{document}

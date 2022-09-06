@@ -1,0 +1,289 @@
+\documentclass{article}
+\usepackage{scribe}
+\usepackage{epsfig}
+
+\usepackage{latexsym}
+
+\usepackage{amssymb}
+
+
+\renewcommand{\Pr}[1]{\textrm{\textup{Pr}}\left( #1 \right)}
+\newcommand{\reals}{\mathbb{R}}
+
+\title{Linear Programming\\ 6.854 Scribe Notes \#11.1}
+\date{October 1, 2003}
+\author{Lecturers: David Karger and Erik Demaine\\ Scribe: Grant Wang}
+
+\begin{document}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Your notes start here!
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% For theorems, lemmas, definitions, remarks, etc. use commands
+% {\theorem{...}}, {\lemma{...}}, {\definition{...}}, etc.
+% For proofs, use \begin{proof} ... \end{proof}
+%
+% For postscript figures (.ps) use the following block:
+%
+% \begin{figure}[h]
+% \begin{center}
+% \mbox{\psfig{figure=notes-nn-fig-mm.ps}}
+% \caption{A very nice picture.}
+% \label{fig:picture}
+% \end{center}
+% \end{figure}
+%
+
+% For encapsulated postscript figures (.eps) use the following block:
+%  (also change documentstyle line )
+% \begin{figure}[h]
+% \begin{center}
+% \mbox{\epsfbox{notes-nn-fig-mm.eps}}
+% \caption{A very nice picture.}
+% \label{fig:picture}
+% \end{center}
+% \end{figure}
+%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Motivation}
+
+Linear programming is both an important tool in the construction of
+algorithms, and an important tool in proofs.  Many results we have
+seen in this class can be cast in the framework of linear programming.
+For instance, the fact that the value of the maximum-flow of a graph
+is equal to the value of the minimum cut is purely a result of strong
+duality.  In the next two weeks, we will go over some basics of linear
+programming, some algorithms for solving linear programs, and how to
+use linear programming to design approximation algorithms for NP-hard
+problems.
+
+\section{Introduction}
+
+A linear program is a set of linear inequalities and an objective
+function together.  Each linear inequality takes the form:
+$$a_1 x_1 + a_2 x_2 + \dots a_n x_n \{\leq,=,\geq \} b.$$
+We may have
+multiple linear inequalities (say $m$).  The objective function takes
+the form:
+$$c_1 x_1 + c_2 x_2 + \dots c_n x_n.$$
+The goal is to find an
+assignment of values to $x_1, x_2 \dots x_n \in \reals$ such that the
+objective function is maximized over all assignments to $x_1, x_2
+\dots x_n \in \reals$ that obey each of the inequalities.
+
+Now, imagine we had an algorithm for solving linear programs, i.e. an
+algorithm that given the inequalities and an objective function as
+input, outputs $x_1, x_2 \dots x_n \in \reals$ that maximizes the
+objective function over all assignments obeying the inequalities.  To
+get an idea of the algorithmic power of such an algorithm, consider
+the following formulation of the minimum-cost circulation problem on a
+graph $G=(V,E)$.
+
+\begin{eqnarray*}
+  \textrm{minimize } & \sum_{v,w \in E} c_{vw} f_{vw} &\\
+  \textrm{subject to } & f_{vw} \leq u_{vw} & \forall v,w \in E\\
+  & \sum_{w} f_{vw} = 0 & \forall v \in V\\
+  & f_{vw} = -f_{wv} & \forall (v,w) \in E\\
+\end{eqnarray*}
+
+Here, the variables are $f_{vw}$ which represents the flow on an edge
+$(v,w)$.  The objective function says that we are minimizing the cost
+of the flow, and the linear inequalities state that the flow is no more than the capacity, flow is conserved at every node, and that
+positive flow going one way is negative flow going the other way
+across an edge.  Given an algorithm for solving linear programming, we
+can instantly solve the minimum-cost circulation problem.
+
+\section{Definitions}
+
+We will represent the variables by $x = (x_1, x_2, \dots, x_n) \in
+\reals^n$.  Then we have the following definitions:
+
+\textbf{Definition}:
+$x \in \reals^n$ is \emph{feasible} for an LP if it satisfies all
+the constraints.
+
+  
+\textbf{Definition}:
+$x \in \reals^n$ is \emph{optimal} if it is feasible and optimizes
+the objective function over feasible $x$.
+
+\textbf{Definition}:
+  An LP is \emph{feasible} if there exists a feasible vector $x$ for
+  it.
+
+\textbf{Definition}:
+  An LP is \emph{unbounded} if there exists a feasible vector $x$ with
+  arbitrarily good objective value.
+
+The following lemma characterizes any LP:
+
+  \textbf{Lemma}:
+  Every LP is either infeasible, has an optimal solution, or is unbounded.
+
+The proof follows by the compactness of $\reals^n$, and because
+polytopes are closed sets.
+
+We generally write linear programs in two forms: \textbf{canonical
+  form} or \textbf{standard form}.
+
+\textbf{Definition}:
+  An LP is in \emph{canonical form} if it has the form:
+  \begin{eqnarray*}
+    \textrm{minimize } & & c^T x\\
+    \textrm{subject to} & & Ax \geq b
+  \end{eqnarray*}
+  where $c \in \reals^n$ is the objective function, and each row of
+  $A$ is a constraint, e.g. $a_i^T x \geq b_i$.
+
+Can we always convert to canonical form?  Consider an arbitrary LP;
+the following rules convert it to canonical form:
+
+\begin{itemize}
+\item If it's a maximization problem, negate $c$ and minimize.
+\item If a constraint is $\leq$, negate it and convert it to $\geq$.
+\item If a constraint is $=$, add two constraints with $\leq$ and
+  $\geq$.
+\end{itemize}
+
+We also have \textbf{standard form}.  The choice of these names leaves
+a bit to be desired...
+
+\textbf{Definition}:
+  An LP is in \emph{standard form} if it has the form:
+  \begin{eqnarray*}
+    \textrm{minimize } & & c^T x\\
+    \textrm{subject to} & & Ax = b\\
+    && x \geq 0
+  \end{eqnarray*}
+
+We can also convert any LP to standard form.  If there is any
+inequality, we can add a slack variable.  That is, if the inequality
+is: $a^T x \leq b$ we can convert this to $a^T x + s = b$. Note that the slack variables $s$ are included in the vector of new variables $x'$ of the new LP. To ensure
+that $x' \geq 0$, we can do the following: for every variable $x_i$ in the old LP which are unrestricted in sign,
+replace it with $x^+ - x^-$, then, $x_i$ can take on any value even when
+$x^+, x^- \geq 0$, and include $x^+$, $x^-$ in the vector of new new variables $x'$ of the new LP. Note that this will usually make the optimum solution in the new LP not unique. If $x^+=3$, $x^-=0$ is an optimum solution, then so is $x^+=4$,$x^-=1$. The reason for two forms is that canonical form is
+often useful for theory, while standard form is useful in practice.
+
+\section{Geometry}
+
+Since we are looking for a vector $x \in \reals^n$ that obeys certain
+linear constraints that maximizes some linear objective function, we
+might expect that the \emph{geometry} of an LP would give us some
+intuition.  Indeed, this is the case:
+
+\begin{itemize}
+\item Any equality of the form $a^T x = b$ is a \emph{hyperplane}.
+\item Any inequality of the form $a^T x \leq b$ is a \emph{halfspace}.
+\item For the standard form of $Ax = b, x\geq 0$, the intersection of 
+  hyperplanes is an \emph{affine subspace}.
+\item For the canonical form of $Ax = b, x \geq 0$, the intersection
+  of halfspaces is a \emph{polyhedron}.
+\end{itemize}
+
+Thus, the cast of optimizing a linear objective function over all
+vectors satisfying linear inequalities is the problem of finding a
+point in a polyhedron that is furthest in the direction specified by
+the objective function.
+
+The issue of convexity also comes up in LP's.  Recall that a set $K
+\subseteq \reals^n$ is convex if for all $x,y \in K$ and for all
+$\lambda \in [0,1]$, $\lambda x + (1-\lambda) y \in K$.  That is, any
+point on the line segment between $x$ and $y$ is in $K$.
+
+Note that a halfspace is convex: if $a^T x \geq b$ and $a^T x' \geq
+b$, then we have: $\lambda a^T x \geq \lambda b$ and $(1-\lambda)a^T
+x' \geq (1-\lambda)b$.  Adding up these two inequalities gives us the
+desired result.  Since an intersection of convex sets is convex,
+polyhedra are convex.
+
+\section{Separating hyperplanes}
+
+Given a point $x$, we can show that $x$ is in the polyhedra $P$
+defined by the inequalities by showing that $x$ satisfies each
+inequality.  But if $x \notin P$, can we show something similar?  It
+turns out we can, and this is the notion of \emph{separating
+  hyperplanes}: for any convex set $P$ and a point $z \notin P$, there
+exists $a \in \reals^n, b \in \reals$ such that:
+
+\begin{eqnarray*}
+  a^T x \leq b & \forall x \in P\\
+  a^T z > b
+\end{eqnarray*}
+
+We prove that such a pair $a,b$ exist.
+
+\begin{proof}
+  Let $y$ be the closest point in $P$ to $z$, and let $a$ be the line
+  from $y$ to $z$.  Then $a^T y < a^T z$.  We argue that for all $x
+  \in P$, $a^T x \leq b$, where $b = a^T y$.  Suppose by way of
+  contradiction that this is not the case, i.e. there is some $x \in
+  P$ such that $a^T x > b$.  Since any point on the line segment from
+  $x$ to $y$ is in $P$, we can show by taking the derivative of the
+  function
+  $$f(\lambda) = ||\lambda x + (1-\lambda) y - z||^2$$
+  with respect to
+  $\lambda$ that the first derivative is negative at $0$.  This
+  contradicts the fact that we took $y$ to be the minimum distance
+  point in $P$ to $z$, and we have our desired contradiction.
+\end{proof}
+
+\section{Structure of optima}
+
+A polyhedra has uncountably infinite points -- so where do the optima
+lie?  Let us start with a few definitions:
+
+\textbf{Definition}:
+  A point $p \in P$ is a \emph{vertex} if it is uniquely optimal for
+  some objective function $c$.
+
+\textbf{Definition}:
+  A point $p \in P$ is an \emph{extreme point} if it is not a convex
+  combination of two other points in $P$.
+
+We show here that every vertex is an extreme point; we will show the
+other direction in a future lecture.
+
+\begin{proof}
+  Suppose $p$ is uniquely optimal for the objective function $c$, but
+  that $p$ is not an extreme point, i.e. it is equal to $p = \lambda x
+  + (1-\lambda)y$ for some $x,y \in P$.
+  
+  But since $p$ is between $x,y$, it follows that $c^T p$ is between
+  $c^T x$ and $c^T y$, i.e:
+  
+  $$
+  c^T p = c^T (\lambda x + (1-\lambda) y) = \lambda c^T x +
+  (1-\lambda) c^T y$$
+  
+  But since $p$ is optimal, it must be that $c^T x, c^T y \geq c^T p$,
+  and furthermore, since $p$ lies on the line between $x,y$, $c^T p = \lambda c^T x + (1-\lambda) c^T y \leq max(c^T x, c^T y)$, hence it is
+  either the case that $c^T x = c^T p$ or $c^T y = c^T p$, which
+  contradicts uniqueness.
+\end{proof}
+
+We end with a few other definitions, which we will pursue in future
+lectures.
+
+\textbf{Definition}:
+  A constraint $a^T x \leq b$ or $a^T x = b$ is \emph{tight} if $a^T x
+  = b$.
+
+\textbf{Definition}:
+  A vector $x \in \reals^n$ is \emph{basic} for an LP if
+  \begin{itemize}
+  \item all equality constraints are tight
+  \item $n$ linearly independent constraints are tight
+  \end{itemize}
+
+Another way of thinking about this is that if $x$ is at an
+intersection of the boundaries of $n$ linearly independent
+constraints, then $x$ is the unique intersection.  This is the
+intuition behind a basic solution.
+
+
+
+\end{document}

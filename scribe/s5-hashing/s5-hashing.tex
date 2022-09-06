@@ -1,0 +1,214 @@
+\documentclass{article}
+\usepackage{scribe}
+\usepackage{epsfig}
+\renewcommand{\Pr}[1]{\textnormal{Pr}\left[ #1 \right]}
+\newcommand{\E}[1]{\textnormal{E}\left[ #1 \right]}
+\usepackage{amssymb}
+\begin{document}
+
+\newcommand{\mod}{\hbox{mod }}
+
+\title{Universal and Perfect Hashing\\ 6.854 Scribe Notes \#5}
+\date{September 22, 2006}
+\author{Lecturer: David Karger\\ Scribes: Ali Mohammad (2005), Kuen-Bang Hou (2006 revised)}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Your notes start here!
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% For theorems, lemmas, definitions, remarks, etc. use commands
+% {\theorem{...}}, {\lemma{...}}, {\definition{...}}, etc.
+% For proofs, use \begin{proof} ... \end{proof}
+%
+% For postscript figures (.ps) use the following block:
+%
+% \begin{figure}[h]
+% \begin{center}
+% \mbox{\psfig{figure=notes-nn-fig-mm.ps}}
+% \caption{A very nice picture.}
+% \label{fig:picture}
+% \end{center}
+% \end{figure}
+%
+
+% For encapsulated postscript figures (.eps) use the following block:
+%  (also change documentstyle line )
+% \begin{figure}[h]
+% \begin{center}
+% \mbox{\epsfbox{notes-nn-fig-mm.eps}}
+% \caption{A very nice picture.}
+% \label{fig:picture}
+% \end{center}
+% \end{figure}
+%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Summary}
+
+We all do it, but many of us have never analyzed it.  We have $s$ items,
+each of which we will think of as a number in the range $1, \ldots, m$.
+We could store them in an array of size $n$ where $m \gg n$, whence we could perform
+insert/delete/query operations in constant time (much faster than, say,
+a tree data structure) because of indirect addressing.  Hash tables don't
+allow you to do predecessor or successor very easily.  However, since
+we're using a much smaller array to store the items, the space requirements
+are substantially reduced.  Hashing algorithms really are just about saving space.
+
+\section{Assumption}
+
+We want to map $s$ items (in fact, they are treated as integers) in the range $M = \left\{ 1 \cdots m \right\}$ into an array of size $n$.
+Assume that the machine wordsize is $\log m$ so that the machine can perform arithmetic operations on items
+in O(1). In this entire discussion, we are concerned with the static hashing case. That is, we assume
+that we know all of the items that we will need to hash beforehand.
+\footnote{$s$ is usually assumed to be $n$ in the discussion about 2-universal Hashing part}
+
+\section{2-universal Hashing}
+
+We will develop 2-universal hashing, first introduced by Carter and Wegman in the 80's.
+
+Goal: Store it in an array of size $O(n)$.
+
+Method: Use a hash function that maps $\{1 \cdots m\}$ to $\{1 \cdots n\}$.
+Store item with key $k$ in array position $f(k)$.
+
+Problem: Collisions.
+
+First Fix: Linked list from each array position (buckets).
+
+Problem: We've lost $O(1)$ lookups.
+
+Goal: Guarantee few items per bucket and therefore few collisions.
+
+Problem: There's no \underline{one} kill-all function. We could always feed some bad input to a specific function.
+
+Idea: Instead, use hash family, set of hash functions, such that at least one is good for any input set.
+
+First Trial: A family of all functions. But it's of size $n^m$ and thus we would need $m \log n$ bits
+to say which function we're using.
+It would take lots of time doing calculating positions and lots of space storing function description.
+
+Idea: This is sort of a load balancing problem -- maybe randomization can help with this.
+Use a random function $f$ where $f(k)$ is random but well-defined. 
+Let $c_{ij}$ be the random variable that is 1 if $i$ and $j$ collide and 0 otherwise. Then,
+
+\begin{align*}
+  \E{\hbox{\# items in $k$'s bucket}} & = \E{\sum c_{ik}}
+  \\
+  & = \sum_n \E{ c_{ik} } = \sum \Pr{i\hbox{ collides with } k} \\
+  & = \sum_{i \not= k} 1/n = 1 - 1/n \\
+  \Rightarrow \qquad \E{\hbox{time to find } k}  & = & O(1).
+\end{align*}
+
+More generally, if there are $s$ items to $n$ bins, $\E{\hbox{number of items colliding with }i} < \frac{s}{n}$.
+
+But there's a (avoidable) problem that a purely random function takes $O(m)$ $\log n$ bit words to describe, 
+which brings us back to where we started!
+We might try to store only the hash values of the $s$ inputs that we care about, but then we would need
+some auxillary structure to compute the hash value, and we would likely be forced to give us the ability
+to compute the hash function in $O(1)$. Therefore, we look to a different idea.
+
+Idea: Use a small family of functions to be chosen randomly.
+
+Solution: Use pseudo-random number generators, which are ``random enough for a given application.''  The key for us is to reduce the collisions of pairs, so we will use a ``pairwise-independent'' hash function.  That is, given any \underline{one} output of the hash function, you have no information about any other (weakening the independence condition).
+
+\textbf{Definition} (Pairwise Independence): Random variables $B_1, \cdots, B_n$ are said to be \emph{pairwise independent} if $B_i$ and $B_j$ are independent $\forall\ i, j$.
+
+Here is an algorithm for generating pairwise-independent random variables in
+${\mathbb Z}_p$.  First, pick a random prime $p$ and pick random values $a, b
+\in {\mathbb Z}_p$.  Then, set $r_i = ai + b \mod p$.  Observe that
+knowing $r_i$ doesn't tell you anything about $r_j$ for $j \not= i$.  However,
+knowing any two $r_i$ and $r_j$ will reveal $a$ and $b$, and therefore the
+remaining $r_k$.  Here $a$ and $b$ correspond to the seed and the $r_i$s
+correspond to a sequence of random variables based on the seed.
+
+\textbf{Claim}:
+$\forall i,j < p$, $r_i$ and $r_j$ are pairwise independent and uniformly distributed.
+
+\begin{proof}
+We are arguing that $r_i = ai + b$ and $r_j = aj + b$ are pairwise independent.  Observe that:
+\begin{align*}
+  \Pr{ai+b = x,\ aj+b = y} & =
+  \Pr{
+  \begin{array}{ccccc}
+    a i & + & b & = & x \\
+    a j & + & b & = & y 
+  \end{array}
+  }
+  = 1/p^2 = 1/p \cdot 1/p \\
+  & = \Pr{ai+b = x}\Pr{aj+b = y},
+\end{align*}
+as desired. \hfill
+\end{proof}
+
+Now how do we use this knowledge for hashing?  Pick a prime $p > m$, pick $a,b$ randomly from ${\mathbb Z}_p$, and set $h(k) = [(ak+b)\ \mod p]\ \mod n$.
+
+\textbf{Claim}:
+Items are distributed ``almost'' uniformly.  That is,
+
+This is because we know that $(ak+b)\mod p$ is absolutely uniform; when we mod it down to $n$, $p$ will cover the $n$ slots many times over plus some negligible remainder, which we will consequently neglect.
+
+\textbf{Claim}:
+The placements in the array are pairwise independent.
+
+Clearly the extra $\mod n$ doesn't create dependence.  $r_i$ and $r_j$ are independent implies that $f(r_i)$ and $f(r_j)$ are independent $\forall f$. As before,
+let $c_{ij}$ be the indicator variable for the event that $i$ and $j$ collide.
+
+\textbf{Claim}:
+$\E{\sum_{i\not=j} c_{ij} }$ is unchanged.  $c_{ij}$ depends only on the buckets of $i$ and $j$.
+
+\underline{Summary:} By choosing random $a,b$ and using $h(k) = [(ak+b)\ \mod p]\ \mod n$, get $1-1/n$ collisions in expectation.  Therefore, insert and lookup cost $O(1)$ in expectation.
+
+We don't know that there will only be two or fewer items in each bucket.  In fact, in the worst case, $\sqrt{n}$ items can be placed in one bucket!  (This is possible if the pairwise-independent family is chosen poorly.)  It is also important that the adversary is unaware of what function was chosen (i.e., what seed was chosen).
+
+The cost of defining our pseudo-random function is now just two integers of size $O(m)$ (a total of two machine words).
+
+\section{2-level Hashing}
+
+2-universal hashing is nice in expectation, but what about the worst-case?
+
+Let's try to define a hash function with \underline{no} collisions!  To simplify things, we are not going to worry about a dynamic scenario where there is insertion and deletion.  Instead, we are going to consider a fixed set of $n$ keys.  Now, it is easy to spread them out, but we will have to work to make lookup fast.  This seems really tricky because even a fully random function has collisions (recall the birthday paradox).
+
+\underline{First Try:} Use more space.
+
+How many items can we map into $n$ spaces with no collisions?  The expected number of total collisions is:
+$$\E{\mathop{\sum_{i,j}}_{i\not=j} c_{ij}} = \mathop{\sum_{i,j}}_{i\not=j}\E{c_{ij}} = \mathop{\sum_{i,j}}_{i\not=j} {1 \over n} = {s \choose 2}{1 \over n} < {s^2 \over 2n}$$
+In particular, if $s < \sqrt{n}$, then the expected number of collisions is less than $1/2$. This is nice, but we want a guarantee of no collisions.
+
+Recall Markov's Inequality (one of the few probabilistic gems we will use in the course):
+
+\textbf{Lemma} (Markov's Inequality):
+If $X$ is nonnegative, then
+$\Pr{X \geq a} \leq \E{X}/a.$
+
+Consequently, $$\Pr{\sum c_{ij} \geq 1} < \E{\sum c_{ij}}.$$
+Observe that we are again using pairwise independence, by the definition of the $c_ij$'s.  Thus, the 2-universal hashing results still apply.
+
+Now, if you fail, try again.  The expected number of tries before I succeed is
+only 2 because each time I have at least a $\frac{1}{2}$ chance of success. This can
+be seen by noting that the chance that I have to try a $k$th time is at most $\frac{1}{2^k}$,
+so the expected number of tries is at most $\sum_{k=0}^{\infty}\frac{1}{2^k} = 2$.
+So, in exepcted linear time, I can find a perfect hash function into
+quadratic space.  This is nice, but it still isn't perfect.
+
+Maybe by using a more random function (using more independence) we can do better?  Well, no.  The birthday paradox comes into play again.  So we can't do better by using more randomness.
+
+\underline{Another trick:}  First, use a 2-universal hash function to divide the $n$ items into $n$ buckets (so $s = n$).  Then, build a quadratic space to achieve a perfect hash table in each bucket.  How much space does this use?
+
+\begin{align*}
+\hbox{Total space} & = \sum_b [\hbox{size of bucket } b] ^2 \\
+s_b = \hbox{size of bucket } b & = \sum_i s_{ib} \qquad\hbox{(event that $i$ hashes to bucket $b$)} \\
+s_b^2 & = \left( \sum_i s_{ib}\right)^2= \sum_{i,j} s_{ib}s_{jb} \\
+\sum_b s_b^2 & = \sum_{i,j,b} s_{ib}s_{jb} = \sum_{i,j}\sum_b s_{ib}s_{jb} = \sum_{i,j} c_{ij} \\
+\E{\sum_{i,j}c_{ij}} & = \sum_{i}1 + \sum_{i\neq j}1/n = n + n(n-1)\cdot 1/n = 2n - 1 = O(n).
+\end{align*}
+
+Thus, the expected space for extra tables is $O(n)$.  If you do this carefully, the space used is $6n$. If you work a lot harder, you can actually trim it down to $n + o(n)$ with this simple technique!
+
+If you want to be certain that you use at most $n$ space, simply use the technique of trying again and again until you succeed.  One small problem is that you need $m$ $a,b$ pairs -- one for each bucket. This comes out to $O(m)$ $\log m$ bit words to describe the function.  This might be ok depending on the application.
+
+One more thing: using more sophisticated techniques, one can achieve similar bounds in the dynamic case, where we do not know the items to be hashed beforehand. In particular, we can no longer simply try again until we have a perfect hash function, since we do not know if our function will remain perfect after we get more values to hash.
+\end{document}

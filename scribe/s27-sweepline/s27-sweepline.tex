@@ -1,0 +1,215 @@
+\documentclass{article}
+\usepackage{scribe}
+\usepackage{epsfig}
+\renewcommand{\Pr}[1]{\textrm{\textup{Pr}}\left( #1 \right)}
+
+\title{Sweep Line Algorithms\\6.854 Scribe Notes \#27}
+\date{November 8, 2004}
+\author{Lecturer: David Karger\\ Scribe: Aidan Downes}
+
+\begin{document}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Your notes start here!
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% For theorems, lemmas, definitions, remarks, etc. use commands
+% {\theorem{...}}, {\lemma{...}}, {\definition{...}}, etc.
+% For proofs, use \begin{proof} ... \end{proof}
+%
+% For postscript figures (.ps) use the following block:
+%
+% \begin{figure}[h]
+% \begin{center}
+% \mbox{\psfig{figure=notes-nn-fig-mm.ps}}
+% \caption{A very nice picture.}
+% \label{fig:picture}
+% \end{center}
+% \end{figure}
+%
+
+% For encapsulated postscript figures (.eps) use the following block:
+%  (also change documentstyle line )
+% \begin{figure}[h]
+% \begin{center}
+% \mbox{\epsfbox{notes-nn-fig-mm.eps}}
+% \caption{A very nice picture.}
+% \label{fig:picture}
+% \end{center}
+% \end{figure}
+%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Introduction}
+
+Sweep line algorithms are used in solving planar problems. The basic outline of a sweep line algorithm is as follows:
+\begin{enumerate}
+\item Sweep a line across problem plane. 
+\item As the line sweeps across the plane, events of interest occur, keep track of these events.
+\item Deal with events that occur at the line leaving a solved problem behind.
+\end{enumerate}
+
+
+\section{Convex Hull}
+
+Given a set of points in a plane, the smallest convex polygon that encloses all of the points in the set is the convex hull of the set. A polygon is convex if any line segment connecting two points in the polygon is entirely closed by the polygon. A convex hull can be represented by it's vertices in cyclic order.
+
+\subsection{Lower Bounds for Convex Hull Algorithms}
+
+The lower bound for Convex Hull Algorithms is $\Omega (n \log n)$. This can be proved by reducing the sorting problem to an instance of the convex hull problem. One possible reduction is shown below:
+
+\begin{enumerate}
+\item Let $x_1, x_2, ..., x_n$ be the input
+\item Let $p_i = (x_i, x_i^2)$
+\item Find the convex hull for all $p_i$'s. 
+\item Return the $x$ value for each point (remember a convex hull is represented by its vertices in cyclic order).
+\end{enumerate}
+
+Let $T(n)$ be the time to compute the convex hull. Then, the total time for sorting using the above algorithm is $O(n + T(n))$. Since the lower bound for sorting (using the comparison model) is $\Omega (n \log n)$, then $T(n) = \Omega (n \log n)$ \footnote{Note that the argument presented here only works for convex hall algorithms that are based on a comparison model and also it relies on the requirement that the points of convex hull should be reported ``in order''.  However, there are stronger results showing that even deciding which points are on the hull takes $\Omega(n \log n)$ even in a more general ``algebraic decision tree'' model that allows arbitrary algebraic comparisons.}.
+
+
+\subsection{Sweep Line algorithm for Convex Hulls}
+
+This algorithm finds the upper envelop of a convex hull.  A similar algorithm can be used to find the lower envelop. The algorithm uses two data structures. The first data structure stores the points that make up the hull of points seen so far. The second data structure stores the points not seen yet in sorted order by x-coordinate. A simple list can be used for the first data structure while a heap is well suited for the purpose of the second data structure. 
+
+The events of interest for this sweep line algorithm is the arrival of a new point as the sweep line travels from left to right. As each event occurs, the algorithm updates the current convex hull. There are two cases to consider.
+
+\textbf{Case 1, a ``right'' turn :}  The existing convex hull can be extended to include the new point without violating the convexity. In this case, the new point is directly added to the Convex Hull.
+%The old mathematical definition was incorrect. I (Mohsen Ghaffari, Dec 2011) changed that the the informal explanation above. The y-coordinate of the new point is less than or equal to the y-coordinate of the previously encountered point. In this case we add the new point to the convex hull.
+
+%\begin{figure}[ht]
+%\begin{center}
+%\mbox{\epsfbox{case1.eps}}
+%\caption{An example of a Case 1. $w$ is the newly added point}
+%\label{fig:case1}
+%\end{center}
+%\end{figure}
+
+\textbf{Case 2, a ``left'' turn:} Adding this new point to the Convex Hull violates its convexity. In this case, we add the new point to the Convex Hull but we need to do some surgery on the Convex Hull as following: Perform a convexity check on the predecessor of the new point. If the convexity check fails, delete the
+point from the envelope.  Now the new point has a new predecessor. Repeat the convexity check and deletion on the predecessor of the new point until the
+convexity check is satisfied.
+
+%The old mathematical definition was incorrect. I (Mohsen Ghaffari, Dec 2011) tryed some modifications as follwoing but first, it is still mathematically incorrect, second, I believ that this is a too complicated explanation and we don't need this amount of details here. Hence, I removed it from main text. The y-coordinate of the new point is greater than the y-coordinate of the previously encountered point but the y-coordinate of that previously encountered point is less than or equal to that of its predecessor. In this case we add the new point but we remove the previously added point. We keep backtracking, removing the previously added point, until we find a point with a y-coordinate that is either (1) greater than or equal to y-coordinates of both its predecessor and the newly added point, or (2) less than or equal to the y-coordinate of the newly added point but greater than or equal to that of its predecessor.
+
+%\begin{figure}[ht]
+%\begin{center}
+%\mbox{\epsfbox{case2.eps}}
+%\caption{An example of a Case 2. $v$ is the newly added point. Backtracking removes $z$ and $w$.}
+%\label{fig:case2}
+%\end{center}
+%\end{figure}
+
+The full algorithm is as follows:
+
+\begin{enumerate}
+\item insert point into heap ordered by x-coordinate
+\item Delete-Min from heap
+\item Run Convexity Check
+\item if not convex delete elements from hull backwards till convex check passes
+\item add new point to hull
+\item go to line 2
+\end{enumerate}
+
+\textbf{Runtime:}
+
+Line 1 runs in $O(n \log n)$. Line 2 runs $n$ times with $O(\log n)$ each time and $O(n \log n)$ in total. The convexity check in line 3 is $O(1)$ and runs $n$ times. To analyze line 4, note that an element can only be deleted once. For each element deleted, constant work is performed, and therefore $O(n)$ work is performed in total. Therefore the total running time is $O(n \log n)$.
+
+
+\section{Segment Intersections}
+
+Segment intersection algorithms returns the coordinates of all pairwise intersections given a set of line segments as input. The naive algorithm tests every segment pair for intersection and runs in $O(n^2)$. The sweep line algorithm solves the problem in $O((n + k) \lg n)$ time. If $k$ is not huge (less than $n^2$) then the sweep line algorithm is a significant improvement over the naive algorithm. 
+
+The sweep line algorithm we will use to solve the segment intersection sweeps a line from the top to the bottom of the plane, reporting intersections as they are encountered. As the sweep line moves across the plane it forms intersections with line segments in the plane. When a line segments intersects the sweep line, we say it is active. 
+
+Note that in order for two segments to intersect they must be adjacent to each other at some point on the sweep line. This allows us to only check for intersections between adjacent pairs of segments. The algorithm uses two different data structures. One data structure stores all active segments ordered by intersection point with the sweep line. The other data structure is a priority queue which stores events ordered by the distance from the sweep line.
+
+
+The events of interest in this sweep line algorithm are:
+\begin{enumerate}
+\item the sweep line encounters(intersects) a new segment. The line segment becomes active.
+\item an active segment no longer intersects the sweep line. The segment is no longer active.
+\item two active segments intersect each other
+\end{enumerate}
+
+
+\textbf{Case 1}: Insert the line segment into the sweep line status data structure. Then check if the line segment intersects any of its new neighbors. If there is an intersection add the intersection to the event queue. 
+
+\textbf{Case 2}: Remove the line segment from the sweep line status data structure. The former neighbors of the disposed line segment are now adjacent to each other. Check if the line segments intersects. If they do, add the intersection to the event queue. 
+
+\textbf{Case 3}: When there is an intersection event, report the intersection and swap the involved line segments positions in the sweep line status data structure.  Each of the swapped line segments have one new neighbor. Check for intersections between the swapped line segments and its new neighbors. Add any intersections to the event queue. 
+
+The full algorithm is as follows:
+\begin{enumerate}
+\item Add segment activation and deactivation events to event queue
+\item Dequeue an event from the event queue
+\item If the event is an activation event then add the line segment to the sweep line status data structure and check for intersections.
+\item If the event is a deactivation event, remove the line from the sweep line status data structure and check for intersections. 
+\item If the event is a intersection event, report the intersection, swap the lines in the sweep line status data structure and check for intersections. 
+\item Go to line 1.
+\end{enumerate}
+
+
+\textbf{Runtime:}
+
+Line 1 runs in $O(n)$ time. The number of times that the loop (lines 2-6) runs is equal to the number of events. There are $k$ swaps, $n$ arrivals and $n$ departures. Therefore there are $O(n+k)$ events and the loop runs  $O(n+k)$ times. If we use a binary tree to represent the sweep line status and a heap to represent the priority queue, each iteration of the loop takes $O(\log n)$ time. Therefore, the total runtime is $O((n+k)\log n)$.
+
+\section{Voronoi Diagrams}
+
+Given a set of points a plane, we want to be able to answer nearest neighbor queries. More specifically, given any point in the plane we want to return the closet point in the given set of points. One idea for solving the problem is to divide the plane regions according to closest point. This reduces the problem to determining the region of the query point.
+
+Voronoi diagrams are the partitioning of a plane with $n$ points into $n$ convex polygons such that each polygon contains exactly one point and every point in a given polygon is closer to its central point than to any other. Voronoi diagrams can be used to solve the nearest neighbor problem.
+
+\subsection{Size of voronoi diagrams}
+
+The size of a voronoi diagrams is $O(n)$. 
+
+\textbf{Proof:} Add a point at infinity such that all edges (including infinite edges) have two endpoints. Euler's formula states that $n_v - n_e + n_f = 2$.  Not that the number of faces, $n_f$, in the voronoi diagram is equal to $n$. Also note that every voronoi vertex has degree $3$ but every edge has two end points. Therefore, we have
+\begin{eqnarray}
+2 n_e &\geq & 3(n_v + 1)\nonumber \\
+2(n + n_v - 2) &\geq& 3(n_v + 1)\nonumber \\
+n_v &\leq & 2n - 7
+\end{eqnarray}
+
+Since the number of voronoi vertices is linear in the number of input points, the size of the voronoi diagram is $O(n)$.
+
+
+\subsection{Sweep line algorithm for constructing Voronoi Diagram}
+
+In this algorithm we sweep a line from the top to the bottom of the plane and maintain a beachfront of parabola, points equidistant for the sweep line and seen sites (input points).  Our algorithm maintains the following invariant: The voronoi diagram is complete and unchanging behind the beachfront. 
+
+As the sweep lines moves, the parabola forming the beach front also descend. $$ (x-x_f)^2 + (y-y_f)^2 = (y-t) $$ is the equation for a parabola where $(x_f, y_f)$ is coordinate of the focus point and $t$ is the parameter for the sweep line. Fixing $x$ and solving for $\frac{dy}{dt}$ produces
+\begin{eqnarray}
+2(y - y_f) \frac{dy}{dt} &=& 2(y-t)(\frac{dy}{dt} - 1)\\
+\frac{dy}{dt}&=& -\frac{y-t}{t-y_f}
+\end{eqnarray}
+Thus the higher the focus of the parabola the slower the parabola descends. 
+
+The events of interest in our Voronoi Diagram are:
+\begin{enumerate}
+\item Site Events. This occurs when the sweep line crosses a new site. When this occurs we create a new parabola for the site. Initially the parabola is a vertical line but it widens to normal parabola as the sweep line continues moving. The new parabola creates two new intersections of parabola in the beach front. We insert these intersections into ordered list of parabolas. (Parabolas are represented by the intersection points).
+\item Movement Events. These events occur as the sweep line moves across the plane, changing the beach front parabolas. There are two cases to consider. 
+\begin{enumerate}
+\item An inner parabola crosses an outer parabola. This does not happen. Consider the moment when the inner parabola becomes adjacent with the outer parabola. The inner parabola has a higher focus than the outer parabola so it descends slower. Therefore the inner parabola does not cross the outer parabola.
+\item A parabola hits the intersection of two other parabolas. All three sites are equidistance from the intersection. The middle parabola cannot absorb the intersection because its focus is too high and thus it descends slower. Therefore the middle parabola disappears from the beach front. This is also known as the circle event.
+\end{enumerate}
+\end{enumerate}
+
+In recap, site events create parabolas and circle events destroy parabolas. The full algorithm is as follows:
+\begin{enumerate}
+\item Add all site events to the event queue.
+\item While queue is not empty:
+\item Dequeue next event. 
+\item If its site event add parabola to the beachfront and compute future circle events with neighbors.  
+\item If its a circle event then remove parabola from beachfront and check for future circle events. 
+\end{enumerate}
+
+\textbf{Runtime:}
+Each event requires $O(\log n)$ time to process, mostly updating data structures for the event queue and parabolas. And there are $O(n)$ events as each site is responsible for at most one site event and one circle event. Therefore, the total runtime is therefore $O(n \log n)$.
+\end{document}
+
+
+
+
+

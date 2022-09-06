@@ -1,0 +1,134 @@
+\documentclass{article}
+\usepackage{scribe}
+\usepackage{amssymb}
+\usepackage{epsfig}
+\renewcommand{\Pr}[1]{\textrm{\textup{Pr}}\left( #1 \right)}
+
+\title{Complementary Slackness and More Dual Examples\\ 6.854 Scribe Notes \#12.2}
+\date{October 20, 2006}
+\author{Lecturers: David Karger\\ Scribe: Michael Schnall-Levin}
+
+\begin{document}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Your notes start here!
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% For theorems, lemmas, definitions, remarks, etc. use commands
+% {\theorem{...}}, {\lemma{...}}, {\definition{...}}, etc.
+% For proofs, use \begin{proof} ... \end{proof}
+%
+% For postscript figures (.ps) use the following block:
+%
+% \begin{figure}[h]
+% \begin{center}
+% \mbox{\psfig{figure=notes-nn-fig-mm.ps}}
+% \caption{A very nice picture.}
+% \label{fig:picture}
+% \end{center}
+% \end{figure}
+%
+
+% For encapsulated postscript figures (.eps) use the following block:
+%  (also change documentstyle line )
+% \begin{figure}[h]
+% \begin{center}
+% \mbox{\epsfbox{notes-nn-fig-mm.eps}}
+% \caption{A very nice picture.}
+% \label{fig:picture}
+% \end{center}
+% \end{figure}
+%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{center}
+\end{center}
+
+\section{Complementary Slackness}
+We begin by looking at the notion of complementary slackness.  Consider the following primal LP and its dual:\\
+\textbf{Primal:} min cx, Ax = b, $x\geq 0$\\
+\textbf{Dual:} max yb, $yA \leq c$\\
+\\
+We can rewrite the dual using slack variables s to put it in the form:\\
+\textbf{Dual:} max yb, yA + s = c, $s \geq 0$\\
+\\
+Using this formulation, we arrive at the following lemma.
+
+\textbf{Lemma}:
+The following are all equivalent:\\
+(i) x, y are optimal\\
+(ii) $s\cdot x = 0$\\
+(iii) $x_{j}s_{j} = 0$ $\forall j$\\
+(iv) $s_{j} \geq 0 \rightarrow x_{j} = 0$
+
+\begin{proof}
+First note that (iii) and (iv) are just restatements of (ii).  Therefore we only need to show (i) and (ii) are equivalent.\\
+(i) $\leftrightarrow$ (ii):  x, y are both optimal if and only if cx = yb (by strong duality) and cx = yb can be rewritten as (yA + s)x = yAx which holds if and only if $s \cdot x = 0$\\
+\end{proof}\\
+The interpretation of this lemma is the following.  At the optimum, it is not possible to have $x_j$ and $s_j$ both 'slack'.  At least one of them has to be at the limit.  Conversely, if at least one of the two is tight for every j, then the point is an optimum.  We will see how this notion of complementary slackness can be used to gain insight in our analysis of the following dual problems.\\
+
+\section{Two Dual Examples}
+\subsection{Max Flow}
+Consider the max flow problem on a graph G with source node s and sink node t.  In order to formulate this problem as an LP, we augment G with an extra edge from t to s having infinite capacity.  Then the LP is to maximize the flow along that edge while requiring the flow to be both feasible (obey the capacity constraints) and a circulation:\\
+\\
+Letting $x_{u,v}$ be the flow value on edge (u, v), we can then write the primal LP as:\\
+\\
+\textbf{Primal:}  max $x_{t,s}$ subject to:\\
+ $\sum_{w}x_{v,w} - x_{w,v} = 0$ $\forall v$ (flow is a circulation)\\
+ $x_{v,w} \leq u_{v,w}$ $\forall (v,w)$ (flow values do not exceed capacities)\\
+ $x_{v,w} \geq 0$  $\forall (v,w)$ (flow values are all positive)\\
+\\
+What is the dual for this LP?  We introduce a variable for every constraint in the primal problem: a variable $z_v$ for each of the constraints on each node (the circulation constraints) and a variable $y_{v,w}$ for each of the capacity constraints.  Then by following the 'cookbook method' for finding duals as described in previous lectures we get the following dual problem.\\
+\\
+\textbf{Dual:} min $\sum u_{v,w}y_{v,w}$ subject to:\\
+$y_{v,w} \geq 0$\\
+$z_v - z_w + y_{v,w} \geq 0$ $\forall (v,w) \neq (t,s)$\\
+$z_t - z_s + y_{t,s} \geq 1$\\
+\\
+We can first simplify this by noting that since $u_{t,s} = \infty$, an optimal solution to the dual must have $y_{t,s} = 0$.  Using this and moving terms in the constraints allows us to rewrite them as:\\
+$y_{v,w} \geq 0$\\
+$z_w \leq  z_v +  y_{v,w}$ $\forall (v,w) \neq (t,s)$\\
+$z_t - z_s \geq 1$\\
+\\
+Using the above, we can interpret the dual problem in the following way.  Consider the $u_{v,w}$ as cross section areas, and the $y_{v,w}$ as lengths.  Then the problem is to minimize the total volume, while maintaining a distance of at least 1 between nodes s and t.\\
+\\
+As a sanity check for what we have done, let (S,T) be a min s-t cut on G.  Set $y_{v,w} = 1$ for all edges crossing the cut and $y_{v,w} = 0$ for all other edges.  This is a feasible solution to the dual problem and the objective function in the dual takes on value $\sum_{v \in S, w \in T} u_{v,w}$ which is just the value of the min-cut.  Therefore, by weak duality the value of the primal is no greater than the value of the dual, and so we have shown that max-flow $\leq$ min-cut.\\
+\\
+Now, let's see what further insight we can gain by using the complementary slackness results proven earlier.  First, note that for any solution of the dual, we can subtract the same value from all $z_{w}$ without changing the value of the objective function or breaking any of the constraints.  Therefore, we can choose to have $z_s = 0$.  This is equivalent to having the $z_{w}$ represent distances from node s.\\
+\\
+Now consider an optimal solution to the dual problem (with the choice as above of $z_s = 0$).  Let $S = \{v \mid z_v < 1\}$ and $T = V  \smallsetminus S$.  Then {S,T} is an s-t cut.\\
+\\
+For any edge (v,w) crossing the cut from S to T, we have $y_{v,w} \geq z_w - z_v > 0$.  Therefore, for these edges, the variables $y_{v,w}$ are not 0.  Since we are at an optimum point, by complementary slackness, the corresponding constraint for the primal problem must be tight.  The constraint corresponding to the variable $y_{v,w}$ is $x_{v,w} \leq u_{v,w}$.  Therefore we must have that $x_{v,w} = u_{v,w}$ for all edges (v,w) crossing the cut from S to T.\\
+\\
+Similarly, consider any edge (v,w) crossing the cut from T to S.  From the definition of S and T, we know that $z_v > z_w$ and since $y_{v,w} \geq 0$ we must have $z_v + y_{v,w} > z_w$.  Therefore, the constraint $z_v + y_{v,w} \geq z_w$ is not tight and so the corresponding variables in the primal must be zero and so $ x_{v,w} = 0$.\\
+\\
+Therefore, the flow on all edges from S to T is at capacity, and the flow on all edges from T to S is 0, and so the flow on the graph is equal to the capacity of the cut given by (S,T).  Therefore, using complementary slackness we have proven the max flow = min-cut theorem.\\
+\subsection{Min-Cost Circulation}
+We can quickly find an LP for min-cost circulation by noting that the formulation is very similar to that for max-flow.  In particular, none of the constraints need to be changed.  The only difference is that we now want a circulation and we want to minimize cost, and so only the objective function needs to be changed.  The primal LP then becomes:\\
+\\
+\textbf{Primal:}  min $\sum c_{v,w}x_{v,w}$ subject to:\\
+ $\sum_{w}x_{v,w} - x_{w,v} = 0$ $\forall v$ (flow is a circulation)\\
+ $x_{v,w} \leq u_{v,w}$ $\forall (v,w)$ (flow values do not exceed capacities)\\
+ $x_{v,w} \geq 0$  $\forall (v,w)$ (flow values are all positive)\\
+\\
+Because only the objective function on the primal has changed, the only change in the dual problem is on the constraints and the sign of the objective.  The dual LP becomes:\\
+\\
+\textbf{Dual:} max $\sum u_{v,w}y_{v,w}$ subject to:\\
+$y_{v,w} \leq 0$\\
+$z_v - z_w + y_{v,w} \leq c_{v,w}$\\
+\\
+Let $p_v = - z_v$.  Then the dual problem can be rewritten as:\\
+\\
+\textbf{Dual:} max $\sum u_{v,w}y_{v,w}$ subject to:\\
+$y_{v,w} \leq 0$\\
+$y_{v,w} \leq c_{v,w} + p_v - p_w$\\
+\\
+If we consider the $p_v$ to be prices, then the dual problem is to maximize the weighted sum of the arcs of negative reduced cost.\\
+\\
+Again, we use the results of complementary slackness to see what further insight we can gain.  Suppose that $x_{v,w} < u_{v,w}$.  Then the constraint $x_{v,w} \leq u_{v,w}$ isn't tight and so the corresponding variable in the dual  $y_{v,w} = 0$.  If the reduced cost $c^p_{v,w} < 0$ then $y_{v,w} < 0$ and so $x_{v,w} = u_{v,w}$.  So negative reduced cost arcs must be saturated.\\
+\\
+Similarly, suppose $c^p_{v,w} > 0$.  Then the constraint $y_{v,w} \leq c_{v,w} + p_v - p_w$ must be slack (since $y_{v,w} \leq 0$) and so the corresponding variable in the primal $x_{v,w} = 0$.  Therefore, positive reduced cost arcs must have zero flow.\\
+\\
+Therefore, using complementary slackness we have proven that in a min-cost flow negative reduced cost arcs are saturated and positive reduced cost arcs have zero flow.
+\end{document}

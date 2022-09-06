@@ -1,0 +1,255 @@
+\documentclass{article}
+\usepackage{scribe}
+\usepackage{epsfig}
+\usepackage{clrscode}
+\usepackage{amsmath}
+\usepackage{hyperref}
+\usepackage{listings}
+\renewcommand{\Pr}[1]{\textrm{\textup{Pr}}\left( #1 \right)}
+
+\title{Fixed Parameter Tractability and Treewidth\\ 6.854 Scribe Notes \#21}
+\date{October 27, 2006}
+\author{Lecturer: David Karger\\ Scribe: Pramook Khungurn}
+
+\begin{document}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Your notes start here!
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% For theorems, lemmas, definitions, remarks, etc. use commands
+% {\theorem{...}}, {\lemma{...}}, {\definition{...}}, etc.
+% For proofs, use \begin{proof} ... \end{proof}
+%
+% For postscript figures (.ps) use the following block:
+%
+% \begin{figure}[h]
+% \begin{center}
+% \mbox{\psfig{figure=notes-nn-fig-mm.ps}}
+% \caption{A very nice picture.}
+% \label{fig:picture}
+% \end{center}
+% \end{figure}
+%
+
+% For encapsulated postscript figures (.eps) use the following block:
+%  (also change documentstyle line )
+% \begin{figure}[h]
+% \begin{center}
+% \mbox{\epsfbox{notes-nn-fig-mm.eps}}
+% \caption{A very nice picture.}
+% \label{fig:picture}
+% \end{center}
+% \end{figure}
+%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Fixed Parameter Tractability}
+
+One of the ways to cope with hard problems in practice is to realized that problem instances may be associated with 
+some ``parameters'' related to their complexity. If the parameter of an instance is small, we might have some hope 
+in finding a polynomial time  solution to that instance. This idea has been investigated in the 1990's by 
+Downey and Fellows in their work titled ``Parameterized Complexity''.
+
+We begin by giving formal definitions of parameter and fixed parameter tractability.
+
+\textbf{Definition}:
+A \emph{parameter} is a function from problem instances to the set of natural numbers.
+
+In this way, a parameter is an integer associated with an instance of a problem. 
+Clearly, the input size $n$ is a parameter (although we might not be able to achieve anything new
+by seeing $n$ in this light). Other examples include the number of processors in a
+multi-processor scheduling problem, and the number of distinct item sizes in the bin packing problems.
+The value of the optimal solution can also be regarded as a parameter.
+
+\textbf{Definition}:
+We say that a problem is \emph{fixed parameter tractable (FPT)} with respect to parameter $k$ if there exists
+a solution running in $f(k)\times n^{O(1)}$ time, where $f$ is a function of $k$ which is independent of
+$n$.
+
+We investigate two techniques used to construct fixed parameter algorithms: bounded search tree method, 
+and Kernelization.
+
+\subsection{Bounded Search Tree Method}
+The bounded search tree method attempts to do an exhaustive search on the problem space. However,
+it uses the parameter to cut off some branches of the search tree so that the running time is still
+polynomial in $n$. We illustrate the method by showing that the vertex cover problem is FPT
+with respect to the size of the optimal cover.
+
+Recall that in the vertex cover problem, we are given a graph $G = (V,E)$. We would like to
+find a subset $W \subseteq V$ with the smallest cardinality such that, for all $(v_1, v_2) \in E$,
+either $v_1 \in W$ or $v_2 \in W$.
+
+Let parameter $k$ denote the size of $W$. If $k$ is small, we can naively check every subset
+of size $k$ of $V$ to see whether it covers every edge or not. However, this does not show that the
+vertex cover problem is Fixed Parameter Tractable with respect to $k$. The reason is that the time complexity
+of this algorithm is at least the number of $k$-subsets of $V$ which is ${n \choose k}\approx O(n^k)$.
+
+A better solution uses the observation that for every edge, one end point is in the cover. Hence,
+we can perform an exhaustive search by picking an edge, choosing one end point to include in the
+cover, update the graph, and recurse. Note that since the size of the smallest vertex cover is $k$, 
+we do not need to search more than $k$ depths. The psuedocode of the algorithm is as follows.
+
+\begin{lstlisting}
+  Vertex-Cover(G,C):
+    If |C| = k and G still contains an edge:
+      Return empty set
+
+    If G contains no edges:
+      Return C
+
+    Pick an edge (v,w)
+    G' <- G with vertex v and its incident edges removed
+    C' <- C ∪ {v}
+
+    If Vertex-Cover(G',C') != empty set:
+      Return C
+
+    G'' <- G with vertex w and its incident edges removed
+    C'' <- C ∪ {w}
+
+    If Vertex-Cover(G'',C'') != empty set:
+      Return C
+\end{lstlisting}
+
+At each depth, we branch into at most two subtrees, and we remove at most
+$n$ edges from the graph. Thus, the time complexity of the algorithm is $O(2^kn)$,
+which is in the form that we want. Hence, the vertex cover problem is fixed parameter
+tractable.
+
+\subsection{Kernelization}
+Roughly speaking, a \emph{kernel} is a problem instance whose solution
+can be easily (i.e. in polynomial time) extended to a solution to the original problem. 
+In other words, the kernel of a problem instance captures its ``hard'' part. By identifying the kernel of
+a problem instance, we get a smaller problem, and if the size of the kernel is small,
+we can hope to solve the problem much faster.
+
+As an example, consider again the vertex cover problem with parameter $k$, the
+size of the smallest vertex cover. Observe that every vertex with degree more than
+$k$ has to be in the cover. The reason is that if it is not, then all of its 
+neighbors must be in the cover to cover its incident edges, and this makes the
+size of the cover greater than $k$. So, we can add such vertices to the 
+cover, remove their incident edges, and try to find an optimal vertex cover in
+the remaining graph. This remaining graph is the kernel of the problem because
+its smallest vertex cover, in union with the set of vertices with degree more than $k$ 
+in the original graph, gives an optimal solution to the original problem.
+
+If the size of the kernel is bounded by $f(k)$, for some function $f$ independent of $n$, 
+the time complexity of solving the kernel is $O(g(k))$, for some function $g$ independent of $n$. 
+Hence, once we find the kernel of the problem, there exists an algorithm whose running time is 
+$O(g(k) + n^{O(1)})$. Note that the $n^{O(1)}$ term comes from identifying the kernel and extending
+the solution of the kernel to that of the original problem.
+
+The vertex cover problem is a nice example. Observe that the remaining graph has maximum degree $k$.
+Since the original graph can be covered by $k$ vertices, so can the remaining graph. This implies
+that there are at most $k^2$ edges, and, hence, at most $2k^2$ vertices. Using the algorithm
+from the last section, we can solve the kernel in $O(2^k\, k^2)$ time. As we can count the degree
+of each vertex in $O(m+n)$ time, we achieve an $O(2^k\, k^2 + m+n)$ algorithm.
+
+The following theorem relates fixed parameter tractability to kernelization in a very surprising way.
+
+\textbf{Theorem}:
+The following three statements are equivalent.
+\begin{enumerate}
+\item The problem is fixed parameter tractable, i.e, there exists an $O(f(k) \cdot n^{O(1)})$ algorithm to solve it.
+\item There exists $O(f(k) + n^{O(1)})$ algorithm for the problem.
+\item The problem can be reduced to kernel of size at most $f(k)$.
+\end{enumerate}
+
+The proof of the theorem, however, is not constructive. Hence, although we know that a problem is fixed parameter
+tractable, we may not be able to find its kernelization and its $O(f(k) + n^{O(1)})$ algorithm easily.
+
+One might guess that every problem in $NP$ is fixed parameter tractable. However, people believe otherwise.
+In complexity theory, there is a notion of complexity class $W[1]$. A problem is said to be $W[1]$-complete
+if a fixed-parameter polynomial-time algorithm for that problem yields a fixed-parameter polynomial-time
+algorithm for every other problem in $W[1]$. It has been proven that $CLIQUE$ (finding size of the largest clique) and $\mathrm{{\it INDEPENDENT-SET}}$ (finding size of the largest independent set) are in $W[1]$ \footnote{Note that these two problems are equivalent as a clique in G is an independent set in $G^c$ and vice versa.}. As no one has been able to prove that any of the two problems is fixed parameter tractable, this
+provides a strong evidence against every NP problem being fixed parameter tractable.
+
+\section{Treewidth}
+\subsection{Motivation}
+Many graph problems can be formulated as assigning to each vertex a value from a set of choices, such that
+the assignment satisfies some constraints. Hence, we can employ the following canonical search algorithm
+to solve them.
+
+\begin{lstlisting}
+  Find-Opt(G,s):
+    
+    Pick a vertex v such that s[v] has not been assigned.
+
+    m <- worst possible value (just for initializing m)
+
+    For each x such that s[v] can take value x:
+      s[v] <- x
+      r <- Find-Opt(G,s)
+
+      If r is better than m:
+        m <- r
+
+    Return m
+\end{lstlisting}
+
+The problem with this search algorithm is that its running time is exponential. We might hope to improve
+its performance by ``memoization''/dynamic programming, i.e., memorizing solutions to subproblems that have been 
+solved. However, in order to do this, the total number of subproblems must be small. The following example
+illustrates an example when such improvement can be made.
+
+Consider the problem of finding a maximum matching on a tree: we are given a tree $T = (V,E)$, and we would like to
+find the largest subset $F$ of $E$ such that no two edges in $F$ shares a vertex. Since a tree is a bipartite graph,
+we can use max-flow to solve this problem, but it turns out to be an overkill.
+
+Suppose we pick a vertex $r$ to be the tree's root. For each vertex $v$, let
+\begin{itemize}
+\item $f^{+}(v) = $ the size of the maximum matching in the subtree rooted at $v$ in which $v$ is matched;
+\item $f^{-}(v) = $ the size of the maximum matching in the subtree rooted at $v$ in which $v$ is not matched.
+\end{itemize}
+Clearly, the size of the optimal solution is $\max\{ f^{+}(r), f^{-}(r) \}.$ Let $x \prec y$ denote the sentence
+``$x$ is the parent of $y$.'' We have that, if $v$ is a leaf, $f^+(v) = f^-(v) = 0.$ For other cases, we can write a DP to find these functions. Note that for each $v$, there are two cases (1) either we want to find ($f^+(v)$), \emph{i.e.}, the size of the maximal possible matching in the subtree rooted at $v$ such that $v$ is matched , (2) or we want to find ($f^-(v)$), \emph{i.e.}, the size of the maximal possible matching in the subtree rooted at $v$ such that $v$ is unmatched.  The update equation for these two cases is as following
+\begin{eqnarray*}
+f^{+}(v) & = & 1 + \max_{w, v \prec w} 
+\left( f^-(w) + \sum_{\substack{u, v \prec u\\ u \neq w}} \max\{ f^{+}(u), f^{-}(u) \} \right),\\
+f^{-}(v) & = & \sum_{w,v \prec w} \max\{ f^+(w), f^-(w) \}.
+\end{eqnarray*}
+In the former case, we need to match $v$ to some child $w$ of $v$. So then we can't match $w$ with any of its children, so we add in $f^-(w)$, the maximum matching we can get in that subtree without matching $w$ to any of its children. For all the other children $u$ of $v$, we don't care whether we take $f^+(u)$ or $f^-(u)$, so we just take the maximum. Now we want to find the child $w$ that gives us the maximum possible value for the respective sum. The latter case is clear as we don't care whether any child of $v$ is matched or not. With this dynamic programming approach, we can solve the problem in $O(n)$.
+
+One can hope to solve the maximum matching problem in general graphs by designating a vertex as a root, and
+compute $f^{+}(v)$ and $f^{-}(v)$ for each vertex $v$ according to some spanning tree. However, this does 
+not lead to a correct solution because subproblems in general graphs tend to interact. For example, if vertex $w$
+is a child of vertex $v$, it might be the case that when we attempt to calculate the optimal solution in which
+$v$ is matched to $w$, the subproblem we solved for $w$ requires that $v$ is matched to some other vertex.
+
+Nevertheless, the good news is that in many graph problems, feasibility is determined locally through interaction
+with neighbors. In other words, the values that a vertex can take is dependent on only the values that its
+neighbors take. For example, in the maximum matching above, a vertex can only be paired with one of its neighbors
+that has not been paired with any other vertex. This is where the concept of treewidth kicks in.
+
+\subsection{Definition}
+
+\textbf{Definition}:
+An \emph{elimination ordering} is a permutation on the set of vertices $V$ of graph $G$. We write the ordering by
+$n$-tuple $(v_1, v_2, \ldots, v_n)$, where $v_i \in V$, and $v_i \neq v_j$ for all $i,j$.
+
+Consider the following process. We are given a graph $G$ and an elimination ordering $(v_1, v_2, \ldots, v_n)$.
+\begin{enumerate}
+\item $i \gets 1$
+\item	For all pairs of neighbors $u$ and $w$ of $v_i$, add edge $(u,w)$ to $G$. 
+\item Remove $v_i$ and its incident edges from $G$.
+\item $i \gets i+1$
+\item If $i > n$, then terminate. If not, go to step 2.
+\end{enumerate}
+
+\textbf{Definition}:
+The \emph{treewidth induced by elimination ordering $(v_1, v_2, \ldots, v_n)$ of $G$} is the maximum of all neighborhood
+size of vertices just before they are removed.
+
+\textbf{Definition}:
+The \emph{treewidth} of a graph $G$ is the minimum treewidth induced by some elimination ordering.
+
+For example, a tree has treewidth 1 because we can keep eliminating leaves. In fact, it is possible, but not obvious
+to show that every graph with treewidth 1 is a tree. Graphs with treewidths 2 are series-parallel graphs which are
+analogues of networks of resistors (without the resistors) that can be decomposed into nested series and parallel connections.
+Graphs with treewidth greater than or equal to 3 are hard to classify. For more information, you can refer to this \href{http://en.wikipedia.org/wiki/Tree_decomposition#Graph_minors}{link}.
+
+In the next lecture, we will show that $SAT$ is fixed parameter tractable with respect to treewidth.
+\end{document}
