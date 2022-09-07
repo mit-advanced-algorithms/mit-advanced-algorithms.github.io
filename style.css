@@ -35,6 +35,7 @@ header {
 main {
   min-height: 100vh;
   max-width: 50em;
+  min-width: 20em;
   padding: 1em;
   border: 1px solid var(--border);
   border-top: 0;

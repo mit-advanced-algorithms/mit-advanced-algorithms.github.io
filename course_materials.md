@@ -1,4 +1,4 @@
-% 6.854 Course Materials
+% Course Materials
 
 We've done our best to synchronize a breadth of materials developed over this course's history for your reference.
 But be aware that some of the materials here --- particularly the scribe notes and 2013 lectures --- do not necessarily reflect exactly what has or will happen in this year's class.

@@ -1,4 +1,4 @@
-# Course Information
+% Course Information
 
 **Lectures**: Monday, Wednesday, and Friday 2:30-4 in [32](https://whereis.mit.edu/?go=32)-[123](https://floorplans.mit.edu/pdfs/32_1.pdf)
 

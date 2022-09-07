@@ -1,4 +1,4 @@
-# Course Calendar
+% Course Calendar
 
 For notes and videos related to each topic, see the [course materials](course_materials.html).
 
