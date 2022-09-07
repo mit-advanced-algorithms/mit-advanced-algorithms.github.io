@@ -24,6 +24,7 @@ body {
   flex-direction: column;
   align-items: center;
   margin: 0;
+  min-height: 100vh;
 }
 
 header {
@@ -32,6 +33,7 @@ header {
 }
 
 main {
+  min-height: 100vh;
   max-width: 50em;
   padding: 1em;
   border: 1px solid var(--border);
@@ -93,4 +95,10 @@ table a {
   padding: 0.3em;
   padding-top: 0;
   padding-bottom: 0;
+}
+
+footer {
+  border-top: 1px solid var(--border);
+  width: 100%;
+  text-align: center;
 }
