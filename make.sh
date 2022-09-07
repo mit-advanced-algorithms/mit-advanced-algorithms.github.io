@@ -26,9 +26,3 @@ do
     --output=$output \
     $file
 done
-
-echo "Injecting NB into HTML..."
-for file in $(find www -name "*.html")
-do
-  sed -i "/<\/head>/i <script src='https:\/\/nb.mit.edu\/embed_NB.js' type='text\/javascript'> <\/script>" $file
-done
