@@ -1,6 +1,6 @@
 % Course Calendar
 
-For notes and videos related to each topic, see the [course materials](course_materials.html).
+For notes and videos related to each topic, see the [course materials](materials.html).
 
 | Date           | Topic                                                                    |
 |----------------|--------------------------------------------------------------------------|

@@ -7,6 +7,6 @@ For more details, see the [course information](info.html).
 
 ## Announcements
 
-* If you intend to take this course please fill out [this survey](https://forms.gle/kHhiGbPnushjgtGD6). Note that this form does NOT replace official registration via MIT Registrar's office, it's for our own internal bookkeeping.
-* We will be using [NB2](https://nb2.csail.mit.edu), a tool that permits students to discuss and ask questions about lecture videos, notes, and problems sets. You will receive an email to sign up once you fill out the survey above.
-* We've added this class to [psetpartners](https://psetpartners.mit.edu), which you can use to find collaborators and comply with the collaboration policy which limits the number of psets you can work on with any individual collaborator.
+* If you intend to take this course please fill out [this survey](https://forms.gle/kHhiGbPnushjgtGD6). Note that this form does **NOT** replace official registration via MIT Registrar's office, it's for our own internal bookkeeping.
+* We will be using [NB2](https://nb2.csail.mit.edu), a tool that permits students to discuss and ask questions about lecture videos, notes, and problems sets. You will receive an email to sign up sometime after you fill out the survey above.
+* We've added this class to [psetpartners](https://psetpartners.mit.edu), which you can use to find collaborators and comply with the [collaboration policy](/info.html#collaboration) which limits the number of psets you can work on with any individual collaborator.
