@@ -9,8 +9,6 @@
 
 \marnote{2013 Lecture 29 Start}
 
-\subsection*{Parallel Algorithms}
-
 Two closely related models of parallel computation.
 
 Circuits
@@ -35,7 +33,7 @@ PRAM
 
 Essentially the same models, but let us focus on different things.
 
-\subsubsection*{Circuits}
+\subsection*{Circuits}
 
 \begin{itemize}
 \item Logic gates (AND/OR/not) connected by wires
@@ -101,7 +99,7 @@ Parallel prefix
 \end{itemize}
 
 
-\subsubsection*{PRAM}
+\subsection*{PRAM}
 
 various conflict resolutions (CREW, EREW, CRCW)
 \begin{itemize}
@@ -149,7 +147,7 @@ list ranking EREW
 \item by induction, sum of values on path to end doesn't change
 \end{itemize}
 
-\subsection{Work-Efficient Algorithms}
+\section{Work-Efficient Algorithms}
 
 Idea: 
 \begin{itemize}
@@ -226,7 +224,7 @@ Euler tour to reduce to parallel prefix for
 \item work efficient
 \end{itemize}
 
-\subsection*{Expression Tree Evaluation}
+\section*{Expression Tree Evaluation}
 
 plus and times nodes.
 
@@ -275,7 +273,7 @@ Parallelize
 \end{itemize}
 
 
-\subsection*{Sorting}
+\section*{Sorting}
 
 %% Bitonic sort:
 %% \begin{itemize}
@@ -368,11 +366,11 @@ Qsort idea
 \end{itemize}
 
 
-\subsection*{Connectivity and connected components}
+\section*{Connectivity and connected components}
 
 Linear time sequential trivial.
 
-\subsubsection*{Directed}
+\subsection*{Directed}
 
 Squaring adjacency matrix
 \begin{itemize}
@@ -388,7 +386,7 @@ Squaring adjacency matrix
   part of it matters.
 \end{itemize}
 
-\subsubsection*{Undirected}
+\subsection*{Undirected}
 
 Basic approach:
 \begin{itemize}
@@ -458,7 +456,7 @@ Improvements:
 \end{itemize}
 
 
-\subsection{Randomization}
+\section{Randomization}
 
 
 Randomization in parallel:
@@ -476,7 +474,7 @@ Classes:
 \item immune to choice of R/W conflict resolution
 \end{itemize}
 
-\subsection*{Sorting}
+\section*{Sorting}
 
 Quicksort in parallel:
 \begin{itemize}
@@ -536,7 +534,7 @@ Formal analysis:
   n$ processors
 \end{itemize}
 
-\subsection*{Maximal independent set}
+\section*{Maximal independent set}
 
 trivial sequential algorithm
 \begin{itemize}
@@ -689,7 +687,7 @@ with care, $O(m)$ processors and $O(\log n)$ time (randomized)
 LFMIS P-complete.
 
 
-\subsection*{Perfect Matching}
+\section*{Perfect Matching}
 
 We focus on bipartite; book does general case.
 
