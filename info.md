@@ -1,17 +1,17 @@
 # Course Information
 
-**Lectures**: Monday, Wednesday, and Friday 2:30-4 in 32-123.
+**Lectures**: Monday, Wednesday, and Friday 2:30-4 in [32](https://whereis.mit.edu/?go=32)-[123](https://floorplans.mit.edu/pdfs/32_1.pdf)
 
 **Units**: 5-0-7 Graduate H-level
 
 ## Staff
 
-| Role       | Name             | Email                  | Office Hours      |
-|------------|------------------|------------------------|-------------------|
-| Instructor | David Karger     | karger@mit.edu         | Arrange by email. |
-| TA         | Theia Henderson  | theia@mit.edu          | TBD               |
-| TA         | Michael Coulombe | mcoulomb@mit.edu       | TBD               |
-| CA         | Rebecca Yadegar  | ryadegar@csail.mit.edu |                   |
+| Role       | Name             | Email                    | Office Hours      |
+|------------|------------------|--------------------------|-------------------|
+| Instructor | [David Karger](https://people.csail.mit.edu/karger/) | `karger@mit.edu`         | Arrange by email. |
+| TA         | [Theia Henderson](https://theias.place/)             | `theia@mit.edu`          | TBD               |
+| TA         | [Michael Coulombe](https://www.mit.edu/~mcoulomb/)   | `mcoulomb@mit.edu`       | TBD               |
+| CA         | Rebecca Yadegar                                      | `ryadegar@csail.mit.edu` |                   |
 
 ## Summary
 
@@ -47,7 +47,7 @@ The goal is to be broad rather than deep. This list is approximate.
 
 ## Prerequisites
 
-Strong performance in an undergraduate class in algorithms (e.g., 6.046/18.410), discrete mathematics and probability (6.042 is more than sufficient), and substantial mathematical maturity. 
+Strong performance in an undergraduate class in algorithms (e.g., [6.1220J/18.410J, previously 6.046](http://student.mit.edu/catalog/search.cgi?search=6.1220&style=verbatim)), discrete mathematics and probability ([6.1200J, previously 6.042,](http://student.mit.edu/catalog/search.cgi?search=6.1200&style=verbatim) is more than sufficient), and substantial mathematical maturity. 
 
 ## Requirements:
 
