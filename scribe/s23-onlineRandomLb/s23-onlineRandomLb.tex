@@ -3,56 +3,13 @@
 \usepackage{epsfig}
 \usepackage{amsfonts}
 \renewcommand{\Pr}[1]{\textrm{\textup{Pr}}\left( #1 \right)}
+
+\title{Lower Bounds for Competitive Ratios of Randomized Online Algorithms}
+\date{November 5, 2004}
+\author{Lecturer: David Karger\\ Scribe: Chun-Chieh Lin}
+
 \begin{document}
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Lecture command takes 4 arguments:
-%               ordinal number of the lecture
-%               date of the lecture
-%               lecturer
-%               scribe---that is you.
-%
-% Fill out the next line with this information !!!!
-\lecture{18}{11/05/2004}{David Karger}{Chun-Chieh Lin}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Your notes start here!
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-% For theorems, lemmas, definitions, remarks, etc. use commands
-% {\theorem{...}}, {\lemma{...}}, {\definition{...}}, etc.
-% For proofs, use \begin{proof} ... \end{proof}
-%
-% For postscript figures (.ps) use the following block:
-%
-% \begin{figure}[h]
-% \begin{center}
-% \mbox{\psfig{figure=notes-nn-fig-mm.ps}}
-% \caption{A very nice picture.}
-% \label{fig:picture}
-% \end{center}
-% \end{figure}
-%
-
-% For encapsulated postscript figures (.eps) use the following block:
-%  (also change documentstyle line )
-% \begin{figure}[h]
-% \begin{center}
-% \mbox{\epsfbox{notes-nn-fig-mm.eps}}
-% \caption{A very nice picture.}
-% \label{fig:picture}
-% \end{center}
-% \end{figure}
-%
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-\section{Lower Bounds for Competitive Ratios of Randomized Online Algorithms}
+\maketitle
 
 Designing an online algorithm can be viewed as a game between the algorithm designer and the adversary.  The algorithm designer chooses an algorithm $A_i$, and the adversary chooses an input $\sigma_j$.  The payoff matrix contains the cost of the algorithm on the input $C_{A_i}(\sigma_j)$.  The algorithm designer wants to minimize the cost, while the adversary wants to maximize the cost.  A randomized online algorithm is a probability distribution over the deterministic algorithms, so it corresponds to a mixed strategy for the algorithm designer.
 

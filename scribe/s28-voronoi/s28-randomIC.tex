@@ -3,58 +3,12 @@
 \usepackage{epsfig}
 \usepackage{amsfonts}
 \renewcommand{\Pr}[1]{\textrm{\textup{Pr}}\left( #1 \right)}
+
+\title{Voronoi Diagrams: Randomized Incremental Construction II}
+\date{November 12, 2004}
+\author{Lecturer: David Karger\\ Scribe: Charles Han}
+
 \begin{document}
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Lecture command takes 4 arguments:
-%               ordinal number of the lecture
-%               date of the lecture
-%               lecturer
-%               scribe---that is you.
-%
-% Fill out the next line with this information !!!!
-\lecture{25}{11/12/2004}{David Karger}{Charles Han}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Your notes start here!
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-% For theorems, lemmas, definitions, remarks, etc. use commands
-% {\theorem{...}}, {\lemma{...}}, {\definition{...}}, etc.
-% For proofs, use \begin{proof} ... \end{proof}
-%
-% For postscript figures (.ps) use the following block:
-%
-% \begin{figure}[h]
-% \begin{center}
-% \mbox{\psfig{figure=notes-nn-fig-mm.ps}}
-% \caption{A very nice picture.}
-% \label{fig:picture}
-% \end{center}
-% \end{figure}
-%
-
-% For encapsulated postscript figures (.eps) use the following block:
-%  (also change documentstyle line )
-% \begin{figure}[h]
-% \begin{center}
-% \mbox{\epsfbox{notes-nn-fig-mm.eps}}
-% \caption{A very nice picture.}
-% \label{fig:picture}
-% \end{center}
-% \end{figure}
-%
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-\begin{center}
-{\large \bf Randomized Incremental Construction II}
-\end{center}
 
 \section{Convex Hull}
 The following algorithm provides a randomized incremental construction for convex hull: start with 3 points, 
@@ -114,7 +68,7 @@ and efficiently maintain the current $OPT$, we rely on the following obervation:
 constraint will not improve our current $OPT$, but it may make it infeasible.  To state it a bit 
 differently:
 
-{\claim{Let $OPT_i$ be the optimum vertex of the polyhedron after inserting $i$ constraints 
+\claim{Let $OPT_i$ be the optimum vertex of the polyhedron after inserting $i$ constraints 
 (half-spaces).  Now add the next constraint $c_{i+1}$; if $OPT_(i+1) \neq OPT_i$, then the new 
 optimum vertex $OPT_{i+1}$ must be tight for the new constraint $c_{i+1}$}
 
@@ -146,8 +100,5 @@ $$T(n,d) = T(n-1,d) + O(n) + \frac{d}{n}(T(n-1,d-1))$$
 
 This gives an expected running time of $O(d!n)$.  This is a strongly polynomial LP algorithm, which 
 is in fact linear in the number of constraints and FPT with respect to $d$.
-
-
-
 
 \end{document}
