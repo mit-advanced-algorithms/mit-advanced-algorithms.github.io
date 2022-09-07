@@ -11,7 +11,6 @@
 | Instructor | [David Karger](https://people.csail.mit.edu/karger/) | `karger@mit.edu`         | Arrange by email. |
 | TA         | [Theia Henderson](https://theias.place/)             | `theia@mit.edu`          | TBD               |
 | TA         | [Michael Coulombe](https://www.mit.edu/~mcoulomb/)   | `mcoulomb@mit.edu`       | TBD               |
-| CA         | Rebecca Yadegar                                      | `ryadegar@csail.mit.edu` |                   |
 
 ## Summary
 

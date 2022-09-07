@@ -5,7 +5,7 @@ For notes and videos related to each topic, see the [course materials](course_ma
 | Date           | Topic                                                                    |
 |----------------|--------------------------------------------------------------------------|
 |                | *Schedule below subject to change.*                                      
-| Wed, Sep 7     | Course introduction. Fibonacci heaps. MST.                               
+| Wed, Sep 7     | Course introduction. Fibonacci heaps.
 | Fri, Sep 9     | Fibonacci heaps.                                                         
 | Mon, Sep 12    | Fibonacci heaps. MST. Persistent Data Structures.                        
 | Wed, Sep 14    | Persistent Data Structures. Splay Trees.                                 
