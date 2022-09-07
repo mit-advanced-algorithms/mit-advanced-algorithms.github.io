@@ -8,5 +8,5 @@ For more details, see the [course information](info.html).
 ## Announcements
 
 * If you intend to take this course please fill out [this survey](https://forms.gle/kHhiGbPnushjgtGD6). Note that this form does NOT replace official registration via MIT Registrar's office, it's for our own internal bookkeeping.
-* We will be using NB, a tool that permits students to discuss and ask questions about lecture videos, notes, and problems sets. For feature reasons we will be using one version of the tool to view and discuss videos and another to view and discuss notes and problems sets. You should sign up for NBv1 at [this link](http://nb.mit.edu/subscribe?key=NHkINbBuyc6gmLS06GO1OTnG47s9otSUnIFmM3eytwkvVQxj64). You will get a separate invite for NBv2.
+* We will be using [NB2](https://nb2.csail.mit.edu), a tool that permits students to discuss and ask questions about lecture videos, notes, and problems sets. You will receive an email to sign up once you fill out the survey above.
 * We've added this class to [psetpartners](https://psetpartners.mit.edu), which you can use to find collaborators and comply with the collaboration policy which limits the number of psets you can work on with any individual collaborator.
