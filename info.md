@@ -89,13 +89,13 @@ In order for the late submission to be graded students are additionally required
 ### Collaboration
 Collaboration is encouraged, except where explicitly forbidden.
 
-* All collaboration (who and what) must be clearly indicated in writing on anything turned in.
+* All collaboration, including **who** you worked with and **what** you worked on, must be clearly indicated in writing on anything turned in.
 * Collaborators should discuss solutions, but must write up all solutions independently, without reference to detailed collaboration notes.
 * Groups must be small so that each member plays a significant role (usually 3 or 4 students).
 * For projects every collaborator must contribute significantly to reading, implementation, and writeup. To allow this, groups should limit their size to 3 unless the project is unusually large. All members should be involved with all parts of the project and writeup. 
 * You may not seek out answers from other sources without prior permission. In particular, you may not use bibles or posted solutions to problems from previous years. 
-* You may not work with the same collaborator on more than 3 psets. We hope this will give you more opportunity to meet and learn from your amazing peers and help to level the playing field for students entering the class without existing social ties. Starting with problem set 4, you should not form a group with anyone that you have already worked with on 3 psets or more.
-* You can find collaborators for this course through [psetpartners](https://psetpartners.mit.edu/).
+* **You may not work with the same collaborator on more than 12 problems**. This is roughly equal to 3 psets worth of problems. We hope this will give you more opportunity to meet and learn from your amazing peers and help to level the playing field for students entering the class without existing social ties. Starting with problem set 4, make sure not form a group with anyone that you have already worked with on 12 problems or more.
+* You can find collaborators for this course through [psetpartners](https://psetpartners.mit.edu/). Matches will be made weekly. You can also use NB to find collaborators - simply highlight the problem title you're seeking a collaborator for and write something like “heyy, does anyone want to collab? 👻”.
 
 ## Peer Grading
 
