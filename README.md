@@ -1,4 +1,4 @@
-% 6.5210J Website and Lecture Materials
+# 6.5210J Website and Lecture Materials
 
 ## Compiling Locally
 

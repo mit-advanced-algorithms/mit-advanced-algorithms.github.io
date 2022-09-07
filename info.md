@@ -46,7 +46,7 @@ The goal is to be broad rather than deep. This list is approximate.
 
 ## Prerequisites
 
-Strong performance in an undergraduate class in algorithms (e.g., [6.1220J/18.410J, previously 6.046](http://student.mit.edu/catalog/search.cgi?search=6.1220&style=verbatim)), discrete mathematics and probability ([6.1200J, previously 6.042,](http://student.mit.edu/catalog/search.cgi?search=6.1200&style=verbatim) is more than sufficient), and substantial mathematical maturity. 
+Strong performance in an undergraduate class in algorithms (e.g., [6.1220/18.410, previously 6.046](http://student.mit.edu/catalog/search.cgi?search=6.1220&style=verbatim)), discrete mathematics and probability ([6.1200/18.062, previously 6.042,](http://student.mit.edu/catalog/search.cgi?search=6.1200&style=verbatim) is more than sufficient), and substantial mathematical maturity. 
 
 ## Requirements:
 
