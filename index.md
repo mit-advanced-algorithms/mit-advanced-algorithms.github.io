@@ -1,6 +1,6 @@
 % 6.5210J/18.415J: Advanced Algorithms
 
-This course is designed to be a capstone course in algorithms that surveys some of the most powerful algorithmic techniques and key computational models.
+This course is designed to be a capstone in algorithms that surveys some of the most powerful algorithmic techniques and key computational models.
 We will cover a broad selection of topics including amortization, hashing, dimensionality reduction, bit scaling, network flow, linear programming, and approximation algorithms. Domains that we will explore include data structures; algorithmic graph theory; streaming algorithms; online algorithms; parallel algorithms; computational geometry; external memory/cache oblivious algorithms; and continuous optimization.
 
 For more details, see the [course information](info.html).
