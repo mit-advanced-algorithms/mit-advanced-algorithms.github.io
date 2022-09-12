@@ -9,8 +9,8 @@
 | Role       | Name             | Email          | Office Hours             |
 |------------|------------------|----------------|--------------------------|
 | Instructor | [David Karger](https://people.csail.mit.edu/karger/) | `karger@mit.edu`         | Arrange by email. |
-| TA         | [Theia Henderson](https://theias.place/)             | `theia@mit.edu`          | M4-6 in 36-153, F4-5 in 36-144 |
-| TA         | [Michael Coulombe](https://www.mit.edu/~mcoulomb/)   | `mcoulomb@mit.edu`       | M7-9 in 36-153, F4-5 in 36-144 |
+| TA         | [Theia Henderson](https://theias.place/)             | `theia@mit.edu`          | M4-6 in [36](https://whereis.mit.edu/?go=36)-[153](https://floorplans.mit.edu/pdfs/36_1.pdf), F4-5 in [36](https://whereis.mit.edu/?go=36)-[144](https://floorplans.mit.edu/pdfs/36_1.pdf) |
+| TA         | [Michael Coulombe](https://www.mit.edu/~mcoulomb/)   | `mcoulomb@mit.edu`       | M7-9 in [36](https://whereis.mit.edu/?go=36)-[153](https://floorplans.mit.edu/pdfs/36_1.pdf), F4-5 in [36](https://whereis.mit.edu/?go=36)-[144](https://floorplans.mit.edu/pdfs/36_1.pdf) |
 
 ## Summary
 
