@@ -1,10 +1,10 @@
 % Problem Sets
 
-| Link | Due | [Gradescope](https://www.gradescope.com/) | Solutions |
+| Link | Due | Gradescope | Solutions |
 |----|---------|--------|----|
 | [1](https://nb.mit.edu/nb_viewer.html?id=897d7e3048627aac5a167e0b08fa3ab0) | Wed, Sep 14 | V5WK44 | TBD |
 
-Because of peer grading constrains, each pset will be submitted to a seperate [Gradescope](https://www.gradescope.com/) "course".
+Because of peer grading constrains, each pset will be submitted to a seperate Gradescope "course".
 Go to [Gradescope](https://www.gradescope.com/) and click "Enroll in Course" in the bottom right, then enter the pset's corresponding gradescope code.
 
 Make sure your pset submission adheres to the [submission guidelines](/info.html#submission) and the [collaboration policy](/info.html#collaboration).
