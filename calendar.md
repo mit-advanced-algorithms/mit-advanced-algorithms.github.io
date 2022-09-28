@@ -13,7 +13,7 @@ For notes and videos related to each topic, see the [course materials](materials
 | Wed, Sep 21    | [Van Emde Boas Queues. Universal Hashing.](https://youtu.be/MrL1NbUodsw)
 | Fri, Sep 23    | *Holiday*                                                                
 | Mon, Sep 26    | *Virtual*. Perfect Hashing. Max Flow: Flow Decomposition. S-T Cuts.                 
-| Wed, Sep 28    | Max Flow: Max-Flow Min-Cut. Augmenting Path Algorithms.                  
+| Wed, Sep 28    | [Max Flow: Max-Flow Min-Cut. Augmenting Path Algorithms.](https://youtu.be/J0qMsPcXh08)
 |                | *Schedule below subject to change.*
 | Fri, Sep 30    | Blocking Flows. State-of-the-Art Max Flow Results.                       
 | Mon, Oct 3     | Min Cost Flows                                                           

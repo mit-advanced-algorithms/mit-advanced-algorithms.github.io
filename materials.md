@@ -4,8 +4,8 @@ We've done our best to synchronize a breadth of materials developed over this co
 But be aware that some of the materials here --- particularly the scribe notes and 2013 lectures --- do not necessarily reflect exactly what has or will happen in this year's class.
 Be sure to check this year's [course calendar](calendar.html) for the most up-to-date syllabus.
 
-| Unit | Topic | Notes | Scribe | 2013 | 2020 | 2021 |
-|------|-------|-------|--------|------|------|------|
+| Unit  | Topic  | Notes | Scribe | 2013 | 2020 | 2021 | 2022 |
+|-------|--------|---|---|----|----|----|----|
 | | Introduction | [1](notes/n00-intro.html) | | | [1](https://youtu.be/rnwf0dDGNCM)
 |&nbsp;
 | Data Structures | Fibonacci Heaps | [1](notes/n01-fibonacci.html) | [1](scribe/s1-fibheaps/s1-fibheaps.html) | | [1](https://youtu.be/rnwf0dDGNCM?t=879), [2](https://youtu.be/TB3Y308PCrA)
