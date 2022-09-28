@@ -4,17 +4,17 @@ For notes and videos related to each topic, see the [course materials](materials
 
 | Date           | Topic                                                                    |
 |----------------|--------------------------------------------------------------------------|
-|                | *Schedule below subject to change.*                                      
 | Wed, Sep 7     | Course introduction. Fibonacci heaps.
 | Fri, Sep 9     | Fibonacci heaps.                                                         
-| Mon, Sep 12    | Fibonacci heaps. MST. Persistent Data Structures.                        
-| Wed, Sep 14    | Persistent Data Structures. Splay Trees.                                 
-| Fri, Sep 16    | Splay Trees.                                                             
-| Mon, Sep 19    | Buckets.                                                                 
-| Wed, Sep 21    | Van Emde Boas Queues. Universal Hashing.                                 
+| Mon, Sep 12    | [Fibonacci heaps. MST. Persistent Data Structures.](https://youtu.be/D9btHIAk4ac)
+| Wed, Sep 14    | [Persistent Data Structures. Splay Trees.](https://youtu.be/56AGGEkdA2g)
+| Fri, Sep 16    | [Splay Trees.](https://youtu.be/HCQJfTyMwi8)
+| Mon, Sep 19    | [Buckets.](https://youtu.be/4B3Y-NfBgW0)
+| Wed, Sep 21    | [Van Emde Boas Queues. Universal Hashing.](https://youtu.be/MrL1NbUodsw)
 | Fri, Sep 23    | *Holiday*                                                                
-| Mon, Sep 26    | Perfect Hashing. Max Flow: Flow Decomposition. S-T Cuts.                 
+| Mon, Sep 26    | *Virtual*. Perfect Hashing. Max Flow: Flow Decomposition. S-T Cuts.                 
 | Wed, Sep 28    | Max Flow: Max-Flow Min-Cut. Augmenting Path Algorithms.                  
+|                | *Schedule below subject to change.*
 | Fri, Sep 30    | Blocking Flows. State-of-the-Art Max Flow Results.                       
 | Mon, Oct 3     | Min Cost Flows                                                           
 | Wed, Oct 5     | Min Cost Flow Algorithms                                                 
