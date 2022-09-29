@@ -5,22 +5,22 @@ For notes and videos related to each topic, see the [course materials](materials
 | Date           | Topic                                                                    |
 |----------------|--------------------------------------------------------------------------|
 | Wed, Sep 7     | Course introduction. Fibonacci heaps.
-| Fri, Sep 9     | Fibonacci heaps.                                                         
-| Mon, Sep 12    | [Fibonacci heaps. MST. Persistent Data Structures.](https://youtu.be/D9btHIAk4ac)
-| Wed, Sep 14    | [Persistent Data Structures. Splay Trees.](https://youtu.be/56AGGEkdA2g)
-| Fri, Sep 16    | [Splay Trees.](https://youtu.be/HCQJfTyMwi8)
-| Mon, Sep 19    | [Buckets.](https://youtu.be/4B3Y-NfBgW0)
-| Wed, Sep 21    | [Van Emde Boas Queues. Universal Hashing.](https://youtu.be/MrL1NbUodsw)
+| Fri, Sep 9     | Fibonacci heaps. MST.
+| Mon, Sep 12    | [Persistent Data Structures.](https://youtu.be/D9btHIAk4ac)
+| Wed, Sep 14    | [Splay Trees.](https://youtu.be/56AGGEkdA2g)
+| Fri, Sep 16    | [Splay Trees. Buckets.](https://youtu.be/HCQJfTyMwi8)
+| Mon, Sep 19    | [Van Emde Boas Queues. Universal Hashing.](https://youtu.be/4B3Y-NfBgW0)
+| Wed, Sep 21    | [Universal Hashing. Perfect Hashing. Max Flow.](https://youtu.be/MrL1NbUodsw)
 | Fri, Sep 23    | *Holiday*                                                                
-| Mon, Sep 26    | *Virtual*. Perfect Hashing. Max Flow: Flow Decomposition. S-T Cuts.                 
-| Wed, Sep 28    | [Max Flow: Max-Flow Min-Cut. Augmenting Path Algorithms.](https://youtu.be/J0qMsPcXh08)
+| Mon, Sep 26    | Max Flow: Max Flow Min Cut. Augmenting Path Algorithms. *Virtual*: [pt1](https://youtu.be/8SNNFjxKEJg?t=3088), [pt2 until 52 minutes](https://youtu.be/L3uhqXpo1t0?t=297)
+| Wed, Sep 28    | [Max Flow: Augmenting Path and Strongly Poly Algorithms.](https://youtu.be/J0qMsPcXh08)
 |                | *Schedule below subject to change.*
-| Fri, Sep 30    | Blocking Flows. State-of-the-Art Max Flow Results.                       
-| Mon, Oct 3     | Min Cost Flows                                                           
-| Wed, Oct 5     | Min Cost Flow Algorithms                                                 
-| Fri, Oct 7     | Linear Programming: Introduction. Size of Solutions.                     
+| Fri, Sep 30    | Blocking Flows. State-of-the-Art Max Flow Results.
+| Mon, Oct 3     | Min Cost Flows
+| Wed, Oct 5     | Min Cost Flow Algorithms
+| Fri, Oct 7     | Linear Programming: Introduction. Size of Solutions.
 | Mon, Oct 10    | *Indigenous People's Day - No class*
-| Wed, Oct 12    | Linear Programming: Geometry. Structure of Optima. Duality Introduction. 
+| Wed, Oct 12    | Linear Programming: Geometry. Structure of Optima. Duality Introduction.
 | Fri, Oct 14    | Linear Programming: Strong Duality.
 | Mon, Oct 17    | Linear Programming: Rules for Taking Duals. Duality Examples. Complementary Slackness.
 | Wed, Oct 19    | Linear Programming: Min-Cost Circulation Dual. Simplex Method.
