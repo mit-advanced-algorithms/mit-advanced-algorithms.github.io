@@ -12,7 +12,7 @@ For notes and videos related to each topic, see the [course materials](materials
 | Mon, Sep 19    | [Van Emde Boas Queues. Universal Hashing.](https://youtu.be/4B3Y-NfBgW0)
 | Wed, Sep 21    | [Universal Hashing. Perfect Hashing. Max Flow.](https://youtu.be/MrL1NbUodsw)
 | Fri, Sep 23    | *Holiday*                                                                
-| Mon, Sep 26    | Max Flow: Max Flow Min Cut. Augmenting Path Algorithms. *Virtual*: [pt1](https://youtu.be/8SNNFjxKEJg?t=3088), [pt2 until 52 minutes](https://youtu.be/L3uhqXpo1t0?t=297)
+| Mon, Sep 26    | Max Flow: Max Flow Min Cut. Augmenting Path Algorithms.<br>*Virtual*: [Pt 1](https://youtu.be/8SNNFjxKEJg?t=3088), [Pt 2 until 52 minutes](https://youtu.be/L3uhqXpo1t0?t=297)
 | Wed, Sep 28    | [Max Flow: Augmenting Path and Strongly Poly Algorithms.](https://youtu.be/J0qMsPcXh08)
 |                | *Schedule below subject to change.*
 | Fri, Sep 30    | Blocking Flows. State-of-the-Art Max Flow Results.
