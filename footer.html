@@ -2,4 +2,11 @@
 <footer>
   <a href="https://accessibility.mit.edu/">Accessibility</a>
 </footer>
-<script src="https://nb.mit.edu/client/js/bundle.js" type="text/javascript"></script>
+<script>
+  const path = window.location.pathname
+  for (const s of ["notes", "scribe"]) {
+    if (path.startsWith(s,1)) {
+      document.write("<script src='https://nb.mit.edu/client/js/bundle.js' type='text/javascript'></"+"script>")
+    }
+  }
+</script>
