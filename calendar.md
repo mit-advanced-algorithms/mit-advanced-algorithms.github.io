@@ -14,8 +14,8 @@ For notes and videos related to each topic, see the [course materials](materials
 | Fri, Sep 23    | *Holiday*                                                                
 | Mon, Sep 26    | Max Flow: Max Flow Min Cut. Augmenting Path Algorithms.<br>*Virtual*: [Pt 1](https://youtu.be/8SNNFjxKEJg?t=3088), [Pt 2 until 52 minutes](https://youtu.be/L3uhqXpo1t0?t=297)
 | Wed, Sep 28    | [Max Flow: Augmenting Path and Strongly Poly Algorithms.](https://youtu.be/J0qMsPcXh08)
+| Fri, Sep 30    | [Max Flow: Strongly Poly Algorithms and Blocking Flows.](https://youtu.be/_7Yf8OzSnHI)
 |                | *Schedule below subject to change.*
-| Fri, Sep 30    | Blocking Flows. State-of-the-Art Max Flow Results.
 | Mon, Oct 3     | Min Cost Flows
 | Wed, Oct 5     | Min Cost Flow Algorithms
 | Fri, Oct 7     | Linear Programming: Introduction. Size of Solutions.
