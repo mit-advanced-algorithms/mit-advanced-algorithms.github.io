@@ -15,8 +15,8 @@ For notes and videos related to each topic, see the [course materials](materials
 | Mon, Sep 26    | Max Flow: Max Flow Min Cut. Augmenting Path Algorithms.<br>*Virtual*: [Pt 1](https://youtu.be/8SNNFjxKEJg?t=3088), [Pt 2 until 52 minutes](https://youtu.be/L3uhqXpo1t0?t=297)
 | Wed, Sep 28    | [Max Flow: Augmenting Path and Strongly Poly Algorithms.](https://youtu.be/J0qMsPcXh08)
 | Fri, Sep 30    | [Max Flow: Strongly Poly Algorithms and Blocking Flows.](https://youtu.be/_7Yf8OzSnHI)
-| Mon, Oct 3     | [Min Cost Flows](https://youtu.be/DRZuoNzAVUU)
-| Wed, Oct 5     | Min Cost Flow Algorithms.<br>*Virtual*: [Pt 1](https://youtu.be/Fi_AiRKWoUI?t=2860), [Pt 2 until 30:00](https://youtu.be/W-C8qtkUJZY)
+| Mon, Oct 3     | [Blocking Flows and Min Cost Flow](https://youtu.be/DRZuoNzAVUU)
+| Wed, Oct 5     | Min Cost Flow Algorithms.<br>*Virtual*: [Pt 1](https://youtu.be/Fi_AiRKWoUI?t=2860), [Pt 2 until 30 minutes](https://youtu.be/W-C8qtkUJZY)
 |                | *Schedule below subject to change.*
 | Fri, Oct 7     | Linear Programming: Introduction. Size of Solutions.
 | Mon, Oct 10    | *Indigenous People's Day - No class*
