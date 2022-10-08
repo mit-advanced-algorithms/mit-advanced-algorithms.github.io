@@ -17,10 +17,10 @@ For notes and videos related to each topic, see the [course materials](materials
 | Fri, Sep 30    | [Max Flow: Strongly Poly Algorithms and Blocking Flows.](https://youtu.be/_7Yf8OzSnHI)
 | Mon, Oct 3     | [Blocking Flows and Min Cost Flow](https://youtu.be/DRZuoNzAVUU)
 | Wed, Oct 5     | Min Cost Flow Algorithms.<br>*Virtual*: [Pt 1](https://youtu.be/Fi_AiRKWoUI?t=2860), [Pt 2 until 30 minutes](https://youtu.be/W-C8qtkUJZY)
-|                | *Schedule below subject to change.*
-| Fri, Oct 7     | Linear Programming: Introduction. Size of Solutions.
+| Fri, Oct 7     | [Min Cost Flow. Linear Programming: Introduction.](https://youtu.be/8qBklv7DqEQ)
 | Mon, Oct 10    | *Indigenous People's Day - No class*
-| Wed, Oct 12    | Linear Programming: Geometry. Structure of Optima. Duality Introduction.
+|                | *Schedule below subject to change.*
+| Wed, Oct 12    | Linear Programming: Size of Solutions. Geometry. Structure of Optima. Duality Introduction.
 | Fri, Oct 14    | Linear Programming: Strong Duality.
 | Mon, Oct 17    | Linear Programming: Rules for Taking Duals. Duality Examples. Complementary Slackness.
 | Wed, Oct 19    | Linear Programming: Min-Cost Circulation Dual. Simplex Method.
