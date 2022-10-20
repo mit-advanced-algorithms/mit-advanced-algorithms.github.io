@@ -22,8 +22,8 @@ For notes and videos related to each topic, see the [course materials](materials
 | Wed, Oct 12    | [Linear Programming: Size of Solutions. Geometry. Structure of Optima.](https://youtu.be/9OVslCDCNe4)
 | Fri, Oct 14    | [Linear Programming: Structure of Optima. Weak Duality. Strong Duality Physics Proof.](https://youtu.be/A9DraWTBoq8)
 | Mon, Oct 17    | Linear Programming: Strong Duality Formal Proof. Rules for Taking Duals. Shortest Paths Dual.<br>*Virtual*: [Pt 1](https://youtu.be/AljrKkaQSyA?t=2703), [Pt 2 until 42 minutes](https://www.youtube.com/watch?v=96gDpxJkJtc)
-|                | *Schedule below subject to change.*
 | Wed, Oct 19    | Linear Programming: Max Flow Dual. Complementary Slackness. Min-Cost Circulation Dual. Simplex Method.
+|                | *Schedule below subject to change.*
 | Fri, Oct 21    | Linear Programming: Simplex Method. Ellipsoid Method.
 | Mon, Oct 24    | Linear Programming: Interior Point Method. Approximation Algorithms: Introduction.
 | Wed, Oct 26    | Approximation Algorithms: Greedy approaches. Scheduling. Approximation Schemes (PAS).
