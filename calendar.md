@@ -25,10 +25,10 @@ For notes and videos related to each topic, see the [course materials](materials
 | Wed, Oct 19    | [Linear Programming: Max Flow Dual. Complementary Slackness. Min-Cost Circulation Dual.](https://youtu.be/0pQDm54dDxM)
 | Fri, Oct 21    | *No class*
 | Mon, Oct 24    | [Linear Programming Algorithms: Simplex Method.](https://youtu.be/rIfTLjekQNk)
+| Wed, Oct 26    | [Linear Programming Algorithms: Simplex and Duality. Ellipsoid Method.](https://youtu.be/HRmji2_3hUU)
 |                | *Schedule below subject to change.*
-| Wed, Oct 26    | Linear Programming Algorithms: Simplex and Duality. Ellipsoid Method. Interior Point Method. Approximation Algorithms: Introduction.
-| Fri, Oct 28    | Approximation Algorithms: Greedy approaches. Scheduling. Approximation Schemes (PAS).
-| Mon, Oct 31    | Approximation Algorithms: Fully Polynomial Time Approximation Schemes (FPAS). Rounding. Enumeration.
+| Fri, Oct 28    | Approximation Algorithms: Introduction Greedy approaches. Scheduling.
+| Mon, Oct 31    | Linear Programming Revisited: Interior Point Method. Approximation Algorithms: Approximation Schemes. Rounding. Enumeration.
 | Wed, Nov 2     | Approximation Algorithms: Relaxations. TSP. LP Relaxations.
 | Fri, Nov 4     | Approximation Algorithms: LP Relaxations. Facility Location. Approximation-Preserving Reductions.
 | Mon, Nov 7     | Approximation Algorithms: Randomized Rounding. Fixed Parameter Tractability.
