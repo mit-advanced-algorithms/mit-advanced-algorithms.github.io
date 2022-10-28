@@ -7,8 +7,9 @@
 | [3](https://nb.mit.edu/nb_viewer.html?id=095c81f220ab8083e9f5ebe7557e1c16) | Wed, Sep 28 | E76KVG | [3](https://nb.mit.edu/nb_viewer.html?id=ea83ff781d94e9c299e4ba70fabf13b0) |
 | [4](https://nb.mit.edu/nb_viewer.html?id=176b5feb9d4397293b09be330b772834) | Wed, Oct 5  | XV8DD4 | [4](https://nb.mit.edu/nb_viewer.html?id=510bb5978d0b91f8469baa0a2921a205) |
 | [5](https://nb.mit.edu/nb_viewer.html?id=1954391b9685f10aa23ac5f76632695d) | Wed, Oct 12 | 6Z87NJ | [5](https://nb.mit.edu/nb_viewer.html?id=2e8dc920f8968eae93ee055f6fddf1f9)
-| [6](https://nb.mit.edu/nb_viewer.html?id=193bcb4cf0b55a2111c13d7f34e21197) | Wed, Oct 19 | E7BPKV | (TBD) |
-| [7](https://nb.mit.edu/nb_viewer.html?id=2124c0d21a6427aacd0e78a66841825a) | Wed, Oct 26 | WVDR6B | (TBD) |
+| [6](https://nb.mit.edu/nb_viewer.html?id=193bcb4cf0b55a2111c13d7f34e21197) | Wed, Oct 19 | E7BPKV | TBD |
+| [7](https://nb.mit.edu/nb_viewer.html?id=2124c0d21a6427aacd0e78a66841825a) | Wed, Oct 26 | WVDR6B | TBD |
+| [8](https://nb.mit.edu/nb_viewer.html?id=05f5cc0f3e44b549269f1a6e410e6178) | Wed, Nov 2 | TBD | TBD 
 
 Because of peer grading constrains, each pset will be submitted to a seperate Gradescope "course".
 Go to [Gradescope](https://www.gradescope.com/) and click "Enroll in Course" in the bottom right, then enter the pset's corresponding gradescope code.
