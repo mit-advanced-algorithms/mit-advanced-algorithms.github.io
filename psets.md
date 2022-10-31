@@ -9,7 +9,7 @@
 | [5](https://nb.mit.edu/nb_viewer.html?id=1954391b9685f10aa23ac5f76632695d) | Wed, Oct 12 | 6Z87NJ | [5](https://nb.mit.edu/nb_viewer.html?id=2e8dc920f8968eae93ee055f6fddf1f9)
 | [6](https://nb.mit.edu/nb_viewer.html?id=193bcb4cf0b55a2111c13d7f34e21197) | Wed, Oct 19 | E7BPKV | TBD |
 | [7](https://nb.mit.edu/nb_viewer.html?id=2124c0d21a6427aacd0e78a66841825a) | Wed, Oct 26 | WVDR6B | TBD |
-| [8](https://nb.mit.edu/nb_viewer.html?id=05f5cc0f3e44b549269f1a6e410e6178) | Wed, Nov 2 | TBD | TBD 
+| [8](https://nb.mit.edu/nb_viewer.html?id=05f5cc0f3e44b549269f1a6e410e6178) | Wed, Nov 2 | 3J6YYD | TBD |
 
 Because of peer grading constrains, each pset will be submitted to a seperate Gradescope "course".
 Go to [Gradescope](https://www.gradescope.com/) and click "Enroll in Course" in the bottom right, then enter the pset's corresponding gradescope code.
