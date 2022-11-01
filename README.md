@@ -2,7 +2,7 @@
 
 ## Compiling Locally
 
-To compile locally you need to install ![pandoc](https://pandoc.org/).
+To compile locally you need to install [pandoc](https://pandoc.org/).
 Once installed, run the following:
 
     ./make.sh

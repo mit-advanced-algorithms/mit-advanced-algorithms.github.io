@@ -26,10 +26,10 @@ For notes and videos related to each topic, see the [course materials](materials
 | Fri, Oct 21    | *No class*
 | Mon, Oct 24    | [Linear Programming Algorithms: Simplex Method.](https://youtu.be/rIfTLjekQNk)
 | Wed, Oct 26    | [Linear Programming Algorithms: Simplex and Duality. Ellipsoid Method.](https://youtu.be/HRmji2_3hUU)
+| Fri, Oct 28    | [Approximation Algorithms: Introduction. Greedy approaches.](https://youtu.be/oJ2twKyHSAk)
+| Mon, Oct 31    | [Linear Programming Revisited: Interior Point Method. Approximation Algorithms: More Greedy Examples. Scheduling.](https://youtu.be/QUqwXEY1L08)
 |                | *Schedule below subject to change.*
-| Fri, Oct 28    | Approximation Algorithms: Introduction Greedy approaches. Scheduling.
-| Mon, Oct 31    | Linear Programming Revisited: Interior Point Method. Approximation Algorithms: Approximation Schemes. Rounding. Enumeration.
-| Wed, Nov 2     | Approximation Algorithms: Relaxations. TSP. LP Relaxations.
+| Wed, Nov 2     | Approximation Algorithms: Approximation Schemes. Rounding. Enumeration. Relaxations. TSP. LP Relaxations.
 | Fri, Nov 4     | Approximation Algorithms: LP Relaxations. Facility Location. Approximation-Preserving Reductions.
 | Mon, Nov 7     | Approximation Algorithms: Randomized Rounding. Fixed Parameter Tractability.
 | Wed, Nov 9     | Treewidth. Computational Geometry: Range Trees. Sweep Algorithms.
