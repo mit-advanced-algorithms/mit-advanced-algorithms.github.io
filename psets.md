@@ -10,7 +10,7 @@
 | [6](https://nb.mit.edu/nb_viewer.html?id=193bcb4cf0b55a2111c13d7f34e21197) | Wed, Oct 19 | E7BPKV | [6](https://nb.mit.edu/nb_viewer.html?id=b4f69cfa23b2140d32d4a4d9d4364eef) |
 | [7](https://nb.mit.edu/nb_viewer.html?id=2124c0d21a6427aacd0e78a66841825a) | Wed, Oct 26 | WVDR6B | [7](https://nb.mit.edu/nb_viewer.html?id=b552891d945d236b6f1d88970dbfffa3) |
 | [8](https://nb.mit.edu/nb_viewer.html?id=05f5cc0f3e44b549269f1a6e410e6178) | Thu, Nov 3 | 3J6YYD | TBD |
-| [9](https://nb.mit.edu/nb_viewer.html?id=6961022e9b155fce47936b6d0a9f1999) | Wed, Nov 9 | 3J6YYD | TBD |
+| [9](https://nb.mit.edu/nb_viewer.html?id=6961022e9b155fce47936b6d0a9f1999) | Wed, Nov 9 | TBD | TBD |
 
 
 
