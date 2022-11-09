@@ -29,10 +29,10 @@ For notes and videos related to each topic, see the [course materials](materials
 | Fri, Oct 28    | [Approximation Algorithms: Introduction. Greedy approaches.](https://youtu.be/oJ2twKyHSAk)
 | Mon, Oct 31    | [Linear Programming Revisited: Interior Point Method. Approximation Algorithms: More Greedy Examples. Scheduling.](https://youtu.be/QUqwXEY1L08)
 | Wed, Nov 2     | [Approximation Algorithms: Approximation Schemes. Rounding. Enumeration.](https://youtu.be/qeRwWtrfvQQ)
+| Fri, Nov 4     | [Approximation Algorithms: Enumeration. Relaxations: MST, TSP.](https://youtu.be/L1ya3h7VDdg)
+| Mon, Nov 7     | [Approximation Algorithms: Scheduling Relaxation. LP Relaxations. Facility Location.](https://youtu.be/f7SzcflsSXk)
 |                | *Schedule below subject to change.*
-| Fri, Nov 4     | Approximation Algorithms: Relaxations. TSP. LP Relaxations. Facility Location. Approximation-Preserving Reductions.
-| Mon, Nov 7     | Approximation Algorithms: Randomized Rounding. Fixed Parameter Tractability.
-| Wed, Nov 9     | Treewidth. Computational Geometry: Range Trees. Sweep Algorithms.
+| Wed, Nov 9     | Approximation-Preserving Reductions. Randomized Rounding. Fixed Parameter Tractability. Treewidth. Computational Geometry: Range Trees. Sweep Algorithms.
 | Fri, Nov 11    | *Veteran's Day*
 | Mon, Nov 14    | Computational Geometry: Voronoi Diagrams.
 | Wed, Nov 16    | Online Algorithms: Ski Rental. Finance.
