@@ -31,12 +31,13 @@ For notes and videos related to each topic, see the [course materials](materials
 | Wed, Nov 2     | [Approximation Algorithms: Approximation Schemes. Rounding. Enumeration.](https://youtu.be/qeRwWtrfvQQ)
 | Fri, Nov 4     | [Approximation Algorithms: Enumeration. Relaxations: MST, TSP.](https://youtu.be/L1ya3h7VDdg)
 | Mon, Nov 7     | [Approximation Algorithms: Scheduling Relaxation. LP Relaxations. Facility Location.](https://youtu.be/f7SzcflsSXk)
+| Wed, Nov 9     | [Approximation Algorithms: Facility Location. MAX-SAT. Randomized Rounding.](https://youtu.be/yUoi8F0PBBw)
 |                | *Schedule below subject to change.*
-| Wed, Nov 9     | Approximation-Preserving Reductions. Randomized Rounding. Fixed Parameter Tractability. Treewidth. Computational Geometry: Range Trees. Sweep Algorithms.
 | Fri, Nov 11    | *Veteran's Day*
-| Mon, Nov 14    | Computational Geometry: Voronoi Diagrams.
+| Mon, Nov 14    | Computational Geometry: Range Trees. Sweep Algorithms. Voronoi Diagrams.
 | Wed, Nov 16    | Online Algorithms: Ski Rental. Finance.
 | Fri, Nov 18    | Online Algorithms: Load Balancing. Paging. Randomization.
 | Mon, Nov 21    | Online Algorithms: Paging. Randomization. K-Server Problem.
 | Wed, Nov 23    | Online Algorithms: K-Server Problem. External Memory Algorithms: Matrices. Linked Lists. Search Trees.
 | Mon, Nov 28    | External Memory Algorithms: Sorting. Buffer Trees. Cache Oblivious Algorithms.
+| Bonus          | Fixed Parameter Tractability. Treewidth.
