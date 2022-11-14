@@ -34,7 +34,7 @@ For notes and videos related to each topic, see the [course materials](materials
 | Wed, Nov 9     | [Approximation Algorithms: Facility Location. MAX-SAT. Randomized Rounding.](https://youtu.be/yUoi8F0PBBw)
 |                | *Schedule below subject to change.*
 | Fri, Nov 11    | *Veteran's Day*
-| Mon, Nov 14    | Computational Geometry: Range Trees. Sweep Algorithms. Voronoi Diagrams.
+| Mon, Nov 14    | [Computational Geometry: Range Trees. Sweep Algorithms. Voronoi Diagrams.](https://youtu.be/IF1ucGEHk78)
 | Wed, Nov 16    | Online Algorithms: Ski Rental. Finance.
 | Fri, Nov 18    | Online Algorithms: Load Balancing. Paging. Randomization.
 | Mon, Nov 21    | Online Algorithms: Paging. Randomization. K-Server Problem.

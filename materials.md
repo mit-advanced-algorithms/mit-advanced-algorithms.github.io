@@ -37,7 +37,7 @@ Be sure to check this year's [course calendar](calendar.html) for the most up-to
 | Fixed Parameter Tractability | Introduction | [1](notes/n22-fixedparam.html) | [1](scribe/s21-fixedParamNP/s21-fixedParamNP.html) | | [1](https://youtu.be/3LeoTYqhddI?t=3194) | [1](https://youtu.be/rtv3bQ6KoUQ?t=2899)
 | | Treewidth | ^ | ^ | | [1](https://youtu.be/3LeoTYqhddI?t=4359) | [1](https://youtu.be/rtv3bQ6KoUQ?t=4154), [2](https://youtu.be/O8bYwi731L8)
 |&nbsp;
-| Comp. Geometry | Range Search | [1](notes/n27-geometry.html) | | | [1](https://youtu.be/0IwWyxswBgw?t=10) | [1](https://youtu.be/O8bYwi731L8?t=1653)
+| Comp. Geometry | Range Search | [1](notes/n27-geometry.html) | | | [1](https://youtu.be/0IwWyxswBgw?t=10) | [1](https://youtu.be/O8bYwi731L8?t=1653) | [1](https://youtu.be/IF1ucGEHk78)
 | | Sweep | ^ | [1](scribe/s27-sweepline/s27-sweepline.html) | | [1](https://youtu.be/0IwWyxswBgw?t=3216) | [1](https://youtu.be/O8bYwi731L8?t=4137)
 | | Voronoi | ^ | [1](scribe/s28-voronoi/s28-voronoi.html) | | [1](https://youtu.be/nC9qRtel7_E) | [1](https://youtu.be/cDHYDD_m69o), [2](https://youtu.be/1J4717ike0Q)
 |&nbsp;
