@@ -34,10 +34,10 @@ For notes and videos related to each topic, see the [course materials](materials
 | Wed, Nov 9     | [Approximation Algorithms: Facility Location. MAX-SAT. Randomized Rounding.](https://youtu.be/yUoi8F0PBBw)
 | Fri, Nov 11    | *Veteran's Day*
 | Mon, Nov 14    | [Computational Geometry: Range Trees. Sweep Algorithms. Voronoi Diagrams.](https://youtu.be/IF1ucGEHk78)
+| Wed, Nov 16    | [Vornoi Diagrams Continued. Online Algorithms Introduction](https://youtu.be/3LENh0-2gq4)
+| Fri, Nov 18    | [Online Algorithms: Ski Rental. Finance. Load Balancing. Paging.](https://youtu.be/J_aYjT6etk8)
+| Mon, Nov 21    | [Online Algorithms: Randomization. K-Server Problem.](https://youtu.be/6riywjbZSao)
 |                | *Schedule below subject to change.*
-| Wed, Nov 16    | Online Algorithms: Ski Rental. Finance.
-| Fri, Nov 18    | Online Algorithms: Load Balancing. Paging. Randomization.
-| Mon, Nov 21    | Online Algorithms: Paging. Randomization. K-Server Problem.
 | Wed, Nov 23    | Online Algorithms: K-Server Problem. External Memory Algorithms: Matrices. Linked Lists. Search Trees.
 | Mon, Nov 28    | External Memory Algorithms: Sorting. Buffer Trees. Cache Oblivious Algorithms.
 | Bonus          | Fixed Parameter Tractability. Treewidth.
