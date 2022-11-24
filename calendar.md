@@ -37,7 +37,7 @@ For notes and videos related to each topic, see the [course materials](materials
 | Wed, Nov 16    | [Vornoi Diagrams Continued. Online Algorithms Introduction](https://youtu.be/3LENh0-2gq4)
 | Fri, Nov 18    | [Online Algorithms: Ski Rental. Finance. Load Balancing. Paging.](https://youtu.be/J_aYjT6etk8)
 | Mon, Nov 21    | [Online Algorithms: Randomization. K-Server Problem.](https://youtu.be/6riywjbZSao)
+| Wed, Nov 23    | [Online Algorithms: K-Server Problem. External Memory Algorithms: Matrices. Linked Lists. Search Trees.](https://youtu.be/_sgEshtzjLs)
 |                | *Schedule below subject to change.*
-| Wed, Nov 23    | Online Algorithms: K-Server Problem. External Memory Algorithms: Matrices. Linked Lists. Search Trees.
 | Mon, Nov 28    | External Memory Algorithms: Sorting. Buffer Trees. Cache Oblivious Algorithms.
 | Bonus          | Fixed Parameter Tractability. Treewidth.
