@@ -38,14 +38,15 @@ Be sure to check this year's [course calendar](calendar.html) for the most up-to
 | | Treewidth | ^ | ^ | | [1](https://youtu.be/3LeoTYqhddI?t=4359) | [1](https://youtu.be/rtv3bQ6KoUQ?t=4154), [2](https://youtu.be/O8bYwi731L8)
 |&nbsp;
 | Comp. Geometry | Range Search | [1](notes/n27-geometry.html) | | | [1](https://youtu.be/0IwWyxswBgw?t=10) | [1](https://youtu.be/O8bYwi731L8?t=1653) | [1](https://youtu.be/IF1ucGEHk78)
-| | Sweep | ^ | [1](scribe/s27-sweepline/s27-sweepline.html) | | [1](https://youtu.be/0IwWyxswBgw?t=3216) | [1](https://youtu.be/O8bYwi731L8?t=4137)
-| | Voronoi | ^ | [1](scribe/s28-voronoi/s28-voronoi.html) | | [1](https://youtu.be/nC9qRtel7_E) | [1](https://youtu.be/cDHYDD_m69o), [2](https://youtu.be/1J4717ike0Q)
+| | Sweep | ^ | [1](scribe/s27-sweepline/s27-sweepline.html) | | [1](https://youtu.be/0IwWyxswBgw?t=3216) | [1](https://youtu.be/O8bYwi731L8?t=4137) | [1](https://youtu.be/IF1ucGEHk78?t=2224)
+| | Voronoi | ^ | [1](scribe/s28-voronoi/s28-voronoi.html) | | [1](https://youtu.be/nC9qRtel7_E) | [1](https://youtu.be/cDHYDD_m69o), [2](https://youtu.be/1J4717ike0Q) | [1](https://youtu.be/IF1ucGEHk78?t=3946), [2](https://youtu.be/3LENh0-2gq4)
 |&nbsp;
-| Online | Introduction | [1](notes/n25-online.html) | [1](scribe/s25-online/s25-online.html) | | [1](https://youtu.be/s_mdr99RsLc) | [1](https://youtu.be/1J4717ike0Q?t=1398), [2](https://youtu.be/BIIpQUotbno)
-| | Paging | ^ | [1](scribe/s24-paging/s24-paging.html) | [1](https://youtu.be/IyWOjd-oZ4o) | [1](https://youtu.be/s_mdr99RsLc?t=3561), [2](https://youtu.be/Q4iFFSVOlnQ) | [1](https://youtu.be/BIIpQUotbno?t=625)
-| | ↳Randomized | ^ | ^ | [1](https://youtu.be/IyWOjd-oZ4o?t=1818) | [1](https://youtu.be/Q4iFFSVOlnQ?t=1658), [2](https://youtu.be/9SLQ8QCj-WA) | [1](https://youtu.be/BIIpQUotbno?t=3519), [2](https://youtu.be/r1i0kOFpmSM)
-| | ↳K-Server | ^ | ^ | | [1](https://youtu.be/9SLQ8QCj-WA?t=3348), [2](https://youtu.be/LSPRCN-9lEU) | [1](https://youtu.be/r1i0kOFpmSM?t=4094), [2](https://youtu.be/EJEezh94jCY)
+| Online | Introduction | [1](notes/n25-online.html) | [1](scribe/s25-online/s25-online.html) | | [1](https://youtu.be/s_mdr99RsLc) | [1](https://youtu.be/1J4717ike0Q?t=1398), [2](https://youtu.be/BIIpQUotbno) | [1](https://youtu.be/3LENh0-2gq4?t=4311), [2](https://youtu.be/J_aYjT6etk8)
+| | Paging | ^ | [1](scribe/s24-paging/s24-paging.html) | [1](https://youtu.be/IyWOjd-oZ4o) | [1](https://youtu.be/s_mdr99RsLc?t=3561), [2](https://youtu.be/Q4iFFSVOlnQ) | [1](https://youtu.be/BIIpQUotbno?t=625) | [1](https://youtu.be/J_aYjT6etk8?t=3503)
+| | ↳Randomized | ^ | ^ | [1](https://youtu.be/IyWOjd-oZ4o?t=1818) | [1](https://youtu.be/Q4iFFSVOlnQ?t=1658), [2](https://youtu.be/9SLQ8QCj-WA) | [1](https://youtu.be/BIIpQUotbno?t=3519), [2](https://youtu.be/r1i0kOFpmSM) | [1](https://youtu.be/6riywjbZSao?t=181)
+| | ↳K-Server | ^ | ^ | | [1](https://youtu.be/9SLQ8QCj-WA?t=3348), [2](https://youtu.be/LSPRCN-9lEU) | [1](https://youtu.be/r1i0kOFpmSM?t=4094), [2](https://youtu.be/EJEezh94jCY) | [1](https://youtu.be/6riywjbZSao?t=3066)
+| | Lower Bounds | ^ | ^ | | | | [1](https://youtu.be/_sgEshtzjLs)
 |&nbsp;
-| External Memory | | [1](notes/n28-external.html) | [1](scribe/other/lect_31.html) | | [1](https://youtu.be/LSPRCN-9lEU?t=3743), [2](https://youtu.be/VI5ma9Y4to8) | [1](https://youtu.be/EJEezh94jCY?t=2288), [2](https://youtu.be/MmynaxvkgVU)
+| External Memory | | [1](notes/n28-external.html) | [1](scribe/other/lect_31.html) | | [1](https://youtu.be/LSPRCN-9lEU?t=3743), [2](https://youtu.be/VI5ma9Y4to8) | [1](https://youtu.be/EJEezh94jCY?t=2288), [2](https://youtu.be/MmynaxvkgVU) | [1](https://youtu.be/_sgEshtzjLs?t=2742)
 |&nbsp;
 | Parallel | | [1](notes/n32-parallel.html) | | | [1](https://youtu.be/VlJWpUG0InU), [2](https://youtu.be/ISZRE5qt_Kc)
