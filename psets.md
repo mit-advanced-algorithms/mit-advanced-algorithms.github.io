@@ -12,7 +12,7 @@
 | [8](https://nb.mit.edu/nb_viewer.html?id=05f5cc0f3e44b549269f1a6e410e6178) | Thu, Nov 3 | 3J6YYD | [8](https://nb.mit.edu/nb_viewer.html?id=29226ef9bdf11a46338ea0ef35f754c5) |
 | [9](https://nb.mit.edu/nb_viewer.html?id=6961022e9b155fce47936b6d0a9f1999) | Wed, Nov 9 | 5767RJ | [9](https://nb.mit.edu/nb_viewer.html?id=ae341b94beae63a8118553ade3a8ee79) |
 | [10](https://nb.mit.edu/nb_viewer.html?id=9ddf96821cab6f69ee9aa7578be65f3a) | Wed, Nov 16 | 7GZXJN | [10](https://nb.mit.edu/nb_viewer.html?id=81e49571159c4e4260d6a244df54f1b2) |
-| [11](https://nb.mit.edu/nb_viewer.html?id=ba2d3d95fb1037f03c20fab802ccd38b) | Wed, Nov 23 | E72XV8 | TBD |
+| [11](https://nb.mit.edu/nb_viewer.html?id=ba2d3d95fb1037f03c20fab802ccd38b) | Wed, Nov 23 | E72XV8 | [11](https://nb.mit.edu/nb_viewer.html?id=b394b556e2ea3db320b1079b8f0916f0) |
 | [**PROJECT**](https://nb.mit.edu/nb_viewer.html?id=dc498990eef304a9f7826cd5c28d208f) | Wed, Dec 14 |
 
 Because of peer grading constraints, each pset will be submitted to a seperate Gradescope "course".
